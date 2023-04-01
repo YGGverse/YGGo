@@ -35,3 +35,5 @@ sqlite / fts5
 * [ ] Improve yggdrasil links detection, add .ygg domain zone support
 * [ ] Images search (basically implemented but requires testing and some performance optimization)
 * [ ] Distributed index data sharing between the nodes trough service API
+* [ ] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
+* [ ] An idea to make some visitors counters, like in good old times?
