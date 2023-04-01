@@ -1,0 +1,6 @@
+.vscode
+.ftpignore
+
+config/app.php
+
+storage
