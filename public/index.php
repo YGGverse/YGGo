@@ -117,7 +117,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       </form>
     </header>
     <footer>
-      <a href="https://github.com/d47081/YGGo"><?php echo _('meow') ?></a>
+      <a href="https://github.com/d47081/YGGo/issues"><?php echo _('meow') ?></a>
     </footer>
   </body>
 </html>
