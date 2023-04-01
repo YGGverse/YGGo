@@ -8,7 +8,13 @@ The goal - simple interface, clear architecture and lightweight server requireme
 #### Online examples
 
 [An official node, that indexing only the local network](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
-[http://94.140.114.241/yggo](http://94.140.114.241/yggo) (web mirror)
+[http://94.140.114.241/yggo](http://94.140.114.241/yggo) (web mirror) 
+
+#### Screenshotes
+
+![Search page](https://github.com/d47081/YGGo/blob/main/media/search.png?raw=true)
+
+https://github.com/d47081/YGGo/tree/main/media
 
 #### Requirements
 
