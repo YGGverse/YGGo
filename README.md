@@ -20,8 +20,18 @@ curl-curl
 sqlite / fts5
 ```
 
+#### Installation 
+
+* The webroot dir is `/public` 
+* Single configuration file placed here `/config/app.php` where important option is DB settings
+* By default, script automaticaly generate the database file in `/storage` folder but I need to play a bit with environment variables in code for that
+* Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and target network volume
+* Script has no MVC model, because of super simple. I have a doubts to make it AJAX, but...
+
 #### TODO / ideas
 
-* [x] Web pages full text ranking search
+* [x] Web pages full text ranking search 
+* [ ] Make search results pagination
+* [ ] Improve yggdrasil links detection, add .ygg domain sone support
 * [ ] Images search (basically implemented but requires testing and some performance optimization)
 * [ ] Distributed index data sharing between the nodes trough service API
