@@ -1,0 +1,22 @@
+<?php
+
+// Debug
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
+// Website
+define('WEBSITE_DOMAIN', '');
+
+// Database
+define('DB_NAME', 'database.sqlite');
+define('DB_USERNAME', '');
+define('DB_PASSWORD', '');
+
+// Crawl settings
+define('CRAWL_IMAGE', false); // @TODO
+
+define('CRAWL_PAGE_LIMIT', 10);
+define('CRAWL_PAGE_SECONDS_OFFSET', 3600);
+
+define('CRAWL_URL_REGEXP', '/^.*$/ui');
