@@ -1,5 +1,13 @@
 <?php
 
+// Lock multi-thread execution
+$semaphore = sem_get(crc32('crontab.crawler'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  exit;
+}
+
 // Load system dependencies
 require_once('../config/app.php');
 require_once('../library/curl.php');
@@ -84,9 +92,9 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
       if (!parse_url($src, PHP_URL_HOST)) {
 
         $src = parse_url($queue->url, PHP_URL_SCHEME) . '://' .
-               parse_url($queue->url, PHP_URL_HOST) .
-               parse_url($queue->url, PHP_URL_PORT) .
-               $src; // @TODO sometimes wrong URL prefix available
+              parse_url($queue->url, PHP_URL_HOST) .
+              parse_url($queue->url, PHP_URL_PORT) .
+              $src; // @TODO sometimes wrong URL prefix available
       }
 
       // Add page images
