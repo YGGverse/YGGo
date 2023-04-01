@@ -7,8 +7,7 @@ The goal - simple interface, clear architecture and lightweight server requireme
 
 #### Online examples
 
-[An official node, that indexing only the local network](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
-[http://94.140.114.241/yggo](http://94.140.114.241/yggo) (web mirror) 
+[http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
 
 #### Screenshotes
 
