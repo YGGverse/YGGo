@@ -59,6 +59,23 @@ class SQLite {
     ');
   }
 
+  public function getTotalPagesByHttpCode(mixed $httpCode) {
+
+    if (is_null($httpCode)) {
+
+      $query = $this->_db->query('SELECT COUNT(*) AS `total` FROM `page` WHERE `httpCode` IS NULL');
+
+    } else {
+
+      $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `page` WHERE `httpCode` = ?');
+
+      $query->execute([$httpCode]);
+
+    }
+
+    return $query->fetch()->total;
+  }
+
   public function getTotalPages() {
 
     $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `page`');

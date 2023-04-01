@@ -177,6 +177,9 @@ if (!empty($q)) {
       <?php if ($results) { ?>
         <div>
           <?php echo sprintf(_('Total found: %s'), $resultsTotal) ?>
+          <?php if ($queueTotal = $db->getTotalPagesByHttpCode(null)) { ?>
+            <?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?>
+          <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
           <div>
@@ -190,6 +193,9 @@ if (!empty($q)) {
       <?php } else { ?>
         <div style="text-align:center">
           <?php echo sprintf(_('Total found: %s'), $resultsTotal) ?>
+          <?php if ($q && $queueTotal = $db->getTotalPagesByHttpCode(null)) { ?>
+            <?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?>
+          <?php } ?>
         </div>
       <?php } ?>
     </main>
