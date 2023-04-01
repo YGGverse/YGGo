@@ -22,11 +22,11 @@ sqlite / fts5
 
 #### Installation 
 
-* The webroot dir is `/public` 
-* Single configuration file placed here `/config/app.php` where important option is DB settings
-* By default, script automaticaly generate the database file in `/storage` folder but I need to play a bit with environment variables in code for that
+* The webroot dir is under `/public` 
+* Single configuration file placed here `/config/app.php` where important option is maybe DB settings just
+* By default, script automaticaly generate the database file in `/storage` folder (where have supposed to collect other variative and tmp data - like logs, or unique gravatars for sites without favicons)
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and target network volume
-* Script has no MVC model, because of super simple. I have a doubts to make it AJAX, but...
+* Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `library` classes.
 
 #### TODO / ideas
 
