@@ -3,7 +3,7 @@
 Written by inspiration to research [Yggdrasil](https://yggdrasil-network.github.io) ecosystem, because of single [YaCy](https://yacy.net/) node was down.
 Could be using for crawling regular websites, small business resources, local networks.
 
-The goal - simple interface, clear architecture and lightweight server requirements but effective content discovery.
+The project goal - simple interface, clear architecture and lightweight server requirements.
 
 #### Online examples
 
