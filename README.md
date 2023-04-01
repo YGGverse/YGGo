@@ -1,7 +1,7 @@
 ### YGGo! - Open Source Web Search Engine
 
 Written by inspiration to research [Yggdrasil](https://yggdrasil-network.github.io) ecosystem, because of single [YaCy](https://yacy.net/) node was down.
-Could be using for crawling regular websites, small business resources, local networks.
+Could be useful for crawling regular websites, small business resources, local networks.
 
 The project goal - simple interface, clear architecture and lightweight server requirements.
 
