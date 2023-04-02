@@ -54,6 +54,12 @@ sqlite / fts5
 * [ ] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
 
+#### Donate to contributors 
+
+This list open for everyone who participate the project development
+
+[@d47081](https://github.com/d47081) ![time spent](https://wakatime.com/badge/user/0b7fe6c1-b091-4c98-b930-75cfee17c7a5/project/eb10a02c-e1db-44a9-914d-ba078c68f7f2.svg) [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ)
+
 #### Feedback 
 
 Please, feel free to share your ideas and bug reports [here](https://github.com/d47081/YGGo/issues) or use sources for your own implementations.
