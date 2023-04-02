@@ -157,6 +157,7 @@ if (!empty($q)) {
       }
 
       span {
+        color: #ccc;
         display: block;
         margin: 8px 0;
       }
@@ -174,9 +175,9 @@ if (!empty($q)) {
     <main>
       <?php if ($results) { ?>
         <div>
-          <?php echo sprintf(_('Total found: %s'), $resultsTotal) ?>
+          <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
           <?php if ($queueTotal = $db->getTotalPagesByHttpCode(null)) { ?>
-            <?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?>
+            <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
@@ -190,9 +191,9 @@ if (!empty($q)) {
         <?php } ?>
       <?php } else { ?>
         <div style="text-align:center">
-          <?php echo sprintf(_('Total found: %s'), $resultsTotal) ?>
+          <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
           <?php if ($q && $queueTotal = $db->getTotalPagesByHttpCode(null)) { ?>
-            <?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?>
+            <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
           <?php } ?>
         </div>
       <?php } ?>
