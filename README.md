@@ -44,6 +44,8 @@ sqlite / fts5
 * [ ] Deprecated pages index cleaner (404 http codes etc)
 * [ ] Crawl queue balancer, that depends from CPU available
 * [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority
+* [ ] Implement database autobackup on crawl process completting
+* [ ] Add transactions to prevent potential DB crashes
 * [ ] Distributed index data sharing between the nodes trough service API
 * [ ] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
