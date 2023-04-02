@@ -27,6 +27,7 @@ php8^
 php-dom
 php-pdo
 php-curl
+php-gd
 sqlite / fts5
 ```
 
