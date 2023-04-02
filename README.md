@@ -26,7 +26,7 @@ Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 php8^
 php-dom
 php-pdo
-curl-curl
+php-curl
 sqlite / fts5
 ```
 
