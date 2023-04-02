@@ -30,7 +30,7 @@ sqlite / fts5
 
 * The webroot dir is `/public` 
 * Single configuration file placed here `/config/app.php.txt` and need to be configured and renamed to `/config/app.php`
-* By the idea, script automaticaly generates database structure in `/storage` folder (where could be nice to collect other variative and tmp data - like logs, etc)
+* By the idea, script automaticaly generates database structure in `/storage` folder (where could be nice to collect other variative and tmp data - like logs, etc). Make sure storage folder writable.
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
 * Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `/library` classes.
 
