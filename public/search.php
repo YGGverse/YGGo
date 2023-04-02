@@ -194,7 +194,7 @@ if (!empty($q)) {
             <span><?php echo $result->description ?></span>
             <?php } ?>
             <a href="<?php echo $result->url ?>">
-              <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo  parse_url($result->url, PHP_URL_HOST) ?>" alt="favicon" />
+              <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode(parse_url($result->url, PHP_URL_HOST)) ?>" alt="favicon" />
               <?php echo $result->url ?>
             </a>
           </div>
