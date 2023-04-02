@@ -142,11 +142,17 @@ if (!empty($q)) {
       a, a:visited, a:active {
         color: #3394fb;
         display: block;
-        font-size: 14px;
+        font-size: 12px;
       }
 
       a:hover {
         color: #54a3f7;
+      }
+
+      img {
+        float: left;
+        border-radius: 50%;
+        margin-right: 8px;
       }
 
       div {
@@ -187,7 +193,10 @@ if (!empty($q)) {
             <?php if (!empty($result->description)) { ?>
             <span><?php echo $result->description ?></span>
             <?php } ?>
-            <a href="<?php echo $result->url ?>"><?php echo $result->url ?></a>
+            <a href="<?php echo $result->url ?>">
+              <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo  parse_url($result->url, PHP_URL_HOST) ?>" alt="favicon" />
+              <?php echo $result->url ?>
+            </a>
           </div>
         <?php } ?>
         <?php if ($p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT <= $resultsTotal) { ?>

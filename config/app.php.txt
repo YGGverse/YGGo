@@ -8,6 +8,7 @@ error_reporting(E_ALL);
 // Website
 define('WEBSITE_DOMAIN', (issue($_SERVER['HTTP_HOST']) ? 'http://' . $_SERVER['HTTP_HOST'] : ''));
 define('WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT', 100);
+define('WEBSITE_IDENTICON_IMAGE_CACHE', true);
 
 // Database
 define('DB_NAME', 'database.sqlite');
