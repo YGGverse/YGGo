@@ -1,9 +1,9 @@
 ### YGGo! - Open Source Web Search Engine
 
-Written by inspiration to research [Yggdrasil](https://yggdrasil-network.github.io) ecosystem, because of single [YaCy](https://yacy.net/) node was down.
-Could be useful for crawling regular websites, small business resources, local networks.
+Written by inspiration to discover [Yggdrasil](https://yggdrasil-network.github.io) ecosystem, because of last [YaCy](https://yacy.net/) node there was discontinued.
+This engine also could be useful for crawling regular websites, small business resources, local networks.
 
-The project goal - simple interface, clear architecture and lightweight server requirements.
+The project goal - simple interface, clear architecture and lightweight server requirement.
 
 #### Online examples
 
@@ -42,6 +42,10 @@ sqlite / fts5
 * [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
 * [ ] Images search (basically implemented but requires testing and some performance optimization)
 * [ ] Deprecated pages index cleaner (404 http codes etc)
+* [ ] Crawl queue balancer, that depends from CPU available
+* [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority
+* [ ] Implement database autobackup on crawl process completting
+* [ ] Add transactions to prevent potential DB crashes
 * [ ] Distributed index data sharing between the nodes trough service API
 * [ ] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
