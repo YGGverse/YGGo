@@ -43,7 +43,7 @@ if (!empty($q)) {
 <!DOCTYPE html>
 <html lang="<?php echo _('en-US'); ?>">
   <head>
-  <title><?php echo sprintf(_('%s - #%s - YGGo!'), htmlentities($q), $p) ?></title>
+  <title><?php echo (empty($q) ? _('Empty request - YGGo!') : ($p > 1 ? sprintf(_('%s - #%s - YGGo!'), htmlentities($q), $p) : sprintf(_('%s - YGGo!'), htmlentities($q)))) ?></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="<?php echo _('Javascript-less Open Source Web Search Engine') ?>" />
