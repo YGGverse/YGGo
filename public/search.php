@@ -75,13 +75,20 @@ if (!empty($q)) {
       }
 
       h1 {
+        position: fixed;
+        top: 8px;
+        left: 24px;
+      }
+
+      h1 > a,
+      h1 > a:visited,
+      h1 > a:active,
+      h1 > a:hover {
         color: #fff;
         font-weight: normal;
         font-size: 26px;
         margin: 16px 0;
-        position: fixed;
-        top: 8px;
-        left: 24px;
+        text-decoration: none;
       }
 
       h2 {
@@ -94,7 +101,7 @@ if (!empty($q)) {
 
       form {
         display: block;
-        max-width: 640px;
+        max-width: 678px;
         margin: 0 auto;
         text-align: center;
       }
@@ -140,9 +147,10 @@ if (!empty($q)) {
       }
 
       a, a:visited, a:active {
-        color: #3394fb;
+        color: #9ba2ac;
         display: block;
         font-size: 12px;
+        margin-top: 8px;
       }
 
       a:hover {
@@ -174,7 +182,7 @@ if (!empty($q)) {
   <body>
     <header>
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
-        <a href="<?php echo WEBSITE_DOMAIN; ?>"><h1><?php echo _('YGGo!') ?></h1></a>
+        <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="<?php echo htmlentities($q) ?>" />
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
