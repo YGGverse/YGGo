@@ -16,7 +16,7 @@ if (isset($_GET['q'])) {
 
   if (WEBSITE_IDENTICON_IMAGE_CACHE) {
 
-    $filename = dirname(__FILE__) . '/../storage/cache/' . $hash . '.png';
+    $filename = dirname(__FILE__) . '/../storage/cache/' . $hash . '.webp';
 
     if (!file_exists($filename)) {
 
