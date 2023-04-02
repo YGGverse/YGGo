@@ -16,6 +16,10 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 https://github.com/d47081/YGGo/tree/main/media
 
+#### License
+Engine sources [MIT License](https://github.com/d47081/YGGo/blob/main/LICENSE)  
+Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
+
 #### Requirements
 
 ```
