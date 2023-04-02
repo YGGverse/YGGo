@@ -190,7 +190,7 @@ if (!empty($q)) {
             <a href="<?php echo $result->url ?>"><?php echo $result->url ?></a>
           </div>
         <?php } ?>
-        <?php if ($p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT < $resultsTotal) { ?>
+        <?php if ($p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT <= $resultsTotal) { ?>
           <div>
             <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
           </div>
