@@ -23,8 +23,8 @@ Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 #### Requirements
 
 ```
-php 8
-php-php
+php8^
+php-dom
 php-pdo
 curl-curl
 sqlite / fts5
@@ -38,7 +38,7 @@ sqlite / fts5
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
 * Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `/library` classes.
 
-#### TODO / ideas
+#### Roadmap / ideas
 
 * [x] Web pages full text ranking search 
 * [ ] Make search results pagination
