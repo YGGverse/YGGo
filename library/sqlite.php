@@ -14,6 +14,7 @@ class SQLite {
     $this->_db->query('
       CREATE TABLE IF NOT EXISTS "page" (
         "pageId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "crc32url"	INTEGER NOT NULL UNIQUE,
         "httpCode"	INTEGER,
         "timeAdded"	INTEGER NOT NULL,
         "timeUpdated"	INTEGER,
@@ -21,16 +22,17 @@ class SQLite {
         "data"	TEXT,
         "description"	TEXT,
         "keywords"	TEXT,
-        "url"	TEXT NOT NULL UNIQUE
+        "url"	TEXT NOT NULL
       )
     ');
 
     $this->_db->query('
       CREATE TABLE IF NOT EXISTS "image" (
         "imageId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "crc32src"	INTEGER NOT NULL UNIQUE,
         "pageId"	INTEGER NOT NULL,
         "alt"	TEXT NOT NULL,
-        "src"	TEXT NOT NULL UNIQUE
+        "src"	TEXT NOT NULL
       )
     ');
 
@@ -103,20 +105,20 @@ class SQLite {
     return $this->_db->lastInsertId();
   }
 
-  public function initPage(string $url, int $timeAdded) {
+  public function initPage(string $url, int $crc32url, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT OR IGNORE INTO `page` (`url`, `timeAdded`) VALUES (?, ?)');
+    $query = $this->_db->prepare('INSERT OR IGNORE INTO `page` (`url`, `crc32url`, `timeAdded`) VALUES (?, ?, ?)');
 
-    $query->execute([$url, $timeAdded]);
+    $query->execute([$url, $crc32url, $timeAdded]);
 
     return $this->_db->lastInsertId();
   }
 
-  public function addImage(int $pageId, string $src, string $alt) {
+  public function addImage(int $pageId, string $src, int $crc32src, string $alt) {
 
-    $query = $this->_db->prepare('INSERT OR IGNORE INTO `image` (`pageId`, `src`, `alt`) VALUES (?, ?, ?)');
+    $query = $this->_db->prepare('INSERT OR IGNORE INTO `image` (`pageId`, `src`, `crc32src`, `alt`) VALUES (?, ?, ?, ?)');
 
-    $query->execute([$pageId, $src, $alt]);
+    $query->execute([$pageId, $src, $crc32src, $alt]);
 
     return $this->_db->lastInsertId();
   }

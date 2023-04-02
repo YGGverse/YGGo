@@ -100,6 +100,7 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
       // Add page images
       $db->addImage($queue->pageId,
                     Filter::url($src),
+                    crc32($src),
                     Filter::imageAlt($alt));
     }
   }
@@ -134,7 +135,7 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
     // Save valid internal links to the index queue
     if (filter_var($href, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $href)) {
 
-      $db->initPage($href, time());
+      $db->initPage($href, crc32($href), time());
     }
   }
 }
