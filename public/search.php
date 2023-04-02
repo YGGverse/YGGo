@@ -22,9 +22,7 @@ $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 // Crawl request
 if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 
-  if (!$db->getPage($q)) {
-       $db->initPage($q, time());
-  }
+  $db->initPage($q, time());
 }
 
 // Search request

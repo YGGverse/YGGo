@@ -21,7 +21,7 @@ class SQLite {
         "data"	TEXT,
         "description"	TEXT,
         "keywords"	TEXT,
-        "url"	TEXT NOT NULL
+        "url"	TEXT NOT NULL UNIQUE
       )
     ');
 
@@ -30,7 +30,7 @@ class SQLite {
         "imageId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         "pageId"	INTEGER NOT NULL,
         "alt"	TEXT NOT NULL,
-        "src"	TEXT NOT NULL
+        "src"	TEXT NOT NULL UNIQUE
       )
     ');
 
@@ -85,15 +85,6 @@ class SQLite {
     return $query->fetch()->total;
   }
 
-  public function getPage(string $url) {
-
-    $query = $this->_db->prepare('SELECT * FROM `page` WHERE `url` = ?');
-
-    $query->execute([$url]);
-
-    return $query->fetch();
-  }
-
   public function updatePage(int $pageId, string $title, string $description, string $keywords, string $data, int $timeUpdated) {
 
     $query = $this->_db->prepare('UPDATE `page` SET `title` = ?, `description` = ?, `data` = ?, `timeUpdated` = ? WHERE `pageId` = ?');
@@ -114,7 +105,7 @@ class SQLite {
 
   public function initPage(string $url, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT INTO `page` (`url`, `timeAdded`) VALUES (?, ?)');
+    $query = $this->_db->prepare('INSERT OR IGNORE INTO `page` (`url`, `timeAdded`) VALUES (?, ?)');
 
     $query->execute([$url, $timeAdded]);
 
@@ -123,7 +114,7 @@ class SQLite {
 
   public function addImage(int $pageId, string $src, string $alt) {
 
-    $query = $this->_db->prepare('INSERT INTO `image` (`pageId`, `src`, `alt`) VALUES (?, ?, ?)');
+    $query = $this->_db->prepare('INSERT OR IGNORE INTO `image` (`pageId`, `src`, `alt`) VALUES (?, ?, ?)');
 
     $query->execute([$pageId, $src, $alt]);
 

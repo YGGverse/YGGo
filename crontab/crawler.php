@@ -92,9 +92,9 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
       if (!parse_url($src, PHP_URL_HOST)) {
 
         $src = parse_url($queue->url, PHP_URL_SCHEME) . '://' .
-              parse_url($queue->url, PHP_URL_HOST) .
-              parse_url($queue->url, PHP_URL_PORT) .
-              $src; // @TODO sometimes wrong URL prefix available
+               parse_url($queue->url, PHP_URL_HOST) .
+               parse_url($queue->url, PHP_URL_PORT) .
+               $src; // @TODO sometimes wrong URL prefix available
       }
 
       // Add page images
@@ -134,10 +134,7 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
     // Save valid internal links to the index queue
     if (filter_var($href, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $href)) {
 
-      if (!$db->getPage($href)) {
-
-        $db->initPage($href, time());
-      }
+      $db->initPage($href, time());
     }
   }
 }
