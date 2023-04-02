@@ -51,7 +51,7 @@ sqlite / fts5
 * [ ] Implement database autobackup on crawl process completting
 * [ ] Add transactions to prevent data loss on DB crashes
 * [ ] Distributed index data sharing between the nodes trough service API
-* [ ] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
+* [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
 
 #### Donate to contributors 
