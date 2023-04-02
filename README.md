@@ -41,7 +41,7 @@ sqlite / fts5
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search 
-* [ ] Make search results pagination
+* [x] Make search results pagination
 * [ ] Improve yggdrasil links detection, add .ygg domain zone support
 * [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
 * [ ] Images search (basically implemented but requires testing and some performance optimization)
