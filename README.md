@@ -16,13 +16,17 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 https://github.com/d47081/YGGo/tree/main/media
 
+#### License
+Engine sources [MIT License](https://github.com/d47081/YGGo/blob/main/LICENSE)  
+Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
+
 #### Requirements
 
 ```
-php 8
-php-php
+php8^
+php-dom
 php-pdo
-curl-curl
+php-curl
 sqlite / fts5
 ```
 
@@ -34,7 +38,7 @@ sqlite / fts5
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
 * Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `/library` classes.
 
-#### TODO / ideas
+#### Roadmap / ideas
 
 * [x] Web pages full text ranking search 
 * [ ] Make search results pagination
@@ -45,10 +49,14 @@ sqlite / fts5
 * [ ] Crawl queue balancer, that depends from CPU available
 * [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority
 * [ ] Implement database autobackup on crawl process completting
-* [ ] Add transactions to prevent potential DB crashes
+* [ ] Add transactions to prevent data loss on DB crashes
 * [ ] Distributed index data sharing between the nodes trough service API
 * [ ] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
+
+#### Donate to contributors 
+
+[@d47081](https://github.com/d47081) ![time spent](https://wakatime.com/badge/user/0b7fe6c1-b091-4c98-b930-75cfee17c7a5/project/eb10a02c-e1db-44a9-914d-ba078c68f7f2.svg) [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ)
 
 #### Feedback 
 
