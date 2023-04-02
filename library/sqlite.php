@@ -150,9 +150,9 @@ class SQLite {
     return $query->rowCount();
   }
 
-  public function searchPages(string $q) {
+  public function searchPages(string $q, int $start = 0, int $limit = 100) {
 
-    $query = $this->_db->prepare('SELECT `title`, `description`, `url` FROM `ftsPage` WHERE `data` MATCH ? ORDER BY `rank`');
+    $query = $this->_db->prepare('SELECT `title`, `description`, `url` FROM `ftsPage` WHERE `data` MATCH ? ORDER BY `rank` LIMIT ' . (int) $start . ',' . (int) $limit);
 
     $query->execute([$q]);
 

@@ -18,6 +18,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
 
 // Filter request data
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
+$p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
 
 // Crawl request
 if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
@@ -28,7 +29,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 // Search request
 if (!empty($q)) {
 
-  $results      = $db->searchPages('"' . $q . '"');
+  $results      = $db->searchPages('"' . $q . '"', $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT);
   $resultsTotal = $db->searchPagesTotal('"' . $q . '"');
 
 } else {
@@ -42,7 +43,7 @@ if (!empty($q)) {
 <!DOCTYPE html>
 <html lang="<?php echo _('en-US'); ?>">
   <head>
-  <title><?php echo sprintf(_('%s - YGGo!'), htmlentities($q)) ?></title>
+  <title><?php echo sprintf(_('%s - #%s - YGGo!'), htmlentities($q), $p) ?></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="<?php echo _('Javascript-less Open Source Web Search Engine') ?>" />
@@ -189,6 +190,11 @@ if (!empty($q)) {
             <a href="<?php echo $result->url ?>"><?php echo $result->url ?></a>
           </div>
         <?php } ?>
+        <?php if ($p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT < $resultsTotal) { ?>
+          <div>
+            <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
+          </div>
+          <?php } ?>
       <?php } else { ?>
         <div style="text-align:center">
           <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
