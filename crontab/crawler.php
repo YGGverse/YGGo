@@ -67,7 +67,7 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
                   Filter::pageTitle($title->item(0)->nodeValue),
                   Filter::pageDescription($description),
                   Filter::pageKeywords($keywords),
-                  Filter::pageData($url->getContent()),
+                  CRAWL_META_ONLY ? '' : Filter::pageData($content),
                   time());
 
   // Update images

@@ -22,3 +22,5 @@ define('CRAWL_PAGE_LIMIT', 10);
 define('CRAWL_PAGE_SECONDS_OFFSET', 3600);
 
 define('CRAWL_URL_REGEXP', '/^.*$/ui');
+
+define('CRAWL_META_ONLY', false);
