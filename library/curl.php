@@ -3,6 +3,7 @@
 class Curl {
 
   private $_connection;
+  private $_response;
 
   public function __construct(string $url) {
 
@@ -11,7 +12,7 @@ class Curl {
     curl_setopt($this->_connection, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($this->_connection, CURLOPT_TIMEOUT, 5);
 
-    curl_exec($this->_connection);
+    $this->_response = curl_exec($this->_connection);
   }
 
   public function __destruct() {
@@ -39,6 +40,6 @@ class Curl {
 
   public function getContent() {
 
-    return curl_exec($this->_connection);
+    return $this->_response;
   }
 }
