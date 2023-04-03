@@ -10,7 +10,7 @@ The project goal - simple interface, clear architecture and lightweight server r
 [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
 [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
-#### Screenshotes
+#### Screenshots
 
 ![Search page](https://github.com/YGGverse/YGGo/blob/main/media/search.png?raw=true)
 
