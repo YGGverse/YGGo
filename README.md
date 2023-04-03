@@ -7,17 +7,17 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 #### Online examples
 
-[http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
+[http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
 [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
 #### Screenshotes
 
-![Search page](https://github.com/d47081/YGGo/blob/main/media/search.png?raw=true)
+![Search page](https://github.com/YGGverse/YGGo/blob/main/media/search.png?raw=true)
 
-https://github.com/d47081/YGGo/tree/main/media
+https://github.com/YGGverse/YGGo/tree/main/media
 
 #### License
-Engine sources [MIT License](https://github.com/d47081/YGGo/blob/main/LICENSE)  
+Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
 Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 
 #### Requirements
@@ -31,9 +31,9 @@ php-gd
 sqlite / fts5
 ```
 
-#### Installation 
+#### Installation
 
-* The webroot dir is `/public` 
+* The webroot dir is `/public`
 * Single configuration file placed here `/config/app.php.txt` and need to be configured and renamed to `/config/app.php`
 * By the idea, script automaticaly generates database structure in `/storage` folder (where could be nice to collect other variative and tmp data - like logs, etc). Make sure storage folder writable.
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
@@ -41,7 +41,7 @@ sqlite / fts5
 
 #### Roadmap / ideas
 
-* [x] Web pages full text ranking search 
+* [x] Web pages full text ranking search
 * [x] Make search results pagination
 * [ ] Improve yggdrasil links detection, add .ygg domain zone support
 * [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
@@ -55,12 +55,12 @@ sqlite / fts5
 * [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
 
-#### Donate to contributors 
+#### Donate to contributors
 
 @d47081: [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ)
 
-#### Feedback 
+#### Feedback
 
-Please, feel free to share your ideas and bug reports [here](https://github.com/d47081/YGGo/issues) or use sources for your own implementations.
+Please, feel free to share your ideas and bug reports [here](https://github.com/YGGverse/YGGo/issues) or use sources for your own implementations.
 
 Have a good time.

@@ -254,12 +254,12 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
     </main>
     <!-- css animation : end -->
     <footer>
-      <!-- This product released under the MIT License (https://github.com/d47081/YGGo/blob/main/LICENSE)
+      <!-- This product released under the MIT License (https://github.com/YGGverse/YGGo/blob/main/LICENSE)
            Before removing the copyright,
            please, make a small donation to the project contributors:
-           https://github.com/d47081/YGGo#donate-to-contributors
+           https://github.com/YGGverse/YGGo#donate-to-contributors
       -->
-      <a href="https://github.com/d47081/YGGo/issues"><?php echo _('meow') ?></a>
+      <a href="https://github.com/YGGverse/YGGo/issues"><?php echo _('meow') ?></a>
     </footer>
   </body>
 </html>
