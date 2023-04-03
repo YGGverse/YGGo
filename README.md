@@ -7,8 +7,8 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 #### Online examples
 
-[http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
-[http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
+* [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
+* [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
 #### Screenshots
 
@@ -17,8 +17,8 @@ The project goal - simple interface, clear architecture and lightweight server r
 https://github.com/YGGverse/YGGo/tree/main/media
 
 #### License
-Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
-Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
+* Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
+* Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 
 #### Requirements
 
