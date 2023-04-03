@@ -1,8 +1,10 @@
 <?php
 
+// @TODO #2
+
 class Robots {
 
-  private $_index = [];
+  private $_rule = [];
 
   public function __construct(string $data) {
 
@@ -24,11 +26,11 @@ class Robots {
         if (isset($part[0]) && isset($part[1])) {
 
           if (false !== strpos($part[0], 'allow')) {
-            $this->_index[$this->_regex(trim($part[1]))] = true;
+            $this->_rule[$this->_regex(trim($part[1]))] = true;
           }
 
           if (false !== strpos($part[0], 'disallow')) {
-            $this->_index[$this->_regex(trim($part[1]))] = false;
+            $this->_rule[$this->_regex(trim($part[1]))] = false;
           }
         }
       }
@@ -55,11 +57,11 @@ class Robots {
     $result = true;
 
     // Begin index rules by ASC priority
-    foreach ($this->_index as $rule => $index) {
+    foreach ($this->_rule as $rule => $value) {
 
       if (preg_match('!^' . $rule . '!', $url)) {
 
-        $result = $index;
+        $result = $value;
       }
     }
 
