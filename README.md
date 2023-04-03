@@ -7,7 +7,7 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 #### Online examples
 
-[http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
+[http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
 [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
 #### Screenshotes
