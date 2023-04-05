@@ -39,15 +39,6 @@ sqlite / fts5
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
 * Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `/library` classes.
 
-#### Contributions 
-
-Please make a new master branch for each patch in your fork before create PR
-
-```
-git checkout master
-git checkout -b my-pr-branch-name
-```
-
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search
@@ -66,9 +57,18 @@ git checkout -b my-pr-branch-name
 * [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
 
+#### Contributions 
+
+Please make a new master branch for each patch in your fork before create PR
+
+```
+git checkout master
+git checkout -b my-pr-branch-name
+```
+
 #### Donate to contributors
 
-@d47081: [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ)
+* @d47081: [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ)
 
 #### Feedback
 
