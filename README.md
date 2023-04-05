@@ -41,7 +41,7 @@ sqlite / fts5
 
 #### Contributions 
 
-Please make a new branch in your fork before create PR
+Please make a new master branch for each patch in your fork before create PR
 
 #### Roadmap / ideas
 
