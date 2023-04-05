@@ -43,6 +43,11 @@ sqlite / fts5
 
 Please make a new master branch for each patch in your fork before create PR
 
+```
+git checkout master
+git checkout -b my-pr-branch-name
+```
+
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search
