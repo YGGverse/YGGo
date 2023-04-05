@@ -39,6 +39,10 @@ sqlite / fts5
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
 * Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `/library` classes.
 
+#### Contributions 
+
+Please make a new branch before create PR
+
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search
