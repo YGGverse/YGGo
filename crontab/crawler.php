@@ -154,8 +154,6 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
 
           if ($hostId) {
 
-            echo 'hostmane ' . $hostURL->string . PHP_EOL;
-
             $hostsAdded++;
 
           } else {
