@@ -89,18 +89,18 @@ class SQLite {
 
   public function updatePage(int $pageId, string $title, string $description, string $keywords, string $data, int $timeUpdated) {
 
-    $query = $this->_db->prepare('UPDATE `page` SET `title` = ?, `description` = ?, `data` = ?, `timeUpdated` = ? WHERE `pageId` = ?');
+    $query = $this->_db->prepare('UPDATE `page` SET `title` = ?, `description` = ?, `keywords` = ?, `data` = ?, `timeUpdated` = ? WHERE `pageId` = ?');
 
-    $query->execute([$title, $description, $data, $timeUpdated, $pageId]);
+    $query->execute([$title, $description, $keywords, $data, $timeUpdated, $pageId]);
 
     return $query->rowCount();
   }
 
   public function addPage(string $title, string $description, string $keywords, string $data, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT INTO `page` (`title`, `description`, `data`, `timeAdded`) VALUES (?, ?, ?, ?)');
+    $query = $this->_db->prepare('INSERT INTO `page` (`title`, `description`, `keywords`, `data`, `timeAdded`) VALUES (?, ?, ?, ?, ?)');
 
-    $query->execute([$title, $description, $data, $timeAdded]);
+    $query->execute([$title, $description, $keywords, $data, $timeAdded]);
 
     return $this->_db->lastInsertId();
   }
