@@ -5,6 +5,7 @@ $semaphore = sem_get(crc32('crontab.crawler'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
+  echo 'Process locked by another thread.' . PHP_EOL;
   exit;
 }
 
