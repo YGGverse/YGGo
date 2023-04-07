@@ -10,7 +10,7 @@ source hostPage
 
   sql_query   = \
     SELECT hostPageId, metaTitle, metaDescription, metaKeywords, data, uri  \
-    FROM hostPage
+    FROM hostPage WHERE timeUpdated IS NOT NULL
 
   sql_attr_uint = hostPageId
 }
