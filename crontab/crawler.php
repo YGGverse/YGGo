@@ -100,6 +100,20 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
       continue;
     }
 
+    // Skip javascript links
+    if (false !== strpos($href, 'javascript:')) {
+
+      continue;
+    }
+
+    // Skip mailto links
+    if (false !== strpos($href, 'mailto:')) {
+
+      continue;
+    }
+
+    // @TODO skip other apps
+
     // Add absolute URL prefixes to the relative links found
     if (!parse_url($href, PHP_URL_HOST)) {
 
