@@ -1,0 +1,22 @@
+source hostPage
+{
+  type        = mysql
+
+  sql_host    = localhost
+  sql_user    =
+  sql_pass    =
+  sql_db      =
+  sql_port    = 3306 # optional, default is 3306
+
+  sql_query   = \
+    SELECT hostPageId, metaTitle, metaDescription, metaKeywords, data, uri  \
+    FROM hostPage
+
+  sql_attr_uint = hostPageId
+}
+
+index hostPage
+{
+  source = hostPage
+  path   =
+}

@@ -2,11 +2,18 @@
 
 // Load system dependencies
 require_once('../config/app.php');
+require_once('../library/curl.php');
+require_once('../library/robots.php');
 require_once('../library/filter.php');
-require_once('../library/sqlite.php');
+require_once('../library/parser.php');
+require_once('../library/mysql.php');
+require_once('../library/sphinxql.php');
+
+// Connect Sphinx search server
+$sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 
 // Connect database
-$db = new SQLite(DB_NAME, DB_USERNAME, DB_PASSWORD);
+$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
 // Define page basics
 $totalPages = $db->getTotalPages();
@@ -23,14 +30,76 @@ $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
 // Crawl request
 if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 
-  $db->initPage($q, crc32($q), time());
+  $db->beginTransaction();
+
+  try {
+
+    // Parse host info
+    if ($hostURL = Parser::hostURL($q)) {
+
+      // Host exists
+      if ($host = $db->getHost(crc32($hostURL->string))) {
+
+        $hostStatus    = $host->status;
+        $hostPageLimit = $host->crawlPageLimit;
+        $hostId        = $host->hostId;
+        $hostRobots    = $host->robots;
+
+      // Register new host
+      } else {
+
+        // Get robots.txt if exists
+        $curl = new Curl($hostURL->string . '/robots.txt');
+
+        if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+          $hostRobots = $curl->getContent();
+        } else {
+          $hostRobots = null;
+        }
+
+        $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+        $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+        $hostId        = $db->addHost($hostURL->scheme,
+                                      $hostURL->name,
+                                      $hostURL->port,
+                                      crc32($hostURL->string),
+                                      time(),
+                                      null,
+                                      $hostPageLimit,
+                                      (string) CRAWL_HOST_DEFAULT_META_ONLY,
+                                      (string) $hostStatus,
+                                      $hostRobots);
+      }
+
+      // Parse page URI
+      $hostPageURI = Parser::uri($q);
+
+      // Init robots parser
+      $robots = new Robots(!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES);
+
+      // Save page info
+      if ($hostStatus && // host enabled
+          $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
+          $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
+         !$db->getHostPage($hostId, crc32($hostPageURI->string))) {  // page not exists
+
+          $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
+      }
+    }
+
+    $db->commit();
+
+  } catch(Exception $e){
+
+    $db->rollBack();
+  }
 }
 
 // Search request
 if (!empty($q)) {
 
-  $results      = $db->searchPages('"' . $q . '"', $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT);
-  $resultsTotal = $db->searchPagesTotal('"' . $q . '"');
+  $results      = $sphinx->searchHostPages('"' . $q . '"', $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT);
+  $resultsTotal = $sphinx->searchHostPagesTotal('"' . $q . '"');
 
 } else {
 
@@ -196,16 +265,19 @@ if (!empty($q)) {
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
-          <div>
-            <h2><?php echo $result->title ?></h2>
-            <?php if (!empty($result->description)) { ?>
-            <span><?php echo $result->description ?></span>
-            <?php } ?>
-            <a href="<?php echo $result->url ?>">
-              <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode(parse_url($result->url, PHP_URL_HOST)) ?>" alt="favicon" width="16" height="16" />
-              <?php echo $result->url ?>
-            </a>
-          </div>
+          <?php if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
+          <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
+            <div>
+              <h2><?php echo $hostPage->metaTitle ?></h2>
+              <?php if (!empty($hostPage->metaDescription)) { ?>
+              <span><?php echo $hostPage->metaDescription ?></span>
+              <?php } ?>
+              <a href="<?php echo $hostPageURL ?>">
+                <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" />
+                <?php echo $hostPageURL ?>
+              </a>
+            </div>
+          <?php } ?>
         <?php } ?>
         <?php if ($p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT <= $resultsTotal) { ?>
           <div>

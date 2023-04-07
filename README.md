@@ -7,7 +7,7 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 #### Online examples
 
-* [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)  
+* [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
 * [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
 #### Screenshots
@@ -28,7 +28,8 @@ php-dom
 php-pdo
 php-curl
 php-gd
-sqlite / fts5
+php-mysql
+sphinx search server
 ```
 
 #### Installation
@@ -39,12 +40,16 @@ sqlite / fts5
 * Set up the `/crontab/crawler.php` script for execution every the minute, but it mostly related of the configs and targetal network volume, there is no debug implemented yet, so let's silentize it by `/dev/null`
 * Script has no MVC model, because of super simple. It's is just 2 files, and everything else stored incapsulated in `/library` classes.
 
+#### Configuration
+
+todo
+
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search
 * [x] Make search results pagination
 * [ ] Blacklist domains (useful for some mirrors)
-* [ ] Add robots.txt support (Issue #2)
+* [x] Add robots.txt support (Issue #2)
 * [ ] Improve yggdrasil links detection, add .ygg domain zone support
 * [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
 * [ ] Images search (basically implemented but requires testing and some performance optimization)
@@ -57,7 +62,7 @@ sqlite / fts5
 * [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
 
-#### Contributions 
+#### Contributions
 
 Please make a new master branch for each patch in your fork before create PR
 
@@ -65,6 +70,8 @@ Please make a new master branch for each patch in your fork before create PR
 git checkout master
 git checkout -b my-pr-branch-name
 ```
+
+See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 
 #### Donate to contributors
 

@@ -3,10 +3,10 @@
 // Load system dependencies
 require_once('../config/app.php');
 require_once('../library/filter.php');
-require_once('../library/sqlite.php');
+require_once('../library/mysql.php');
 
 // Connect database
-$db = new SQLite(DB_NAME, DB_USERNAME, DB_PASSWORD);
+$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
 $totalPages = $db->getTotalPages();
 

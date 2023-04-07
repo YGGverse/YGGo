@@ -1,7 +1,5 @@
 <?php
 
-// @TODO #2
-
 class Robots {
 
   private $_rule = [];
@@ -42,16 +40,10 @@ class Robots {
     }
   }
 
-  public function indexURL(string $url) {
+  public function uriAllowed(string $uri) {
 
     // Unify case match
-    $url = strtolower(trim($url));
-
-    // Convert to URI
-    $url = str_replace(parse_url($url, PHP_URL_SCHEME) . '://' .
-                       parse_url($url, PHP_URL_HOST) .
-                       parse_url($url, PHP_URL_PORT),
-                       '', $url);
+    $uri = strtolower(trim($uri));
 
     // Index by default
     $result = true;
@@ -59,7 +51,7 @@ class Robots {
     // Begin index rules by ASC priority
     foreach ($this->_rule as $rule => $value) {
 
-      if (preg_match('!^' . $rule . '!', $url)) {
+      if (preg_match('!^' . $rule . '!', $uri)) {
 
         $result = $value;
       }

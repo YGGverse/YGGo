@@ -11,31 +11,46 @@ if (false === sem_acquire($semaphore, true)) {
 // Load system dependencies
 require_once('../config/app.php');
 require_once('../library/curl.php');
+require_once('../library/robots.php');
 require_once('../library/filter.php');
-require_once('../library/sqlite.php');
+require_once('../library/parser.php');
+require_once('../library/mysql.php');
+
+// Debug
+$timeStart = microtime(true);
+
+$hostPagesProcessed = 0;
+$hostPagesIndexed   = 0;
+$hostPagesAdded     = 0;
+$hostsAdded         = 0;
 
 // Connect database
-$db = new SQLite(DB_NAME, DB_USERNAME, DB_PASSWORD);
+$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
 // Process crawl queue
-foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queue) {
+foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
 
-  $url = new Curl($queue->url);
+  // Build URL from the DB
+  $queueHostPageURL = $queueHostPage->scheme . '://' . $queueHostPage->name . ($queueHostPage->port ? ':' . $queueHostPage->port : false) . $queueHostPage->uri;
 
-  $db->updatePageQueue($queue->pageId, time(), $url->getCode());
+  $curl = new Curl($queueHostPageURL);
 
-  // Skip processing non 200 code
-  if (200 != $url->getCode()) {
+  // Update page index anyway, with the current time and http code
+  $hostPagesProcessed += $db->updateCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
 
-    continue;
-  }
-
-  // Skip processing pages without returned data
-  if (!$content = $url->getContent()) {
+  // Skip next page processing non 200 code
+  if (200 != $curl->getCode()) {
 
     continue;
   }
 
+  // Skip next page processing pages without returned data
+  if (!$content = $curl->getContent()) {
+
+    continue;
+  }
+
+  // Grab page content
   $dom = new DomDocument();
 
   @$dom->loadHTML($content);
@@ -62,48 +77,12 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
     }
   }
 
-  // Index page data
-  $db->updatePage($queue->pageId,
-                  Filter::pageTitle($title->item(0)->nodeValue),
-                  Filter::pageDescription($description),
-                  Filter::pageKeywords($keywords),
-                  CRAWL_META_ONLY ? '' : Filter::pageData($content),
-                  time());
-
-  // Update images
-  $db->deleteImages($queue->pageId);
-
-  if (CRAWL_IMAGE) {
-
-    foreach (@$dom->getElementsByTagName('img') as $image) {
-
-      // Skip images without required attributes
-      if (!$src = @$image->getAttribute('src')) {
-
-        continue;
-      }
-
-      if (!$alt = @$image->getAttribute('alt')) {
-
-        continue;
-      }
-
-      // Add domain to the relative links
-      if (!parse_url($src, PHP_URL_HOST)) {
-
-        $src = parse_url($queue->url, PHP_URL_SCHEME) . '://' .
-               parse_url($queue->url, PHP_URL_HOST) .
-               parse_url($queue->url, PHP_URL_PORT) .
-               $src; // @TODO sometimes wrong URL prefix available
-      }
-
-      // Add page images
-      $db->addImage($queue->pageId,
-                    Filter::url($src),
-                    crc32($src),
-                    Filter::imageAlt($alt));
-    }
-  }
+  // Update queued page data
+  $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
+                                           Filter::pageTitle($title->item(0)->nodeValue),
+                                           Filter::pageDescription($description),
+                                           Filter::pageKeywords($keywords),
+                                           CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
 
   // Collect internal links from page content
   foreach(@$dom->getElementsByTagName('a') as $a) {
@@ -120,22 +99,101 @@ foreach ($db->getPageQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET)
       continue;
     }
 
-    // Add absolute prefixes to the relative links
+    // Add absolute URL prefixes to the relative links found
     if (!parse_url($href, PHP_URL_HOST)) {
 
-      $href = parse_url($queue->url, PHP_URL_SCHEME) . '://' .
-              parse_url($queue->url, PHP_URL_HOST) .
-              parse_url($queue->url, PHP_URL_PORT) .
-              $href;
+      $href = $queueHostPage->scheme . '://' .
+              $queueHostPage->name .
+             ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
+             '/' . ltrim($href, '/');
     }
 
-    // Filter href URL
-    $href = Filter::url($href);
-
-    // Save valid internal links to the index queue
+    // Validate formatted link
     if (filter_var($href, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $href)) {
 
-      $db->initPage($href, crc32($href), time());
+      $db->beginTransaction();
+
+      try {
+
+        // Parse formatted link
+        $hostURL     = Parser::hostURL($href);
+        $hostPageURI = Parser::uri($href);
+
+        // Host exists
+        if ($host = $db->getHost(crc32($hostURL->string))) {
+
+          $hostStatus    = $host->status;
+          $hostPageLimit = $host->crawlPageLimit;
+          $hostId        = $host->hostId;
+          $hostRobots    = $host->robots;
+
+        // Register new host
+        } else {
+
+          // Get robots.txt if exists
+          $curl = new Curl($hostURL->string . '/robots.txt');
+
+          if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+            $hostRobots = $curl->getContent();
+          } else {
+            $hostRobots = null;
+          }
+
+          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+          $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+          $hostId        = $db->addHost($hostURL->scheme,
+                                        $hostURL->name,
+                                        $hostURL->port,
+                                        crc32($hostURL->string),
+                                        time(),
+                                        null,
+                                        $hostPageLimit,
+                                        (string) CRAWL_HOST_DEFAULT_META_ONLY,
+                                        (string) $hostStatus,
+                                        $hostRobots);
+
+          if ($hostId) {
+
+            echo 'hostmane ' . $hostURL->string . PHP_EOL;
+
+            $hostsAdded++;
+
+          } else {
+
+            continue;
+          }
+        }
+
+        // Init robots parser
+        $robots = new Robots(!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES);
+
+        // Save page info
+        if ($hostStatus && // host enabled
+            $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
+            $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
+            !$db->getHostPage($hostId, crc32($hostPageURI->string))) {  // page not exists
+
+            if ($db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time())) {
+
+              $hostPagesAdded++;
+            }
+        }
+
+        $db->commit();
+
+      } catch(Exception $e){
+
+        var_dump($e);
+
+        $db->rollBack();
+      }
     }
   }
 }
+
+// Debug
+echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
+echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
+echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
+echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
+echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL;

@@ -4,16 +4,7 @@ class Filter {
 
   static public function url(string $url) {
 
-    return trim($url);
-  }
-
-  static public function imageAlt(string $alt) {
-
-    $alt = preg_replace('/[\s]+/', ' ', $alt);
-
-    $alt = trim($alt);
-
-    return $alt;
+    return trim(urldecode($url));
   }
 
   static public function pageTitle(string $title) {
