@@ -126,7 +126,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
       $href = $queueHostPage->scheme . '://' .
               $queueHostPage->name .
              ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
-             '/' . ltrim(str_replace(['./', '../'], '', $href), '/');
+             '/' . trim(ltrim(str_replace(['./', '../'], '', $href), '/'), '.');
     }
 
     // Validate formatted link
