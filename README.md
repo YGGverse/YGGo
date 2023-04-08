@@ -42,7 +42,14 @@ sphinxsearch
 
 #### Configuration
 
-todo
+##### Crontab
+
+```
+0 * * * * indexer --all --rotate
+
+0 0 * * * cd /YGGo/crontab && php cleaner.php > /dev/null 2>&1
+* * * * * cd /YGGo/crontab && php crawler.php > /dev/null 2>&1
+```
 
 #### Roadmap / ideas
 
@@ -53,10 +60,10 @@ todo
 * [ ] Improve yggdrasil links detection, add .ygg domain zone support
 * [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
 * [ ] Images search (basically implemented but requires testing and some performance optimization)
-* [ ] Deprecated pages index cleaner (404 http codes etc)
+* [x] Index cleaner
 * [ ] Crawl queue balancer, that depends from CPU available
 * [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority
-* [ ] Implement database autobackup on crawl process completting
+* [ ] Implement database auto backup on crawl process completing
 * [x] Add transactions to prevent data loss on DB crashes
 * [ ] Distributed index data sharing between the nodes trough service API
 * [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
