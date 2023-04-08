@@ -21,7 +21,7 @@ define('DB_PASSWORD', '');
 define('SPHINX_HOST', '127.0.0.1');
 define('SPHINX_PORT', 9306);
 
-// Crawl settings
+// Crawler settings
 define('CRAWL_PAGE_LIMIT', 10);
 define('CRAWL_PAGE_SECONDS_OFFSET', 3600);
 
@@ -50,3 +50,7 @@ define('CRAWL_ROBOTS_DEFAULT_RULES', null); // string|null
  *
  */
 define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
+
+// Cleaner settings
+define('CLEAN_HOST_LIMIT', 20);
+define('CLEAN_HOST_SECONDS_OFFSET', 3600);

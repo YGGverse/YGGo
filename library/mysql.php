@@ -38,6 +38,15 @@ class MySQL {
     return $query->fetch();
   }
 
+  public function getTotalHosts() {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `host`');
+
+    $query->execute();
+
+    return $query->fetch()->total;
+  }
+
   public function addHost(string $scheme, string $name, mixed $port, int $crc32url, int $timeAdded, mixed $timeUpdated, int $crawlPageLimit, string $crawlPageMetaOnly, string $status, mixed $robots, mixed $robotsPostfix) {
 
     $query = $this->_db->prepare('INSERT INTO `host` (`scheme`, `name`, `port`, `crc32url`, `timeAdded`, `timeUpdated`, `crawlPageLimit`, `crawlPageMetaOnly`, `status`, `robots`, `robotsPostfix`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
@@ -45,6 +54,15 @@ class MySQL {
     $query->execute([$scheme, $name, $port, $crc32url, $timeAdded, $timeUpdated, $crawlPageLimit, $crawlPageMetaOnly, $status, $robots, $robotsPostfix]);
 
     return $this->_db->lastInsertId();
+  }
+
+  public function updateHostRobots(int $hostId, mixed $robots, int $timeUpdated) {
+
+    $query = $this->_db->prepare('UPDATE `host` SET `robots` = ?, `timeUpdated` = ? WHERE `hostId` = ? LIMIT 1');
+
+    $query->execute([$robots, $timeUpdated, $hostId]);
+
+    return $query->rowCount();
   }
 
   // Pages
@@ -90,6 +108,15 @@ class MySQL {
     $query->execute([$hostId, $crc32uri]);
 
     return $query->fetch();
+  }
+
+  public function getHostPages(int $hostId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ?');
+
+    $query->execute([$hostId]);
+
+    return $query->fetchAll();
   }
 
   public function getFoundHostPage(int $hostPageId) {
@@ -157,6 +184,40 @@ class MySQL {
     $query->execute([$metaTitle, $metaDescription, $metaKeywords, $data, $hostPageId]);
 
     return $query->rowCount();
+  }
+
+  public function deleteHostPage(int $hostPageId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPage` WHERE `hostPageId` = ? LIMIT 1');
+
+    $query->execute([$hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostPages(int $hostId, int $limit) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPage` WHERE `hostId` = ? ORDER BY hostPageId DESC LIMIT ' . (int) $limit);
+
+    $query->execute([$hostId]);
+
+    return $query->rowCount();
+  }
+
+  // Cleaner tools
+  public function getCleanerQueue(int $limit, int $timeFrom) {
+
+    $query = $this->_db->prepare('SELECT * FROM `host`
+
+                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> 0
+
+                                           ORDER BY `hostId`
+
+                                           LIMIT ' . (int) $limit);
+
+    $query->execute([$timeFrom]);
+
+    return $query->fetchAll();
   }
 
   // Crawl tools
