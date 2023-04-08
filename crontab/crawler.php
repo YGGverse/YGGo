@@ -112,6 +112,12 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
       continue;
     }
 
+    // Skip x-raw-image links
+    if (false !== strpos($href, 'x-raw-image:')) {
+
+      continue;
+    }
+
     // @TODO skip other apps
 
     // Add absolute URL prefixes to the relative links found
