@@ -23,7 +23,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="<?php echo _('Javascript-less Open Source Web Search Engine') ?>" />
-    <meta name="keywords" content="<?php echo _('web, search, engine, crawler, php, pdo, sqlite, fts5, yggdrasil, js-less, open source') ?>" />
+    <meta name="keywords" content="<?php echo _('web, search, engine, crawler, php, pdo, mysql, sphinx, yggdrasil, js-less, open source') ?>" />
     <style>
 
       * {
