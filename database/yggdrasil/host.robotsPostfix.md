@@ -14,5 +14,5 @@ Disallow: /index.php?page=statistics&action=blocks&height=*
 ```
 User-agent: *
 
-Disallow: /ucp.php?mode=register&ref=*
+Disallow: /ucp.php*
 ```
