@@ -9,8 +9,10 @@ source hostPage
   sql_port    = 3306 # optional, default is 3306
 
   sql_query   = \
-    SELECT hostPageId, metaTitle, metaDescription, metaKeywords, data, uri  \
-    FROM hostPage WHERE httpCode = 200
+    SELECT hostPage.hostPageId, hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords, hostPage.data, hostPage.uri, host.name  \
+    FROM hostPage \
+    JOIN host ON (host.hostId = hostPage.hostId) \
+    WHERE hostPage.httpCode = 200
 
   sql_attr_uint = hostPageId
 }
