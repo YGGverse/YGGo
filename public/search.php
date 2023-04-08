@@ -40,10 +40,11 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       // Host exists
       if ($host = $db->getHost(crc32($hostURL->string))) {
 
-        $hostStatus    = $host->status;
-        $hostPageLimit = $host->crawlPageLimit;
-        $hostId        = $host->hostId;
-        $hostRobots    = $host->robots;
+        $hostStatus        = $host->status;
+        $hostPageLimit     = $host->crawlPageLimit;
+        $hostId            = $host->hostId;
+        $hostRobots        = $host->robots;
+        $hostRobotsPostfix = $host->robotsPostfix;
 
       // Register new host
       } else {
@@ -57,6 +58,8 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
           $hostRobots = null;
         }
 
+        $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+
         $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
         $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
         $hostId        = $db->addHost($hostURL->scheme,
@@ -68,14 +71,15 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                                       $hostPageLimit,
                                       (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                       (string) $hostStatus,
-                                      $hostRobots);
+                                      $hostRobots,
+                                      $hostRobotsPostfix);
       }
 
       // Parse page URI
       $hostPageURI = Parser::uri($q);
 
       // Init robots parser
-      $robots = new Robots(!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES);
+      $robots = new Robots((!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . (string) $hostRobotsPostfix);
 
       // Save page info
       if ($hostStatus && // host enabled

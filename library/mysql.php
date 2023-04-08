@@ -38,11 +38,11 @@ class MySQL {
     return $query->fetch();
   }
 
-  public function addHost(string $scheme, string $name, mixed $port, int $crc32url, int $timeAdded, mixed $timeUpdated, int $crawlPageLimit, string $crawlPageMetaOnly, string $status, mixed $robots) {
+  public function addHost(string $scheme, string $name, mixed $port, int $crc32url, int $timeAdded, mixed $timeUpdated, int $crawlPageLimit, string $crawlPageMetaOnly, string $status, mixed $robots, mixed $robotsPostfix) {
 
-    $query = $this->_db->prepare('INSERT INTO `host` (`scheme`, `name`, `port`, `crc32url`, `timeAdded`, `timeUpdated`, `crawlPageLimit`, `crawlPageMetaOnly`, `status`, `robots`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $query = $this->_db->prepare('INSERT INTO `host` (`scheme`, `name`, `port`, `crc32url`, `timeAdded`, `timeUpdated`, `crawlPageLimit`, `crawlPageMetaOnly`, `status`, `robots`, `robotsPostfix`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$scheme, $name, $port, $crc32url, $timeAdded, $timeUpdated, $crawlPageLimit, $crawlPageMetaOnly, $status, $robots]);
+    $query->execute([$scheme, $name, $port, $crc32url, $timeAdded, $timeUpdated, $crawlPageLimit, $crawlPageMetaOnly, $status, $robots, $robotsPostfix]);
 
     return $this->_db->lastInsertId();
   }

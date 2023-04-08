@@ -143,10 +143,11 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
         // Host exists
         if ($host = $db->getHost(crc32($hostURL->string))) {
 
-          $hostStatus    = $host->status;
-          $hostPageLimit = $host->crawlPageLimit;
-          $hostId        = $host->hostId;
-          $hostRobots    = $host->robots;
+          $hostStatus        = $host->status;
+          $hostPageLimit     = $host->crawlPageLimit;
+          $hostId            = $host->hostId;
+          $hostRobots        = $host->robots;
+          $hostRobotsPostfix = $host->robotsPostfix;
 
         // Register new host
         } else {
@@ -157,8 +158,10 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
           if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
             $hostRobots = $curl->getContent();
           } else {
-            $hostRobots = null;
+            $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
           }
+
+          $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
           $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
@@ -171,7 +174,8 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
                                         $hostPageLimit,
                                         (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                         (string) $hostStatus,
-                                        $hostRobots);
+                                        $hostRobots,
+                                        $hostRobotsPostfix);
 
           if ($hostId) {
 
@@ -184,7 +188,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
         }
 
         // Init robots parser
-        $robots = new Robots(!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES);
+        $robots = new Robots((!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . (string) $hostRobotsPostfix);
 
         // Save page info
         if ($hostStatus && // host enabled
