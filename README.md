@@ -29,7 +29,7 @@ php-pdo
 php-curl
 php-gd
 php-mysql
-sphinx search server
+sphinxsearch
 ```
 
 #### Installation
