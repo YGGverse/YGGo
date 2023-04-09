@@ -83,8 +83,15 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
     }
   }
 
+  // Update queued page data
+  $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
+                                           Filter::pageTitle($title->item(0)->nodeValue),
+                                           Filter::pageDescription($metaDescription),
+                                           Filter::pageKeywords($metaKeywords),
+                                           CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
+
   // Append page with meta robots:noindex value to the robotsPostfix disallow list
-  if ($metaRobots == 'noindex') {
+  if (false !== stripos($metaRobots, 'noindex')) {
 
     $robots        = new Robots($queueHostPage->robots);
     $robotsPostfix = new Robots($queueHostPage->robotsPostfix);
@@ -99,12 +106,11 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
     }
   }
 
-  // Update queued page data
-  $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
-                                           Filter::pageTitle($title->item(0)->nodeValue),
-                                           Filter::pageDescription($metaDescription),
-                                           Filter::pageKeywords($metaKeywords),
-                                           CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
+  // Skip page links following by robots:nofollow attribute detected
+  if (false !== stripos($metaRobots, 'nofollow')) {
+
+    continue;
+  }
 
   // Collect internal links from page content
   foreach(@$dom->getElementsByTagName('a') as $a) {
