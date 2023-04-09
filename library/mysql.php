@@ -65,6 +65,15 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function updateHostRobotsPostfix(int $hostId, mixed $robotsPostfix, int $timeUpdated) {
+
+    $query = $this->_db->prepare('UPDATE `host` SET `robotsPostfix` = ?, `timeUpdated` = ? WHERE `hostId` = ? LIMIT 1');
+
+    $query->execute([$robotsPostfix, $timeUpdated, $hostId]);
+
+    return $query->rowCount();
+  }
+
   // Pages
   public function getTotalHostPages(int $hostId) {
 
@@ -223,14 +232,16 @@ class MySQL {
   // Crawl tools
   public function getCrawlQueue(int $limit, int $timeFrom) {
 
-    $query = $this->_db->prepare('SELECT `hostPage`.`hostPageId`,
+    $query = $this->_db->prepare('SELECT `hostPage`.`hostId`,
+                                         `hostPage`.`hostPageId`,
                                          `hostPage`.`uri`,
                                          `host`.`scheme`,
                                          `host`.`name`,
                                          `host`.`port`,
                                          `host`.`crawlPageLimit`,
                                          `host`.`crawlPageMetaOnly`,
-                                         `host`.`robots`
+                                         `host`.`robots`,
+                                         `host`.`robotsPostfix`
 
                                           FROM `hostPage`
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)

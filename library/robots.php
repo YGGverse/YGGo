@@ -3,12 +3,15 @@
 class Robots {
 
   private $_rule = [];
+  private $_data = null;
 
-  public function __construct(string $data) {
+  public function __construct(mixed $data) {
+
+    $this->_data = $data;
 
     $read = false;
 
-    foreach ((array) explode(PHP_EOL, $data) as $row) {
+    foreach ((array) explode(PHP_EOL, (string) $data) as $row) {
 
       $row = strtolower(trim($row));
 
@@ -58,6 +61,24 @@ class Robots {
     }
 
     return $result;
+  }
+
+  public function append(string $key, string $value) {
+
+    if (!preg_match('!^user-agent:\s?\*!', strtolower(trim($this->_data)))) {
+
+      $this->_data .= PHP_EOL . 'User-agent: *' . PHP_EOL;
+    }
+
+    if (false === stripos($this->_data, PHP_EOL . $key . ' ' . $value)) {
+
+      $this->_data .= PHP_EOL . $key . ' ' . $value;
+    }
+  }
+
+  public function getData() {
+
+    return $this->_data;
   }
 
   private function _regex(string $string) {

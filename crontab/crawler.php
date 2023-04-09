@@ -64,25 +64,46 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
   }
 
   // Get optional page meta data
-  $description = '';
-  $keywords    = '';
+  $metaDescription = '';
+  $metaKeywords    = '';
+  $metaRobots      = '';
 
   foreach (@$dom->getElementsByTagName('meta') as $meta) {
 
     if (@$meta->getAttribute('name') == 'description') {
-      $description = @$meta->getAttribute('content');
+      $metaDescription = @$meta->getAttribute('content');
     }
 
     if (@$meta->getAttribute('name') == 'keywords') {
-      $keywords = @$meta->getAttribute('content');
+      $metaKeywords = @$meta->getAttribute('content');
+    }
+
+    if (@$meta->getAttribute('name') == 'robots') {
+      $metaRobots = @$meta->getAttribute('content');
+    }
+  }
+
+  // Append page with meta robots:noindex value to the robotsPostfix disallow list
+  if ($metaRobots == 'noindex') {
+
+    $robots        = new Robots($queueHostPage->robots);
+    $robotsPostfix = new Robots($queueHostPage->robotsPostfix);
+
+    // Ignore URI if does not match existing rules yet
+    if ($robotsPostfix->uriAllowed($queueHostPage->uri) &&
+        $robots->uriAllowed($queueHostPage->uri)) {
+
+      $robotsPostfix->append('Disallow:', $queueHostPage->uri);
+
+      $db->updateHostRobotsPostfix($queueHostPage->hostId, $robotsPostfix->getData(), time());
     }
   }
 
   // Update queued page data
   $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
                                            Filter::pageTitle($title->item(0)->nodeValue),
-                                           Filter::pageDescription($description),
-                                           Filter::pageKeywords($keywords),
+                                           Filter::pageDescription($metaDescription),
+                                           Filter::pageKeywords($metaKeywords),
                                            CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
 
   // Collect internal links from page content
