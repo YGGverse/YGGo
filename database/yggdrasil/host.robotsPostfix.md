@@ -14,5 +14,11 @@ Disallow: /index.php?page=statistics&action=blocks&height=*
 ```
 User-agent: *
 
+Disallow: /mcp.php*
+Disallow: /posting.php*
+Disallow: /report.php*
+Disallow: /search.php*
+Disallow: /style.php*
 Disallow: /ucp.php*
+Disallow: /viewonline.php*
 ```
