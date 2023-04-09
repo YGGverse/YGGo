@@ -21,4 +21,5 @@ Disallow: /search.php*
 Disallow: /style.php*
 Disallow: /ucp.php*
 Disallow: /viewonline.php*
+Disallow: /viewtopic.php*&view=print*
 ```
