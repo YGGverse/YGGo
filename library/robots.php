@@ -86,11 +86,13 @@ class Robots {
     return str_replace(
       [
         '*',
-        '?'
+        '?',
+        '+'
       ],
       [
         '.*',
-        '\?'
+        '\?',
+        '\+'
       ],
       $string
     );
