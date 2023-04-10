@@ -23,3 +23,11 @@ Disallow: /ucp.php*
 Disallow: /viewonline.php*
 Disallow: /viewtopic.php*&view=print*
 ```
+
+[http://[300:db62:6a2f:c3d6::83]](http://[300:db62:6a2f:c3d6::83])
+
+```
+User-agent: *
+
+Disallow: /*+*
+```
