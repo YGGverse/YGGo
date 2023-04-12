@@ -1,5 +1,7 @@
 ### YGGo! - Open Source Web Search Engine
 
+Проект присвячується захисникам міста Бахмут
+
 Written by inspiration to explore [Yggdrasil](https://yggdrasil-network.github.io) ecosystem, because of last [YaCy](https://yacy.net/) node there was discontinued.
 This engine also could be useful for crawling regular websites, small business resources, local networks.
 
