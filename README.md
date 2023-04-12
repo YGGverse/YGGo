@@ -72,7 +72,7 @@ sphinxsearch
 
 #### Contributions
 
-Please make a new branch of master tree for each patch in your fork before create PR
+Please make a new branch of master|sqliteway tree for each patch in your fork before create PR
 
 ```
 git checkout master
