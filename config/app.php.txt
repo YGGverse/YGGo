@@ -27,8 +27,36 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 3600);
 
 define('CRAWL_URL_REGEXP', '/^.*$/ui'); // ipv6 only '/^http:\/\/\[[\w:]+\].*$/ui'
 
+/*
+ * Pages limit per new host by default
+ *
+ * Crawler stops indexing on this limit reach to prevent disk overuse
+ *
+ * Custom rule for specified host could be provided in the DB `host`.`crawlPageLimit` field
+ *
+ */
 define('CRAWL_HOST_DEFAULT_PAGES_LIMIT', 1000);
+
+/*
+ * Set default auto-crawl status for new host added
+ *
+ * true  - crawler autostart pages indexer limited by CRAWL_HOST_DEFAULT_PAGES_LIMIT
+ * false - requires manual validation by the moderator in the DB `host`.`status` field
+ *
+ * This option also disable host in the search results
+ *
+ */
 define('CRAWL_HOST_DEFAULT_STATUS', true);
+
+/*
+ * Index only meta tags to prevent disk overuse
+ * or false to save meta tags + overall plain text page content
+ *
+ * Custom rule for specified host could be provided in the DB `host`.`crawlPageMetaOnly` field
+ *
+ * This option able to change search results relevance
+ *
+ */
 define('CRAWL_HOST_DEFAULT_META_ONLY', false);
 
 /*
