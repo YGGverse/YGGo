@@ -6,8 +6,25 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 // Website
+
+/*
+ * Project domain, without slash on postfix
+ *
+ */
 define('WEBSITE_DOMAIN', (issue($_SERVER['HTTP_HOST']) ? 'http://' . $_SERVER['HTTP_HOST'] : ''));
+
+/*
+ * Search results per page before show the read more link.
+ *
+ */
 define('WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT', 100);
+
+/*
+ * Save ident icons to the static webp cache (placed in storage/cache) to prevent CPU overload
+ *
+ * or false - to generate every time on request
+ *
+ */
 define('WEBSITE_IDENTICON_IMAGE_CACHE', true);
 
 // Database
