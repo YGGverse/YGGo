@@ -22,9 +22,36 @@ define('SPHINX_HOST', '127.0.0.1');
 define('SPHINX_PORT', 9306);
 
 // Crawler settings
+
+/*
+ * Pages (URI) processing limit in the crawler.php queue
+ *
+ * This option related to CRAWL_PAGE_SECONDS_OFFSET value
+ * and the crontab task frequency (https://github.com/YGGverse/YGGo#crontab)
+ *
+ * Usually up to 20 pages per minute,
+ * to prevent websites overload by sending GET crawling requests
+ *
+ */
 define('CRAWL_PAGE_LIMIT', 10);
+
+/*
+ * Renew page index by timing offset provided
+ *
+ * This option works with CRAWL_PAGE_LIMIT step queue
+ *
+ * Pay attention, that CRAWL_PAGE_LIMIT + CRAWL_PAGE_SECONDS_OFFSET pair
+ * must have enought value to crawl all pages collected in the DB index
+ *
+ * or the crawler can stuck in queue
+ *
+ */
 define('CRAWL_PAGE_SECONDS_OFFSET', 3600);
 
+/*
+ * Only URL addresses match this rule will be auto-crawled
+ *
+ */
 define('CRAWL_URL_REGEXP', '/^.*$/ui'); // ipv6 only '/^http:\/\/\[[\w:]+\].*$/ui'
 
 /*
