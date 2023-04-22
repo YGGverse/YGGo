@@ -107,5 +107,26 @@ define('CRAWL_ROBOTS_DEFAULT_RULES', null); // string|null
 define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
 
 // Cleaner settings
+
+/*
+ * Hosts limit per crontab execution step (https://github.com/YGGverse/YGGo#crontab)
+ *
+ * This option works with CLEAN_HOST_SECONDS_OFFSET
+ *
+ * The value depends of CPU resources available
+ *
+ */
 define('CLEAN_HOST_LIMIT', 20);
+
+/*
+ * Apply cleaning rules to page older than value provided
+ *
+ * This option works with CLEAN_HOST_LIMIT step queue
+ *
+ * Pay attention, that CLEAN_HOST_LIMIT + CLEAN_HOST_SECONDS_OFFSET pair
+ * must have enought value to process all pages in the DB index
+ *
+ * or the cleaner can stuck in queue
+ *
+ */
 define('CLEAN_HOST_SECONDS_OFFSET', 3600);
