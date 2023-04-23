@@ -53,9 +53,9 @@ sphinxsearch
 * * * * * cd /YGGo/crontab && php crawler.php > /dev/null 2>&1
 ```
 
-#### API
+#### JSON API
 
-JSON interface to build third party applications / distributed index sharing.
+Build third party applications / index distribution.
 
 Could be enabled or disabled by `API_ENABLED` option
 
