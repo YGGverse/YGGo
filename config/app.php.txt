@@ -11,7 +11,7 @@ error_reporting(E_ALL);
  * Project domain, without slash on postfix
  *
  */
-define('WEBSITE_DOMAIN', (issue($_SERVER['HTTP_HOST']) ? 'http://' . $_SERVER['HTTP_HOST'] : ''));
+define('WEBSITE_DOMAIN', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http') . '://' . (!empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ''));
 
 /*
  * Search results per page before show the read more link.
