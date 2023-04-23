@@ -53,6 +53,41 @@ sphinxsearch
 * * * * * cd /YGGo/crontab && php crawler.php > /dev/null 2>&1
 ```
 
+#### API
+
+JSON interface to build third party applications / distributed index sharing.
+Could be enabled or disabled by API_ENABLED option
+
+Address
+
+```
+/api.php
+```
+
+##### Search API
+
+Returns search results.
+Could be enabled or disabled by API_SEARCH_ENABLED option
+
+###### Request attributes
+
+```
+GET action=search
+GET query={string} - search request, empty if not provided
+GET page={int}     - search results page, 1 if not provided
+```
+
+##### Hosts distribution API
+
+Returns node hosts collected with fields provided in API_HOSTS_FIELDS settings.
+Could be enabled or disabled by API_HOSTS_ENABLED option
+
+###### Request attributes
+
+```
+GET action=hosts
+```
+
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search
@@ -66,6 +101,7 @@ sphinxsearch
 * [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority
 * [ ] Implement database auto backup on crawl process completing
 * [x] Add transactions to prevent data loss on DB crashes
+* [x] JSON API
 * [ ] Distributed index data sharing between the nodes trough service API
 * [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?

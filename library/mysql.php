@@ -29,6 +29,15 @@ class MySQL {
   }
 
   // Host
+  public function getAPIHosts(string $apiHostFields) {
+
+    $query = $this->_db->prepare('SELECT ' . $apiHostFields . ' FROM `host`');
+
+    $query->execute();
+
+    return $query->fetchAll();
+  }
+
   public function getHost(int $crc32url) {
 
     $query = $this->_db->prepare('SELECT * FROM `host` WHERE `crc32url` = ? LIMIT 1');

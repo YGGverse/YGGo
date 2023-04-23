@@ -147,3 +147,12 @@ define('CLEAN_HOST_LIMIT', 20);
  *
  */
 define('CLEAN_HOST_SECONDS_OFFSET', 3600);
+
+// API settings
+define('API_ENABLED', true);
+
+define('API_SEARCH_ENABLED', true);
+define('API_SEARCH_PAGINATION_RESULTS_LIMIT', 20);
+
+define('API_HOSTS_ENABLED', true);
+define('API_HOSTS_FIELDS', '`scheme`,`name`,`port`,`crawlPageLimit`,`robots`,`robotsPostfix`,`timeAdded`,`timeUpdated`'); // string: *|field names comma separated
