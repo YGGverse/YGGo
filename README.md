@@ -33,7 +33,7 @@ sphinxsearch
 #### Installation
 
 * The web root dir is `/public`
-* Deploy the database using MySQL Workbench project presented in the `/database` folder
+* Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples are placed at `/config` folder
 * Make sure `/storage` folder is writable
