@@ -9,6 +9,13 @@ if (false === sem_acquire($semaphore, true)) {
   exit;
 }
 
+// Check disk quota
+if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
+
+  echo 'Disk quota reached.' . PHP_EOL;
+  exit;
+}
+
 // Load system dependencies
 require_once('../config/app.php');
 require_once('../library/curl.php');

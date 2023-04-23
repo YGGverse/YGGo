@@ -49,30 +49,34 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       // Register new host
       } else {
 
-        // Get robots.txt if exists
-        $curl = new Curl($hostURL->string . '/robots.txt');
+        // Disk quota not reached
+        if (CRAWL_STOP_DISK_QUOTA_MB_LEFT < disk_free_space('/') / 1000000) {
 
-        if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-          $hostRobots = $curl->getContent();
-        } else {
-          $hostRobots = null;
+          // Get robots.txt if exists
+          $curl = new Curl($hostURL->string . '/robots.txt');
+
+          if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+            $hostRobots = $curl->getContent();
+          } else {
+            $hostRobots = null;
+          }
+
+          $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+
+          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+          $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+          $hostId        = $db->addHost($hostURL->scheme,
+                                        $hostURL->name,
+                                        $hostURL->port,
+                                        crc32($hostURL->string),
+                                        time(),
+                                        null,
+                                        $hostPageLimit,
+                                        (string) CRAWL_HOST_DEFAULT_META_ONLY,
+                                        (string) $hostStatus,
+                                        $hostRobots,
+                                        $hostRobotsPostfix);
         }
-
-        $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-
-        $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
-        $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-        $hostId        = $db->addHost($hostURL->scheme,
-                                      $hostURL->name,
-                                      $hostURL->port,
-                                      crc32($hostURL->string),
-                                      time(),
-                                      null,
-                                      $hostPageLimit,
-                                      (string) CRAWL_HOST_DEFAULT_META_ONLY,
-                                      (string) $hostStatus,
-                                      $hostRobots,
-                                      $hostRobotsPostfix);
       }
 
       // Parse page URI

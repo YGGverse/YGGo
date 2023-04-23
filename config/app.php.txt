@@ -41,6 +41,12 @@ define('SPHINX_PORT', 9306);
 // Crawler settings
 
 /*
+ * Stop crawler on disk quota reached (Mb)
+ *
+ */
+define('CRAWL_STOP_DISK_QUOTA_MB_LEFT', 500);
+
+/*
  * Pages (URI) processing limit in the crawler.php queue
  *
  * This option related to CRAWL_PAGE_SECONDS_OFFSET value
