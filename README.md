@@ -7,16 +7,16 @@ This engine also could be useful for crawling regular websites, small business r
 
 The project goal - simple interface, clear architecture and lightweight server requirement.
 
-#### Online instances
-
-* [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
-* [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
-
-#### Screenshots
+#### Demo
 
 ![Home page](https://github.com/YGGverse/YGGo/blob/main/media/main-sm.png?raw=true)
 
 https://github.com/YGGverse/YGGo/tree/main/media
+
+#### Online instances
+
+* [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
+* [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
 #### License
 * Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
