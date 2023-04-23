@@ -47,6 +47,9 @@ sphinxsearch
 ##### Crontab
 
 ```
+@reboot searchd
+@reboot indexer --all --rotate
+
 0 * * * * indexer --all --rotate
 
 0 0 * * * cd /YGGo/crontab && php cleaner.php > /dev/null 2>&1
