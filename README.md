@@ -18,10 +18,6 @@ https://github.com/YGGverse/YGGo/tree/main/media
 * [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
 * [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
-#### License
-* Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
-* Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
-
 #### Requirements
 
 ```
@@ -126,6 +122,10 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 #### Donate to contributors
 
 * @d47081: [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ) | Support our server by order [Linux VPS](https://www.yourserver.se/portal/aff.php?aff=610)
+
+#### License
+* Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
+* Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 
 #### Feedback
 
