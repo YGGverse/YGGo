@@ -14,7 +14,7 @@ The project goal - simple interface, clear architecture and lightweight server r
 
 #### Screenshots
 
-![Home page](https://github.com/YGGverse/YGGo/blob/main/media/main.png?raw=true)
+![Home page](https://github.com/YGGverse/YGGo/blob/main/media/main-sm.png?raw=true)
 
 https://github.com/YGGverse/YGGo/tree/main/media
 
