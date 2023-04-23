@@ -149,10 +149,39 @@ define('CLEAN_HOST_LIMIT', 20);
 define('CLEAN_HOST_SECONDS_OFFSET', 3600);
 
 // API settings
+
+/*
+ * JSON API features
+ *
+ * When false - every the actions settings below will be ignored
+ *
+ */
 define('API_ENABLED', true);
 
+/*
+ * Search API
+ *
+ * When false - API_SEARCH_PAGINATION_RESULTS_LIMIT will be ignored
+ *
+ */
 define('API_SEARCH_ENABLED', true);
+
+/*
+ * Search results per page
+ *
+ */
 define('API_SEARCH_PAGINATION_RESULTS_LIMIT', 20);
 
+/*
+ * Hosts distribution API
+ *
+ * When false - API_HOSTS_FIELDS will be ignored
+ *
+ */
 define('API_HOSTS_ENABLED', true);
+
+/*
+ * Database host fields comma separated or * to share all the fields
+ *
+ */
 define('API_HOSTS_FIELDS', '`scheme`,`name`,`port`,`crawlPageLimit`,`robots`,`robotsPostfix`,`timeAdded`,`timeUpdated`'); // string: *|field names comma separated
