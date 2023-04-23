@@ -7,7 +7,7 @@ This engine also could be useful for crawling regular websites, small business r
 
 The project goal - simple interface, clear architecture and lightweight server requirement.
 
-#### Demo
+#### Overview
 
 ![Home page](https://github.com/YGGverse/YGGo/blob/main/media/main-sm.png?raw=true)
 
