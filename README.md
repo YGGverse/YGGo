@@ -37,21 +37,7 @@ sphinxsearch
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples are placed at `/config` folder
 * Make sure `/storage` folder is writable
-* Set up the `/crontab` scripts by following [examples](https://github.com/YGGverse/YGGo#crontab)
-
-#### Configuration
-
-##### Crontab
-
-```
-@reboot searchd
-@reboot indexer --all --rotate
-
-0 * * * * indexer --all --rotate
-
-0 0 * * * cd /YGGo/crontab && php cleaner.php > /dev/null 2>&1
-* * * * * cd /YGGo/crontab && php crawler.php > /dev/null 2>&1
-```
+* Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API
 
