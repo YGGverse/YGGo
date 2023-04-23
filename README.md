@@ -74,21 +74,21 @@ Could be enabled or disabled by `API_SEARCH_ENABLED` option
 ###### Request attributes
 
 ```
-GET action=search
-GET query={string} - search request, empty if not provided
-GET page={int}     - search results page, 1 if not provided
+GET action=search  - required
+GET query={string} - optional, search request, empty if not provided
+GET page={int}     - optional, search results page, 1 if not provided
 ```
 
 ##### Hosts distribution API
 
-Returns node hosts collected with fields provided in `API_HOSTS_FIELDS` settings.
+Returns node hosts collected with fields provided in `API_HOSTS_FIELDS` option.
 
 Could be enabled or disabled by `API_HOSTS_ENABLED` option
 
 ###### Request attributes
 
 ```
-GET action=hosts
+GET action=hosts - required
 ```
 
 #### Roadmap / ideas
