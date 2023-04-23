@@ -56,9 +56,10 @@ sphinxsearch
 #### API
 
 JSON interface to build third party applications / distributed index sharing.
+
 Could be enabled or disabled by API_ENABLED option
 
-Address
+###### Address
 
 ```
 /api.php
@@ -67,6 +68,7 @@ Address
 ##### Search API
 
 Returns search results.
+
 Could be enabled or disabled by API_SEARCH_ENABLED option
 
 ###### Request attributes
@@ -80,6 +82,7 @@ GET page={int}     - search results page, 1 if not provided
 ##### Hosts distribution API
 
 Returns node hosts collected with fields provided in API_HOSTS_FIELDS settings.
+
 Could be enabled or disabled by API_HOSTS_ENABLED option
 
 ###### Request attributes
