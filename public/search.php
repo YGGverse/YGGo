@@ -106,13 +106,13 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 // Search request
 if (!empty($q)) {
 
-  $results      = $sphinx->searchHostPages('"' . $q . '"', $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT);
   $resultsTotal = $sphinx->searchHostPagesTotal('"' . $q . '"');
+  $results      = $sphinx->searchHostPages('"' . $q . '"', $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
 
 } else {
 
-  $results      = [];
   $resultsTotal = 0;
+  $results      = [];
 }
 
 ?>

@@ -11,9 +11,15 @@ class SphinxQL {
     $this->_sphinx->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
   }
 
-  public function searchHostPages(string $keyword, int $start, int $limit) {
+  public function searchHostPages(string $keyword, int $start, int $limit, int $maxMatches) {
 
-    $query = $this->_sphinx->prepare('SELECT * FROM `hostPage` WHERE MATCH(?) LIMIT ' . (int) $start . ',' . (int) $limit);
+    $query = $this->_sphinx->prepare('SELECT * FROM `hostPage`
+
+                                               WHERE MATCH(?)
+
+                                               LIMIT ' . (int) ($start > $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
+
+                                               OPTION `max_matches`=' . (int) ($maxMatches > 1 ? $maxMatches : 1));
 
     $query->execute([$keyword]);
 

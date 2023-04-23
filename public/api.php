@@ -29,8 +29,8 @@ if (API_ENABLED) {
       $page  = !empty($_GET['page']) ? Filter::url($_GET['page']) : 1;
 
       // Make search request
-      $sphinxResults      = $sphinx->searchHostPages('"' . $query . '"', $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT);
       $sphinxResultsTotal = $sphinx->searchHostPagesTotal('"' . $query . '"');
+      $sphinxResults      = $sphinx->searchHostPages('"' . $query . '"', $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
 
       // Generate results
       $dbResults = [];
