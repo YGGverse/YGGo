@@ -190,4 +190,13 @@ define('API_HOSTS_ENABLED', true);
  * Database host fields comma separated or * to share all the fields
  *
  */
-define('API_HOSTS_FIELDS', '`scheme`,`name`,`port`,`crawlPageLimit`,`robots`,`robotsPostfix`,`timeAdded`,`timeUpdated`'); // string: *|field names comma separated
+define('API_HOSTS_FIELDS',
+       '`host`.`scheme`,
+       `host`.`name`,
+       `host`.`port`,
+       `host`.`crawlPageLimit`,
+       `host`.`robots`,
+       `host`.`robotsPostfix`,
+       `host`.`timeAdded`,
+       `host`.`timeUpdated`,
+       (SELECT COUNT(*) FROM `hostPage` WHERE `hostPage`.`hostId` = `host`.`hostId`) AS `hostPagesTotal`'); // string: *|field names comma separated
