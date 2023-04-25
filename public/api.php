@@ -99,27 +99,27 @@ if (API_ENABLED) {
         $response = [
           'status' => true,
           'result' => [
-            'APPLICATION_NAME'               => APPLICATION_NAME,
+            'applicationName'            => APPLICATION_NAME,
 
-            'WEBSITE_DOMAIN'                 => WEBSITE_DOMAIN,
+            'websiteDomain'              => WEBSITE_DOMAIN,
 
-            'CRAWL_URL_REGEXP'               => CRAWL_URL_REGEXP,
+            'crawlUrlRegexp'             => CRAWL_URL_REGEXP,
 
-            'CRAWL_HOST_DEFAULT_PAGES_LIMIT' => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
-            'CRAWL_HOST_DEFAULT_STATUS'      => CRAWL_HOST_DEFAULT_STATUS,
-            'CRAWL_HOST_DEFAULT_META_ONLY'   => CRAWL_HOST_DEFAULT_META_ONLY,
-            'CLEAN_HOST_SECONDS_OFFSET'      => CLEAN_HOST_SECONDS_OFFSET,
+            'crawlHostDefaultPagesLimit' => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
+            'crawlHostDefaultStatus'     => CRAWL_HOST_DEFAULT_STATUS,
+            'crawlHostDefaultMetaOnly'   => CRAWL_HOST_DEFAULT_META_ONLY,
 
-            'CRAWL_PAGE_SECONDS_OFFSET'      => CRAWL_PAGE_SECONDS_OFFSET,
+            'crawlHostPageSecondsOffset' => CRAWL_PAGE_SECONDS_OFFSET,
+            'cleanHostSecondsOffset'     => CLEAN_HOST_SECONDS_OFFSET,
 
-            'CRAWL_ROBOTS_DEFAULT_RULES'     => CRAWL_ROBOTS_DEFAULT_RULES,
-            'CRAWL_ROBOTS_POSTFIX_RULES'     => CRAWL_ROBOTS_POSTFIX_RULES,
+            'crawlRobotsDefaultRules'    => CRAWL_ROBOTS_DEFAULT_RULES,
+            'crawlRobotsPostfixRules'    => CRAWL_ROBOTS_POSTFIX_RULES,
 
-            'API_VERSION'                    => API_VERSION,
+            'apiVersion'                 => API_VERSION,
 
-            'API_ENABLED'                    => API_ENABLED,
-            'API_SEARCH_ENABLED'             => API_SEARCH_ENABLED,
-            'API_HOSTS_ENABLED'              => API_HOSTS_ENABLED,
+            'apiEnabled'                 => API_ENABLED,
+            'apiSearchEnabled'           => API_SEARCH_ENABLED,
+            'apiHostsEnabled'            => API_HOSTS_ENABLED,
           ],
         ];
 
