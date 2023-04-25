@@ -20,5 +20,5 @@ source hostPage
 index hostPage
 {
   source = hostPage
-  path   =
+  path   = /var/lib/sphinxsearch/data/hostPage
 }
