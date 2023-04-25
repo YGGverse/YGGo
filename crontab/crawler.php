@@ -71,10 +71,10 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
   }
 
   // Get optional page meta data
-  $metaDescription = null;
-  $metaKeywords    = null;
-  $metaRobots      = null;
-  $metaYggo        = null;
+  $metaDescription = '';
+  $metaKeywords    = '';
+  $metaRobots      = '';
+  $metaYggo        = '';
 
   foreach (@$dom->getElementsByTagName('meta') as $meta) {
 
