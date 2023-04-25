@@ -13,13 +13,17 @@ class SphinxQL {
 
   public function searchHostPages(string $keyword, int $start, int $limit, int $maxMatches) {
 
-    $query = $this->_sphinx->prepare('SELECT * FROM `hostPage`
+    $query = $this->_sphinx->prepare('SELECT *, WEIGHT() AS `weight`
 
-                                               WHERE MATCH(?)
+                                      FROM `hostPage`
 
-                                               LIMIT ' . (int) ($start > $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
+                                      WHERE MATCH(?)
 
-                                               OPTION `max_matches`=' . (int) ($maxMatches > 1 ? $maxMatches : 1));
+                                      ORDER BY `rank` DESC, WEIGHT() DESC
+
+                                      LIMIT ' . (int) ($start > $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
+
+                                      OPTION `max_matches`=' . (int) ($maxMatches > 1 ? $maxMatches : 1));
 
     $query->execute([$keyword]);
 

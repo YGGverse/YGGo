@@ -143,6 +143,7 @@ class MySQL {
                                          `hostPage`.`metaDescription`,
                                          `hostPage`.`data`,
                                          `hostPage`.`uri`,
+                                         `hostPage`.`rank`,
                                          `host`.`scheme`,
                                          `host`.`name`,
                                          `host`.`port`
@@ -200,6 +201,22 @@ class MySQL {
                                                         `data`            = ? WHERE `hostPageId` = ? LIMIT 1');
 
     $query->execute([$metaTitle, $metaDescription, $metaKeywords, $data, $hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function updateHostPageRank(int $hostId,
+                                     int $crc32uri,
+                                     int $increment) {
+
+    $query = $this->_db->prepare('UPDATE `hostPage` SET   `rank` = `rank` + ' . (int) $increment . '
+
+                                                    WHERE `hostId` = ?
+                                                    AND   `crc32uri` = ?
+
+                                                    LIMIT 1');
+
+    $query->execute([$hostId, $crc32uri]);
 
     return $query->rowCount();
   }

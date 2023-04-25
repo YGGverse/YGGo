@@ -183,6 +183,18 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
           $hostRobots        = $host->robots;
           $hostRobotsPostfix = $host->robotsPostfix;
 
+          // Increase page rank when link does not match the current host
+          if ($hostURL->scheme . '://' .
+              $hostURL->name .
+             ($hostURL->port ? ':' . $hostURL->port : '')
+              !=
+              $queueHostPage->scheme . '://' .
+              $queueHostPage->name .
+             ($queueHostPage->port ? ':' . $queueHostPage->port : '')) {
+
+              $db->updateHostPageRank($hostId, crc32($hostPageURI->string), 1);
+          }
+
         // Register new host
         } else {
 
