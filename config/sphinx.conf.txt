@@ -9,12 +9,12 @@ source hostPage
   sql_port    = 3306 # optional, default is 3306
 
   sql_query   = \
-    SELECT hostPage.hostPageId, hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords, hostPage.data, hostPage.uri, host.name  \
+    SELECT hostPage.hostPageId, hostPage.rank, hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords, hostPage.data, hostPage.uri, host.name  \
     FROM hostPage \
     JOIN host ON (host.hostId = hostPage.hostId) \
     WHERE host.status = '1' AND hostPage.httpCode = 200
 
-  sql_attr_uint = hostPageId
+  sql_attr_uint = rank
 }
 
 index hostPage
