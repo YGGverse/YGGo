@@ -51,7 +51,7 @@ Could be enabled or disabled by `API_ENABLED` option
 /api.php
 ```
 
-##### Search API
+##### Search
 
 Returns search results.
 
@@ -65,7 +65,7 @@ GET query={string} - optional, search request, empty if not provided
 GET page={int}     - optional, search results page, 1 if not provided
 ```
 
-##### Hosts distribution API
+##### Hosts distribution
 
 Returns node hosts collected with fields provided in `API_HOSTS_FIELDS` option.
 
@@ -75,6 +75,18 @@ Could be enabled or disabled by `API_HOSTS_ENABLED` option
 
 ```
 GET action=hosts - required
+```
+
+##### Application manifest
+
+Returns node information.
+
+Could be enabled or disabled by `API_MANIFEST_ENABLED` option
+
+###### Request attributes
+
+```
+GET action=manifest - required
 ```
 
 #### Roadmap / ideas

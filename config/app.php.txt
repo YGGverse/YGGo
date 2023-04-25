@@ -5,6 +5,16 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+// Application
+
+/*
+ * Unique project name
+ *
+ * using to ident the app in the YGGo ecosystem
+ *
+ */
+define('APPLICATION_NAME', 'My YGGo host');
+
 // Website
 
 /*
@@ -200,3 +210,13 @@ define('API_HOSTS_FIELDS',
        `host`.`timeAdded`,
        `host`.`timeUpdated`,
        (SELECT COUNT(*) FROM `hostPage` WHERE `hostPage`.`hostId` = `host`.`hostId`) AS `hostPagesTotal`'); // string: *|field names comma separated
+
+/*
+ * Manifest API
+ *
+ * Application meta sharing between YGGo remote nodes
+ *
+ * When true - make this node public for distributed index sharing
+ *
+ */
+define('API_MANIFEST_ENABLED', true);

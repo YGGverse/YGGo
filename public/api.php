@@ -1,5 +1,8 @@
 <?php
 
+// Current version
+define('API_VERSION', 0.1);
+
 // Load system dependencies
 require_once('../config/app.php');
 require_once('../library/curl.php');
@@ -17,54 +20,112 @@ if (API_ENABLED) {
     // Search API
     case 'search';
 
-      // Connect database
-      $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+      if (API_SEARCH_ENABLED) {
 
-      // Connect Sphinx search server
-      $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+        // Connect database
+        $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+        // Connect Sphinx search server
+        $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 
 
-      // Filter request data
-      $query = !empty($_GET['query']) ? Filter::url($_GET['query']) : '';
-      $page  = !empty($_GET['page']) ? Filter::url($_GET['page']) : 1;
+        // Filter request data
+        $query = !empty($_GET['query']) ? Filter::url($_GET['query']) : '';
+        $page  = !empty($_GET['page']) ? Filter::url($_GET['page']) : 1;
 
-      // Make search request
-      $sphinxResultsTotal = $sphinx->searchHostPagesTotal('"' . $query . '"');
-      $sphinxResults      = $sphinx->searchHostPages('"' . $query . '"', $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
+        // Make search request
+        $sphinxResultsTotal = $sphinx->searchHostPagesTotal('"' . $query . '"');
+        $sphinxResults      = $sphinx->searchHostPages('"' . $query . '"', $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
 
-      // Generate results
-      $dbResults = [];
+        // Generate results
+        $dbResults = [];
 
-      foreach ($sphinxResults as $i => $sphinxResult) {
+        foreach ($sphinxResults as $i => $sphinxResult) {
 
-        if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
+          if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
 
-          $dbResults[$i] = $hostPage;
+            $dbResults[$i] = $hostPage;
 
-          $dbResults[$i]->weight = $sphinxResult->weight;
+            $dbResults[$i]->weight = $sphinxResult->weight;
+          }
         }
-      }
 
-      // Make response
-      $response = [
-        'status'  => true,
-        'totals'  => $sphinxResultsTotal,
-        'result'  => $dbResults,
-      ];
+        // Make response
+        $response = [
+          'status'  => true,
+          'totals'  => $sphinxResultsTotal,
+          'result'  => $dbResults,
+        ];
+
+      } else {
+
+        $response = [
+          'status' => false,
+          'result' => [],
+        ];
+      }
 
     break;
 
     // Host API
     case 'hosts';
 
-      // Connect database
-      $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+      if (API_HOSTS_ENABLED) {
 
-      $response = [
-        'status' => true,
-        'totals' => $db->getTotalHosts(),
-        'result' => $db->getAPIHosts(API_HOSTS_FIELDS),
-      ];
+        // Connect database
+        $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+        $response = [
+          'status' => true,
+          'totals' => $db->getTotalHosts(),
+          'result' => $db->getAPIHosts(API_HOSTS_FIELDS),
+        ];
+
+      } else {
+
+        $response = [
+          'status' => false,
+          'result' => [],
+        ];
+      }
+
+    break;
+
+    // Manifest API
+    case 'manifest';
+
+      if (API_MANIFEST_ENABLED) {
+
+        $response = [
+          'status' => true,
+          'result' => [
+            'APPLICATION_NAME'               => APPLICATION_NAME,
+
+            'WEBSITE_DOMAIN'                 => WEBSITE_DOMAIN,
+
+            'CRAWL_URL_REGEXP'               => CRAWL_URL_REGEXP,
+            'CRAWL_HOST_DEFAULT_PAGES_LIMIT' => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
+            'CRAWL_HOST_DEFAULT_STATUS'      => CRAWL_HOST_DEFAULT_STATUS,
+            'CRAWL_HOST_DEFAULT_META_ONLY'   => CRAWL_HOST_DEFAULT_META_ONLY,
+            'CRAWL_ROBOTS_DEFAULT_RULES'     => CRAWL_ROBOTS_DEFAULT_RULES,
+            'CRAWL_ROBOTS_POSTFIX_RULES'     => CRAWL_ROBOTS_POSTFIX_RULES,
+            'CLEAN_HOST_SECONDS_OFFSET'      => CLEAN_HOST_SECONDS_OFFSET,
+
+            'API_VERSION'                    => API_VERSION,
+
+            'API_ENABLED'                    => API_ENABLED,
+            'API_SEARCH_ENABLED'             => API_SEARCH_ENABLED,
+            'API_HOSTS_ENABLED'              => API_HOSTS_ENABLED,
+          ],
+        ];
+
+      } else {
+
+        $response = [
+          'status' => false,
+          'result' => [],
+        ];
+      }
 
     break;
 
