@@ -193,14 +193,16 @@ class MySQL {
                                   mixed $metaTitle,
                                   mixed $metaDescription,
                                   mixed $metaKeywords,
+                                  mixed $metaYggo,
                                   mixed $data) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `metaTitle`       = ?,
                                                         `metaDescription` = ?,
                                                         `metaKeywords`    = ?,
+                                                        `metaYggo`        = ?,
                                                         `data`            = ? WHERE `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $data, $hostPageId]);
+    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $metaYggo, $data, $hostPageId]);
 
     return $query->rowCount();
   }

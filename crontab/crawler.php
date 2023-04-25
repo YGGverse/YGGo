@@ -71,9 +71,10 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
   }
 
   // Get optional page meta data
-  $metaDescription = '';
-  $metaKeywords    = '';
-  $metaRobots      = '';
+  $metaDescription = null;
+  $metaKeywords    = null;
+  $metaRobots      = null;
+  $metaYggo        = null;
 
   foreach (@$dom->getElementsByTagName('meta') as $meta) {
 
@@ -88,6 +89,10 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
     if (@$meta->getAttribute('name') == 'robots') {
       $metaRobots = @$meta->getAttribute('content');
     }
+
+    if (@$meta->getAttribute('name') == 'yggo') {
+      $metaYggo = @$meta->getAttribute('content');
+    }
   }
 
   // Update queued page data
@@ -95,6 +100,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
                                            Filter::pageTitle($title->item(0)->nodeValue),
                                            Filter::pageDescription($metaDescription),
                                            Filter::pageKeywords($metaKeywords),
+                                           Filter::url($metaYggo),
                                            CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
 
   // Append page with meta robots:noindex value to the robotsPostfix disallow list
