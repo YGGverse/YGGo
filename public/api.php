@@ -35,11 +35,13 @@ if (API_ENABLED) {
       // Generate results
       $dbResults = [];
 
-      foreach ($sphinxResults as $sphinxResult) {
+      foreach ($sphinxResults as $i => $sphinxResult) {
 
         if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
 
-          $dbResults[] = $hostPage;
+          $dbResults[$i] = $hostPage;
+
+          $dbResults[$i]->weight = $sphinxResult->weight;
         }
       }
 
