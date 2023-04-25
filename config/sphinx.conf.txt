@@ -19,6 +19,7 @@ source hostPage
 
 index hostPage
 {
-  source = hostPage
-  path   = /var/lib/sphinxsearch/data/hostPage
+  source     = hostPage
+  morphology = stem_enru, stem_cz, stem_ar
+  path       = /var/lib/sphinxsearch/data/hostPage
 }
