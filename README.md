@@ -1,4 +1,4 @@
-### YGGo! - Distributed Open Source Web Search Engine
+### YGGo! - Distributed & Open Source Web Search Engine
 
 _Проект присвячується захисникам міста Бахмут_
 
