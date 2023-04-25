@@ -15,6 +15,17 @@ error_reporting(E_ALL);
  */
 define('APPLICATION_NAME', 'My YGGo host');
 
+/*
+ * Application mode
+ *
+ * FEDERATIVE - crawl and share distributed index from other YGGo nodes running on same API version
+ * LOCAL      - encapsulated web search portal
+ *
+ * see also: API_ENABLED, API_MANIFEST_ENABLED settings
+ *
+ */
+define('APPLICATION_MODE', 'FEDERATIVE');
+
 // Website
 
 /*

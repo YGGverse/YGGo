@@ -100,8 +100,8 @@ if (API_ENABLED) {
           'status' => true,
           'result' => [
             'applicationName'            => APPLICATION_NAME,
-
-            'websiteDomain'              => WEBSITE_DOMAIN,
+            'applicationMode'            => APPLICATION_MODE,
+            'applicationUrl'             => WEBSITE_DOMAIN,
 
             'crawlUrlRegexp'             => CRAWL_URL_REGEXP,
 
