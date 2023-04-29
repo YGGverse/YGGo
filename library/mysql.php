@@ -74,15 +74,6 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function updateHostRobotsPostfix(int $hostId, mixed $robotsPostfix, int $timeUpdated) {
-
-    $query = $this->_db->prepare('UPDATE `host` SET `robotsPostfix` = ?, `timeUpdated` = ? WHERE `hostId` = ? LIMIT 1');
-
-    $query->execute([$robotsPostfix, $timeUpdated, $hostId]);
-
-    return $query->rowCount();
-  }
-
   // Pages
   public function getTotalHostPages(int $hostId) {
 

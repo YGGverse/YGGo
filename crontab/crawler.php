@@ -106,17 +106,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
   // Append page with meta robots:noindex value to the robotsPostfix disallow list
   if (false !== stripos($metaRobots, 'noindex')) {
 
-    $robots        = new Robots($queueHostPage->robots);
-    $robotsPostfix = new Robots($queueHostPage->robotsPostfix);
-
-    // Ignore URI if does not match existing rules yet
-    if ($robotsPostfix->uriAllowed($queueHostPage->uri) &&
-        $robots->uriAllowed($queueHostPage->uri)) {
-
-      $robotsPostfix->append('Disallow:', $queueHostPage->uri);
-
-      $db->updateHostRobotsPostfix($queueHostPage->hostId, $robotsPostfix->getData(), time());
-    }
+    continue;
   }
 
   // Skip page links following by robots:nofollow attribute detected
