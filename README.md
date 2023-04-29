@@ -39,10 +39,6 @@ sphinxsearch
 * Make sure `/storage` folder is writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
-#### Search textual filtering
-
-https://sphinxsearch.com/docs/current.html#extended-syntax
-
 #### JSON API
 
 Build third party applications / index distribution.
@@ -93,6 +89,9 @@ Could be enabled or disabled by `API_MANIFEST_ENABLED` option
 GET action=manifest - required
 ```
 
+#### Search textual filtering
+
+https://sphinxsearch.com/docs/current.html#extended-syntax
 
 #### Roadmap / ideas
 
