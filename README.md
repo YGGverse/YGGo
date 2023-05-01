@@ -93,6 +93,50 @@ GET action=manifest - required
 
 https://sphinxsearch.com/docs/current.html#extended-syntax
 
+#### Supported constructions
+
+```
+operator OR:
+
+hello | world
+
+operator MAYBE:
+
+hello MAYBE world
+
+operator NOT:
+
+hello -world
+
+strict order operator (aka operator "before"):
+
+aaa << bbb << ccc
+
+exact form modifier:
+
+raining =cats and =dogs
+
+field-start and field-end modifier:
+
+^hello world$
+
+keyword IDF boost modifier:
+
+boosted^1.234 boostedfieldend$^1.234
+
+ZONE limit operator:
+
+ZONE:(h3,h4)
+
+only in these titles
+
+ZONESPAN limit operator:
+
+ZONESPAN:(h2)
+
+only in a (single) title
+```
+
 #### Roadmap / ideas
 
 * [x] Web pages full text ranking search
