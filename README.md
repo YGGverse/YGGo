@@ -124,17 +124,6 @@ keyword IDF boost modifier:
 
 boosted^1.234 boostedfieldend$^1.234
 
-ZONE limit operator:
-
-ZONE:(h3,h4)
-
-only in these titles
-
-ZONESPAN limit operator:
-
-ZONESPAN:(h2)
-
-only in a (single) title
 ```
 
 #### Roadmap / ideas
