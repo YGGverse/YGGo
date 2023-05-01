@@ -93,7 +93,7 @@ GET action=manifest - required
 
 https://sphinxsearch.com/docs/current.html#extended-syntax
 
-#### Supported constructions
+##### Supported constructions
 
 ```
 operator OR:
