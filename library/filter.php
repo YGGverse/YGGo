@@ -57,7 +57,7 @@ class Filter {
 
   static public function sphinxSearchQuery(string $query) {
 
-    $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\'', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
+    $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
 
     $query = trim($query);
 
