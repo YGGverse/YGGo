@@ -106,8 +106,8 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 // Search request
 if (!empty($q)) {
 
-  $resultsTotal = $sphinx->searchHostPagesTotal($q);
-  $results      = $sphinx->searchHostPages($q, $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+  $resultsTotal = $sphinx->searchHostPagesTotal(Filter::sphinxSearchQuery($q));
+  $results      = $sphinx->searchHostPages(Filter::sphinxSearchQuery($q), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
 
 } else {
 

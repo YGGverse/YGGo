@@ -55,6 +55,15 @@ class Filter {
     return $data;
   }
 
+  static public function sphinxSearchQuery(string $query) {
+
+    $query = str_replace(['\\', '/', '~', '@', '!'], ['\\\'', '\/', '\~', '\@', '\!'], $query);
+
+    $query = trim($query);
+
+    return $query;
+  }
+
   static public function plural(int $number, array $texts) {
 
     $cases = array (2, 0, 1, 1, 1, 2);
