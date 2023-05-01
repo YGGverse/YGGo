@@ -55,9 +55,11 @@ class Filter {
     return $data;
   }
 
-  static public function sphinxSearchQuery(string $query) {
+  static public function searchQuery(string $query, string $mode = 'default') {
 
-    $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
+    if ($mode == 'default') {
+        $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
+    }
 
     $query = trim($query);
 

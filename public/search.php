@@ -24,6 +24,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                                             ]);
 
 // Filter request data
+$m = !empty($_GET['m']) ? Filter::url($_GET['m']) : 'default';
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
 
@@ -106,8 +107,8 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 // Search request
 if (!empty($q)) {
 
-  $resultsTotal = $sphinx->searchHostPagesTotal(Filter::sphinxSearchQuery($q));
-  $results      = $sphinx->searchHostPages(Filter::sphinxSearchQuery($q), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+  $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m));
+  $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
 
 } else {
 

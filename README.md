@@ -63,6 +63,7 @@ Could be enabled or disabled by `API_SEARCH_ENABLED` option
 GET action=search  - required
 GET query={string} - optional, search request, empty if not provided
 GET page={int}     - optional, search results page, 1 if not provided
+GET mode=SphinxQL  - optional, enable extended SphinxQL syntax
 ```
 
 ##### Hosts distribution
@@ -91,9 +92,7 @@ GET action=manifest - required
 
 #### Search textual filtering
 
-https://sphinxsearch.com/docs/current.html#extended-syntax
-
-##### Supported constructions
+##### Default constructions
 
 ```
 operator OR:
@@ -124,6 +123,16 @@ keyword IDF boost modifier:
 
 boosted^1.234 boostedfieldend$^1.234
 
+```
+
+##### Extended syntax
+
+https://sphinxsearch.com/docs/current.html#extended-syntax
+
+Could be enabled with following attributes
+
+```
+GET m=SphinxQL
 ```
 
 #### Roadmap / ideas

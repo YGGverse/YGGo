@@ -30,12 +30,13 @@ if (API_ENABLED) {
 
 
         // Filter request data
+        $mode  = !empty($_GET['mode']) ? Filter::url($_GET['mode']) : 'default';
         $query = !empty($_GET['query']) ? Filter::url($_GET['query']) : '';
-        $page  = !empty($_GET['page']) ? Filter::url($_GET['page']) : 1;
+        $page  = !empty($_GET['page']) ? (int) $_GET['page'] : 1;
 
         // Make search request
-        $sphinxResultsTotal = $sphinx->searchHostPagesTotal(Filter::sphinxSearchQuery($query));
-        $sphinxResults      = $sphinx->searchHostPages(Filter::sphinxSearchQuery($query), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
+        $sphinxResultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($query, $mode));
+        $sphinxResults      = $sphinx->searchHostPages(Filter::searchQuery($query, $mode), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
 
         // Generate results
         $dbResults = [];
