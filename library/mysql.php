@@ -28,6 +28,25 @@ class MySQL {
     $this->_db->rollBack();
   }
 
+  // Manifest
+  public function getManifest(int $crc32url) {
+
+    $query = $this->_db->prepare('SELECT * FROM `manifest` WHERE `crc32url` = ? LIMIT 1');
+
+    $query->execute([$crc32url]);
+
+    return $query->fetch();
+  }
+
+  public function addManifest(int $crc32url, string $url, string $status, int $timeAdded, mixed $timeUpdated = null) {
+
+    $query = $this->_db->prepare('INSERT INTO `manifest` (`crc32url`, `url`, `status`, `timeAdded`, `timeUpdated`) VALUES (?, ?, ?, ?, ?, ?)');
+
+    $query->execute([$crc32url, $url, $status, $timeAdded, $timeUpdated]);
+
+    return $this->_db->lastInsertId();
+  }
+
   // Host
   public function getAPIHosts(string $apiHostFields) {
 
@@ -184,16 +203,14 @@ class MySQL {
                                   mixed $metaTitle,
                                   mixed $metaDescription,
                                   mixed $metaKeywords,
-                                  mixed $metaYggo,
                                   mixed $data) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `metaTitle`       = ?,
                                                         `metaDescription` = ?,
                                                         `metaKeywords`    = ?,
-                                                        `metaYggo`        = ?,
                                                         `data`            = ? WHERE `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $metaYggo, $data, $hostPageId]);
+    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $data, $hostPageId]);
 
     return $query->rowCount();
   }

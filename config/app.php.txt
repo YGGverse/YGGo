@@ -165,6 +165,24 @@ define('CRAWL_ROBOTS_DEFAULT_RULES', null); // string|null
  */
 define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
 
+/*
+ * Look for third-party manifests to collect distributed index
+ *
+ * API address provided in yggo meta tag
+ * will be stored in the `manifest` DB table
+ *
+ */
+define('CRAWL_MANIFEST', true);
+
+/*
+ * Set default auto-crawl status for new manifest added
+ *
+ * true  - crawler autostart manifest indexer
+ * false - requires manual validation by the moderator in the DB `manifest`.`status` field
+ *
+ */
+define('CRAWL_MANIFEST_DEFAULT_STATUS', true);
+
 // Cleaner settings
 
 /*

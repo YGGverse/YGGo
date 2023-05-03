@@ -100,8 +100,20 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
                                            Filter::pageTitle($title->item(0)->nodeValue),
                                            Filter::pageDescription($metaDescription),
                                            Filter::pageKeywords($metaKeywords),
-                                           Filter::url($metaYggo),
                                            CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
+
+  // Update manifest registry
+  if (CRAWL_MANIFEST && !empty($metaYggo) && filter_var($metaYggo, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggo)) {
+
+    $metaYggoCRC32url = crc32($metaYggo);
+
+    if (!$db->getManifest($metaYggoCRC32url)) {
+         $db->addManifest($metaYggoCRC32url,
+                          $metaYggo,
+                          (string) CRAWL_MANIFEST_DEFAULT_STATUS,
+                          time());
+    }
+  }
 
   // Append page with meta robots:noindex value to the robotsPostfix disallow list
   if (false !== stripos($metaRobots, 'noindex')) {
