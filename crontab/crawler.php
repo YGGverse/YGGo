@@ -30,6 +30,7 @@ $timeStart = microtime(true);
 $hostPagesProcessed = 0;
 $hostPagesIndexed   = 0;
 $hostPagesAdded     = 0;
+$hostImagesAdded    = 0;
 $hostsAdded         = 0;
 
 // Connect database
@@ -127,6 +128,157 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
     continue;
   }
 
+  // Collect page images
+  if (CRAWL_HOST_DEFAULT_IMAGES_LIMIT > 0) {
+
+    foreach (@$dom->getElementsByTagName('img') as $img) {
+
+      // Skip images without src attribute
+      if (!$imageSrc = @$img->getAttribute('src')) {
+
+        continue;
+      }
+
+      // Skip images without alt attribute
+      if (!$imageAlt = @$img->getAttribute('alt')) {
+
+        continue;
+      }
+
+      if (!$imageTitle = @$img->getAttribute('title')) {
+           $imageTitle = null;
+      }
+
+      // Add domain to the relative src links
+      if (!parse_url($imageSrc, PHP_URL_HOST)) {
+
+        $imageSrc = $queueHostPage->scheme . '://' .
+                    $queueHostPage->name .
+                   ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
+                    '/' . trim(ltrim(str_replace(['./', '../'], '', $imageSrc), '/'), '.');
+      }
+
+      // Validate formatted src link
+      if (filter_var($imageSrc, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $imageSrc)) {
+
+        $db->beginTransaction();
+
+        try {
+
+          // Parse formatted src link
+          $hostImageURL = Parser::hostURL($imageSrc);
+          $hostImageURI = Parser::uri($imageSrc);
+
+          // Host exists
+          if ($host = $db->getHost(crc32($hostImageURL->string))) {
+
+            $hostStatus        = $host->status;
+            $hostPageLimit     = $host->crawlPageLimit;
+            $hostImageLimit    = $host->crawlImageLimit;
+            $hostId            = $host->hostId;
+            $hostRobots        = $host->robots;
+            $hostRobotsPostfix = $host->robotsPostfix;
+
+          // Register new host
+          } else {
+
+            // Get robots.txt if exists
+            $curl = new Curl($hostImageURL->string . '/robots.txt');
+
+            if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+              $hostRobots = $curl->getContent();
+            } else {
+              $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
+            }
+
+            $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+
+            $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+            $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+            $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
+            $hostId        = $db->addHost($hostImageURL->scheme,
+                                          $hostImageURL->name,
+                                          $hostImageURL->port,
+                                          crc32($hostURL->string),
+                                          time(),
+                                          null,
+                                          $hostPageLimit,
+                                          $hostImageLimit,
+                                          (string) CRAWL_HOST_DEFAULT_META_ONLY,
+                                          (string) $hostStatus,
+                                          $hostRobots,
+                                          $hostRobotsPostfix);
+
+            if ($hostId) {
+
+              $hostsAdded++;
+
+            } else {
+
+              continue;
+            }
+          }
+
+          // Init robots parser
+          $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+
+          // Save image info
+          $hostImageId = $db->getHostImage($hostId, crc32($hostImageURI->string));
+
+          if ($hostStatus && // host enabled
+              $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
+              $hostImageLimit > $db->getTotalHostImages($hostId) && // images quantity not reached host limit
+             !$hostImageId) {  // image not exists
+
+              // Add host image
+              if ($hostImageId = $db->addHostImage($hostId, crc32($hostImageURI->string), $hostImageURI->string, time())) {
+
+                $hostImagesAdded++;
+
+              } else {
+
+                continue;
+              }
+          }
+
+          // Add host image description
+          $hostImageDescriptionCRC32id = crc32(md5((string) $imageAlt . (string) $imageTitle));
+
+          if (!$db->getHostImageDescription($hostImageId, $hostImageDescriptionCRC32id)) {
+               $db->addHostImageDescription($hostImageId, $hostImageDescriptionCRC32id, (string) $imageAlt, (string) $imageTitle, time());
+          }
+
+          // Relate host image with host page was found
+          if (!$db->getHostImageToHostPage($hostImageId, $queueHostPage->hostPageId)) {
+               $db->addHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), null, 1);
+          } else {
+               $db->updateHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), 1);
+          }
+
+          // Increase page rank when link does not match the current host
+          if ($hostImageURL->scheme . '://' .
+              $hostImageURL->name .
+             ($hostImageURL->port ? ':' . $hostImageURL->port : '')
+              !=
+              $queueHostPage->scheme . '://' .
+              $queueHostPage->name .
+             ($queueHostPage->port ? ':' . $queueHostPage->port : '')) {
+
+              $db->updateHostImageRank($hostId, crc32($hostImageURI->string), 1);
+          }
+
+          $db->commit();
+
+        } catch(Exception $e) {
+
+          var_dump($e);
+
+          $db->rollBack();
+        }
+      }
+    }
+  }
+
   // Collect internal links from page content
   foreach(@$dom->getElementsByTagName('a') as $a) {
 
@@ -187,6 +339,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
 
           $hostStatus        = $host->status;
           $hostPageLimit     = $host->crawlPageLimit;
+          $hostImageLimit    = $host->crawlImageLimit;
           $hostId            = $host->hostId;
           $hostRobots        = $host->robots;
           $hostRobotsPostfix = $host->robotsPostfix;
@@ -207,6 +360,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
 
           $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+          $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
           $hostId        = $db->addHost($hostURL->scheme,
                                         $hostURL->name,
                                         $hostURL->port,
@@ -214,6 +368,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
                                         time(),
                                         null,
                                         $hostPageLimit,
+                                        $hostImageLimit,
                                         (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                         (string) $hostStatus,
                                         $hostRobots,
@@ -272,5 +427,6 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
+echo 'Images added: ' . $hostImagesAdded . PHP_EOL;
 echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL;

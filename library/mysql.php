@@ -40,7 +40,7 @@ class MySQL {
 
   public function addManifest(int $crc32url, string $url, string $status, int $timeAdded, mixed $timeUpdated = null) {
 
-    $query = $this->_db->prepare('INSERT INTO `manifest` (`crc32url`, `url`, `status`, `timeAdded`, `timeUpdated`) VALUES (?, ?, ?, ?, ?, ?)');
+    $query = $this->_db->prepare('INSERT INTO `manifest` (`crc32url`, `url`, `status`, `timeAdded`, `timeUpdated`) VALUES (?, ?, ?, ?, ?)');
 
     $query->execute([$crc32url, $url, $status, $timeAdded, $timeUpdated]);
 
@@ -75,11 +75,11 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function addHost(string $scheme, string $name, mixed $port, int $crc32url, int $timeAdded, mixed $timeUpdated, int $crawlPageLimit, string $crawlPageMetaOnly, string $status, mixed $robots, mixed $robotsPostfix) {
+  public function addHost(string $scheme, string $name, mixed $port, int $crc32url, int $timeAdded, mixed $timeUpdated, int $crawlPageLimit, int $crawlImageLimit, string $crawlPageMetaOnly, string $status, mixed $robots, mixed $robotsPostfix) {
 
-    $query = $this->_db->prepare('INSERT INTO `host` (`scheme`, `name`, `port`, `crc32url`, `timeAdded`, `timeUpdated`, `crawlPageLimit`, `crawlPageMetaOnly`, `status`, `robots`, `robotsPostfix`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $query = $this->_db->prepare('INSERT INTO `host` (`scheme`, `name`, `port`, `crc32url`, `timeAdded`, `timeUpdated`, `crawlPageLimit`, `crawlImageLimit`, `crawlPageMetaOnly`, `status`, `robots`, `robotsPostfix`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$scheme, $name, $port, $crc32url, $timeAdded, $timeUpdated, $crawlPageLimit, $crawlPageMetaOnly, $status, $robots, $robotsPostfix]);
+    $query->execute([$scheme, $name, $port, $crc32url, $timeAdded, $timeUpdated, $crawlPageLimit, $crawlImageLimit, $crawlPageMetaOnly, $status, $robots, $robotsPostfix]);
 
     return $this->_db->lastInsertId();
   }
@@ -89,6 +89,173 @@ class MySQL {
     $query = $this->_db->prepare('UPDATE `host` SET `robots` = ?, `timeUpdated` = ? WHERE `hostId` = ? LIMIT 1');
 
     $query->execute([$robots, $timeUpdated, $hostId]);
+
+    return $query->rowCount();
+  }
+
+  // Images
+  public function getTotalHostImages(int $hostId) {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostImage` WHERE `hostId` = ?');
+
+    $query->execute([$hostId]);
+
+    return $query->fetch()->total;
+  }
+
+  public function getHostImage(int $hostId, int $crc32uri) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostImage` WHERE `hostId` = ? AND `crc32uri` = ? LIMIT 1');
+
+    $query->execute([$hostId, $crc32uri]);
+
+    return $query->fetch();
+  }
+
+  public function getHostImages(int $hostId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostImage` WHERE `hostId` = ?');
+
+    $query->execute([$hostId]);
+
+    return $query->fetchAll();
+  }
+
+  public function getUnrelatedHostImages() {
+
+    $query = $this->_db->prepare('SELECT * FROM  `hostImage`
+                                           WHERE `hostImage`.`hostImageId` NOT IN (SELECT  `hostImageToHostPage`.`hostImageId`
+                                                                                     FROM  `hostImageToHostPage`
+
+                                                                                     WHERE `hostImageToHostPage`.`hostImageId` = `hostImage`.`hostImageId`)');
+
+    $query->execute();
+
+    return $query->fetchAll();
+  }
+
+  public function getHostImagesByLimit(int $hostId, int $limit) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostImage` WHERE `hostId` = ? ORDER BY hostImageId DESC LIMIT ' . (int) $limit);
+
+    $query->execute([$hostId]);
+
+    return $query->fetchAll();
+  }
+
+  public function addHostImage(int $hostId,
+                              int $crc32uri,
+                              string $uri,
+                              int $timeAdded,
+                              mixed $timeUpdated = null,
+                              mixed $httpCode = null,
+                              mixed $rank = null) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostImage` ( `hostId`,
+                                                            `crc32uri`,
+                                                            `uri`,
+                                                            `timeAdded`,
+                                                            `timeUpdated`,
+                                                            `httpCode`,
+                                                            `rank`) VALUES (?, ?, ?, ?, ?, ?, ?)');
+
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $rank]);
+
+    return $this->_db->lastInsertId();
+  }
+
+  public function updateHostImageRank(int $hostId,
+                                      int $crc32uri,
+                                      int $increment) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `rank` = `rank` + ' . (int) $increment . ' WHERE `hostId` = ? AND   `crc32uri` = ? LIMIT 1');
+
+    $query->execute([$hostId, $crc32uri]);
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostImage(int $hostImageId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostImage` WHERE `hostImageId` = ? LIMIT 1');
+
+    $query->execute([$hostImageId]);
+
+    return $query->rowCount();
+  }
+
+  public function getHostImageDescription(int $hostImageId, int $crc32id) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostImageDescription` WHERE `hostImageId` = ? AND `crc32id` = ? LIMIT 1');
+
+    $query->execute([$hostImageId, $crc32id]);
+
+    return $query->fetch();
+  }
+
+  public function addHostImageDescription(int $hostImageId, int $crc32id, string $alt, string $title, int $timeAdded) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
+                                                                      `crc32id`,
+                                                                      `alt`,
+                                                                      `title`,
+                                                                      `timeAdded`) VALUES (?, ?, ?, ?, ?)');
+
+    $query->execute([$hostImageId, $crc32id, $alt, $title, $timeAdded]);
+
+    return $this->_db->lastInsertId();
+  }
+
+  public function deleteHostImageDescription(int $hostImageId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostImageDescription` WHERE `hostImageId` = ?');
+
+    $query->execute([$hostImageId]);
+
+    return $query->rowCount();
+  }
+
+  public function getHostImageToHostPage(int $hostImageId, int $hostPageId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ? AND `hostPageId` = ? LIMIT 1');
+
+    $query->execute([$hostImageId, $hostPageId]);
+
+    return $query->fetch();
+  }
+
+  public function addHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, mixed $timeUpdated, int $quantity) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostImageToHostPage` (`hostImageId`,
+                                                                     `hostPageId`,
+                                                                     `timeAdded`,
+                                                                     `timeUpdated`,
+                                                                     `quantity`) VALUES (?, ?, ?, ?, ?)');
+
+    $query->execute([$hostImageId, $hostPageId, $timeAdded, $timeUpdated, $quantity]);
+
+    return $query->rowCount(); // no primary key
+  }
+
+  public function updateHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, int $quantity) {
+
+    $query = $this->_db->prepare('UPDATE `hostImageToHostPage` SET   `quantity` = `quantity` + ' . (int) $quantity . ', `timeUpdated` = ?
+
+                                                               WHERE `hostImageId` = ?
+                                                               AND   `hostPageId`  = ?
+
+                                                               LIMIT 1');
+
+    $query->execute([$timeAdded, $hostImageId, $hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostImageToHostPage(int $hostImageId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostImageToHostPage` WHERE `hostImageId` = ?');
+
+    $query->execute([$hostImageId]);
 
     return $query->rowCount();
   }
@@ -141,6 +308,15 @@ class MySQL {
   public function getHostPages(int $hostId) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ?');
+
+    $query->execute([$hostId]);
+
+    return $query->fetchAll();
+  }
+
+  public function getHostPagesByLimit(int $hostId, int $limit) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? ORDER BY hostPageId DESC LIMIT ' . (int) $limit);
 
     $query->execute([$hostId]);
 
@@ -240,11 +416,11 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function deleteHostPages(int $hostId, int $limit) {
+  public function deleteHostPageToHostImage(int $hostPageId) {
 
-    $query = $this->_db->prepare('DELETE FROM `hostPage` WHERE `hostId` = ? ORDER BY hostPageId DESC LIMIT ' . (int) $limit);
+    $query = $this->_db->prepare('DELETE FROM `hostImageToHostPage` WHERE `hostPageId` = ?');
 
-    $query->execute([$hostId]);
+    $query->execute([$hostPageId]);
 
     return $query->rowCount();
   }
@@ -275,6 +451,7 @@ class MySQL {
                                          `host`.`name`,
                                          `host`.`port`,
                                          `host`.`crawlPageLimit`,
+                                         `host`.`crawlImageLimit`,
                                          `host`.`crawlPageMetaOnly`,
                                          `host`.`robots`,
                                          `host`.`robotsPostfix`
