@@ -126,7 +126,7 @@ define('CRAWL_PAGE_LIMIT', 10);
  * or the crawler can stuck in queue
  *
  */
-define('CRAWL_PAGE_SECONDS_OFFSET', 3600);
+define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
 
 /*
  * Only URL addresses match this rule will be auto-crawled
@@ -209,7 +209,7 @@ define('CLEAN_HOST_LIMIT', 20);
  * or the cleaner can stuck in queue
  *
  */
-define('CLEAN_HOST_SECONDS_OFFSET', 3600);
+define('CLEAN_HOST_SECONDS_OFFSET', 60*60*24*30);
 
 // API settings
 
