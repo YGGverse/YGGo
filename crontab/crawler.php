@@ -71,10 +71,10 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
   }
 
   // Get optional page meta data
-  $metaDescription = '';
-  $metaKeywords    = '';
-  $metaRobots      = '';
-  $metaYggo        = '';
+  $metaDescription  = '';
+  $metaKeywords     = '';
+  $metaRobots       = '';
+  $metaYggoManifest = '';
 
   foreach (@$dom->getElementsByTagName('meta') as $meta) {
 
@@ -90,8 +90,8 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
       $metaRobots = @$meta->getAttribute('content');
     }
 
-    if (@$meta->getAttribute('name') == 'yggo') {
-      $metaYggo = Filter::url(@$meta->getAttribute('content'));
+    if (@$meta->getAttribute('name') == 'yggo:manifest') {
+      $metaYggoManifest = Filter::url(@$meta->getAttribute('content'));
     }
   }
 
@@ -103,13 +103,13 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
                                            CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
 
   // Update manifest registry
-  if (CRAWL_MANIFEST && !empty($metaYggo) && filter_var($metaYggo, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggo)) {
+  if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
 
-    $metaYggoCRC32url = crc32($metaYggo);
+    $metaYggoManifestCRC32 = crc32($metaYggoManifest);
 
-    if (!$db->getManifest($metaYggoCRC32url)) {
-         $db->addManifest($metaYggoCRC32url,
-                          $metaYggo,
+    if (!$db->getManifest($metaYggoManifestCRC32)) {
+         $db->addManifest($metaYggoManifestCRC32,
+                          $metaYggoManifest,
                           (string) CRAWL_MANIFEST_DEFAULT_STATUS,
                           time());
     }
