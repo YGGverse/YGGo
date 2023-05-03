@@ -1,4 +1,4 @@
-source hostPage
+source common
 {
   type        = mysql
 
@@ -7,7 +7,10 @@ source hostPage
   sql_pass    =
   sql_db      =
   sql_port    = 3306 # optional, default is 3306
+}
 
+source hostPage : common
+{
   sql_query   = \
     SELECT hostPage.hostPageId, hostPage.rank, hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords, hostPage.data, hostPage.uri, host.name  \
     FROM hostPage \
@@ -17,9 +20,30 @@ source hostPage
   sql_attr_uint = rank
 }
 
+source hostImage : common
+{
+  sql_query   = \
+    SELECT hostImage.hostImageId, hostImage.rank, hostImage.uri, host.name, \
+           (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title)) \
+              FROM hostImageDescription \
+              WHERE hostImageDescription.hostImageId = hostImage.hostImageId) AS imageDescription \
+    FROM hostImage \
+    JOIN host ON (host.hostId = hostImage.hostId) \
+    WHERE host.status = '1' AND hostImage.httpCode = 200
+
+  sql_attr_uint = rank
+}
+
 index hostPage
 {
   source     = hostPage
   morphology = stem_enru, stem_cz, stem_ar
   path       = /var/lib/sphinxsearch/data/hostPage
+}
+
+index hostImage
+{
+  source     = hostImage
+  morphology = stem_enru, stem_cz, stem_ar
+  path       = /var/lib/sphinxsearch/data/hostImage
 }
