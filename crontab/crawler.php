@@ -91,7 +91,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
     }
 
     if (@$meta->getAttribute('name') == 'yggo') {
-      $metaYggo = @$meta->getAttribute('content');
+      $metaYggo = Filter::url(@$meta->getAttribute('content'));
     }
   }
 
