@@ -1,7 +1,7 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.1);
+define('API_VERSION', 0.2);
 
 // Load system dependencies
 require_once('../config/app.php');
@@ -100,27 +100,23 @@ if (API_ENABLED) {
         $response = [
           'status' => true,
           'result' => [
-            'applicationName'            => APPLICATION_NAME,
-            'applicationMode'            => APPLICATION_MODE,
-            'applicationUrl'             => WEBSITE_DOMAIN,
-
-            'crawlUrlRegexp'             => CRAWL_URL_REGEXP,
-
-            'crawlHostDefaultPagesLimit' => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
-            'crawlHostDefaultStatus'     => CRAWL_HOST_DEFAULT_STATUS,
-            'crawlHostDefaultMetaOnly'   => CRAWL_HOST_DEFAULT_META_ONLY,
-
-            'crawlHostPageSecondsOffset' => CRAWL_PAGE_SECONDS_OFFSET,
-            'cleanHostSecondsOffset'     => CLEAN_HOST_SECONDS_OFFSET,
-
-            'crawlRobotsDefaultRules'    => CRAWL_ROBOTS_DEFAULT_RULES,
-            'crawlRobotsPostfixRules'    => CRAWL_ROBOTS_POSTFIX_RULES,
-
-            'apiVersion'                 => API_VERSION,
-
-            'apiEnabled'                 => API_ENABLED,
-            'apiSearchEnabled'           => API_SEARCH_ENABLED,
-            'apiHostsEnabled'            => API_HOSTS_ENABLED,
+            'config' => [
+              'websiteDomain'              => WEBSITE_DOMAIN,
+              'crawlUrlRegexp'             => CRAWL_URL_REGEXP,
+              'crawlHostDefaultPagesLimit' => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
+              'crawlHostDefaultStatus'     => CRAWL_HOST_DEFAULT_STATUS,
+              'crawlHostDefaultMetaOnly'   => CRAWL_HOST_DEFAULT_META_ONLY,
+              'crawlHostPageSecondsOffset' => CRAWL_PAGE_SECONDS_OFFSET,
+              'cleanHostSecondsOffset'     => CLEAN_HOST_SECONDS_OFFSET,
+              'crawlRobotsDefaultRules'    => CRAWL_ROBOTS_DEFAULT_RULES,
+              'crawlRobotsPostfixRules'    => CRAWL_ROBOTS_POSTFIX_RULES,
+            ],
+            'api' => [
+              'version'  => API_VERSION,
+              'manifest' => API_ENABLED && API_MANIFEST_ENABLED ? WEBSITE_DOMAIN . '/api.php?action=manifest' : false,
+              'search'   => API_ENABLED && API_SEARCH_ENABLED ? WEBSITE_DOMAIN . '/api.php?action=search' : false,
+              'hosts'    => API_ENABLED && API_HOSTS_ENABLED ? WEBSITE_DOMAIN . '/api.php?action=hosts' : false,
+            ]
           ],
         ];
 
