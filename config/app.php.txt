@@ -171,6 +171,8 @@ define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
  * API address provided in yggo meta tag
  * will be stored in the `manifest` DB table
  *
+ * Collecting URL that match CRAWL_URL_REGEXP condition
+ *
  */
 define('CRAWL_MANIFEST', true);
 
@@ -179,6 +181,8 @@ define('CRAWL_MANIFEST', true);
  *
  * true  - crawler autostart manifest indexer
  * false - requires manual validation by the moderator in the DB `manifest`.`status` field
+ *
+ * This option applying on CRAWL_MANIFEST enabled
  *
  */
 define('CRAWL_MANIFEST_DEFAULT_STATUS', true);
