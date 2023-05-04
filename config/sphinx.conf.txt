@@ -26,7 +26,10 @@ source hostImage : common
     SELECT hostImage.hostImageId, hostImage.rank, hostImage.uri, host.name, \
            (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title)) \
               FROM hostImageDescription \
-              WHERE hostImageDescription.hostImageId = hostImage.hostImageId) AS imageDescription \
+              WHERE hostImageDescription.hostImageId = hostImage.hostImageId) AS imageDescription, \
+            (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords)) \
+              FROM hostPage \
+              WHERE hostPage.hostPageId IN (SELECT hostImageToHostPage.hostPageId FROM hostImageToHostPage WHERE hostImageToHostPage.hostImageId = hostImage.hostImageId)) AS pageDescription \
     FROM hostImage \
     JOIN host ON (host.hostId = hostImage.hostId) \
     WHERE host.status = '1' AND hostImage.httpCode = 200
