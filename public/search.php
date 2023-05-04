@@ -320,9 +320,17 @@ if (!empty($q)) {
                              ($hostImage->port ? ':' . $hostImage->port : false) .
                               $hostImage->uri;
 
-              // Convert remote image to base64 string for the privacy reasons
+              // Get remote image data
+              $hostImageCurl = curl_init($hostImageURL);
+                               curl_setopt($hostImageCurl, CURLOPT_RETURNTRANSFER, true);
+                               curl_setopt($hostImageCurl, CURLOPT_CONNECTTIMEOUT, 5);
+              $hostImageData = curl_exec($hostImageCurl);
+
+              // Skip item render on timeout
+              if (curl_error($hostImageCurl)) continue;
+
+              // Convert remote image data to base64 string to prevent direct URL call
               if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
-              if (!$hostImageData   = @file_get_contents($hostImageURL)) continue;
               if (!$hostImageBase64 = @base64_encode($hostImageData)) continue;
 
               $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
