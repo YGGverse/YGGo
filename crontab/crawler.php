@@ -268,35 +268,38 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           // Save image info
           $hostImageId = $db->getHostImageId($hostId, crc32($hostImageURI->string));
 
-          if ($hostStatus && // host enabled
-              $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
-              $hostImageLimit > $db->getTotalHostImages($hostId) && // images quantity not reached host limit
-             !$hostImageId) {  // image not exists
+          if (!$hostImageId && // image not exists
+               $hostStatus && // host enabled
+               $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
+               $hostImageLimit > $db->getTotalHostImages($hostId)) { // images quantity not reached host limit
 
-              // Add host image
-              if ($hostImageId = $db->addHostImage($hostId, crc32($hostImageURI->string), $hostImageURI->string, time(), null, 200)) {
+            // Add host image
+            if ($hostImageId = $db->addHostImage($hostId, crc32($hostImageURI->string), $hostImageURI->string, time(), null, 200)) {
 
-                $hostImagesAdded++;
+              $hostImagesAdded++;
 
-              } else {
+            } else {
 
-                continue;
-              }
+              continue;
+            }
           }
 
-          // Add/update host image description
-          $db->setHostImageDescription($hostImageId,
-                                       crc32(md5((string) $imageAlt . (string) $imageTitle)),
-                                       Filter::imageAlt($imageAlt),
-                                       Filter::imageTitle($imageTitle),
-                                       time(),
-                                       time());
+          // Host image exists or created new one
+          if ($hostImageId) {
 
+            // Add/update host image description
+            $db->setHostImageDescription($hostImageId,
+                                         crc32(md5((string) $imageAlt . (string) $imageTitle)),
+                                         Filter::imageAlt($imageAlt),
+                                         Filter::imageTitle($imageTitle),
+                                         time(),
+                                         time());
 
-          // Relate host image with host page was found
-          $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), time(), 1);
+            // Relate host image with host page was found
+            $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), time(), 1);
+          }
 
-          // Increase page rank when link does not match the current host
+          // Increase image rank when link does not match the current host
           if ($hostImageURL->scheme . '://' .
               $hostImageURL->name .
              ($hostImageURL->port ? ':' . $hostImageURL->port : '')
