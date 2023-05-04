@@ -254,7 +254,7 @@ class MySQL {
                                                                      ON DUPLICATE KEY UPDATE `timeUpdated` = ?,
                                                                                              `quantity`    = `quantity` + ' . (int) $quantity);
 
-    $query->execute([$hostImageId, $hostPageId, $timeAdded, $timeUpdated, $quantity, $timeUpdated]);
+    $query->execute([$hostImageId, $hostPageId, $timeAdded, null, $quantity, $timeUpdated]);
 
     return $query->rowCount(); // no primary key
   }
