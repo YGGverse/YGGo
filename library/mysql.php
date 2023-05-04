@@ -234,9 +234,9 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function getHostImageHostPages(int $hostImageId) {
+  public function getHostImageHostPages(int $hostImageId, int $limit = 5) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ?');
+    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ? LIMIT ' . (int) $limit);
 
     $query->execute([$hostImageId]);
 
