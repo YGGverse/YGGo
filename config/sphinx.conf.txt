@@ -27,7 +27,7 @@ source hostImage : common
            (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title)) \
               FROM hostImageDescription \
               WHERE hostImageDescription.hostImageId = hostImage.hostImageId) AS imageDescription, \
-            (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords)) \
+           (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords)) \
               FROM hostPage \
               WHERE hostPage.hostPageId IN (SELECT hostImageToHostPage.hostPageId FROM hostImageToHostPage WHERE hostImageToHostPage.hostImageId = hostImage.hostImageId)) AS pageDescription \
     FROM hostImage \
