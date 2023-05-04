@@ -266,12 +266,10 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
           // Save image info
-          $hostImageId = $db->getHostImage($hostId, crc32($hostImageURI->string));
-
           if ($hostStatus && // host enabled
               $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
               $hostImageLimit > $db->getTotalHostImages($hostId) && // images quantity not reached host limit
-             !$hostImageId) {  // image not exists
+             !$hostImageId = $db->getHostImageId($hostId, crc32($hostImageURI->string))) {  // image not exists
 
               // Add host image
               if ($hostImageId = $db->addHostImage($hostId, crc32($hostImageURI->string), $hostImageURI->string, time(), null, 200)) {
@@ -284,19 +282,17 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
               }
           }
 
-          // Add host image description
-          $hostImageDescriptionCRC32id = crc32(md5((string) $imageAlt . (string) $imageTitle));
+          // Add/update host image description
+          $db->setHostImageDescription($hostImageId,
+                                       crc32(md5((string) $imageAlt . (string) $imageTitle)),
+                                       Filter::imageAlt($imageAlt),
+                                       Filter::imageTitle($imageTitle),
+                                       time(),
+                                       time());
 
-          if (!$db->getHostImageDescription($hostImageId, $hostImageDescriptionCRC32id)) {
-               $db->addHostImageDescription($hostImageId, $hostImageDescriptionCRC32id, Filter::imageAlt($imageAlt), Filter::imageTitle($imageTitle), time());
-          }
 
           // Relate host image with host page was found
-          if (!$db->getHostImageToHostPage($hostImageId, $queueHostPage->hostPageId)) {
-               $db->addHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), null, 1);
-          } else {
-               $db->updateHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), 1);
-          }
+          $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), time(), 1);
 
           // Increase page rank when link does not match the current host
           if ($hostImageURL->scheme . '://' .
@@ -434,7 +430,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         if ($hostStatus && // host enabled
             $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
             $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
-            !$db->getHostPage($hostId, crc32($hostPageURI->string))) {  // page not exists
+           !$db->getHostPage($hostId, crc32($hostPageURI->string))) {  // page not exists
 
             if ($db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time())) {
 

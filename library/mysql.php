@@ -103,13 +103,13 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function getHostImage(int $hostId, int $crc32uri) {
+  public function getHostImageId(int $hostId, int $crc32uri) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostImage` WHERE `hostId` = ? AND `crc32uri` = ? LIMIT 1');
+    $query = $this->_db->prepare('SELECT `hostImageId` FROM `hostImage` WHERE `hostId` = ? AND `crc32uri` = ? LIMIT 1');
 
     $query->execute([$hostId, $crc32uri]);
 
-    return $query->fetch();
+    return $query->rowCount() ? $query->fetch()->hostImageId : 0;
   }
 
   public function getHostImages(int $hostId) {
@@ -208,24 +208,19 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function getHostImageDescription(int $hostImageId, int $crc32id) {
-
-    $query = $this->_db->prepare('SELECT * FROM `hostImageDescription` WHERE `hostImageId` = ? AND `crc32id` = ? LIMIT 1');
-
-    $query->execute([$hostImageId, $crc32id]);
-
-    return $query->fetch();
-  }
-
-  public function addHostImageDescription(int $hostImageId, int $crc32id, string $alt, string $title, int $timeAdded) {
+  public function setHostImageDescription(int $hostImageId, int $crc32id, string $alt, string $title, int $timeAdded, int $timeUpdated) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
                                                                       `crc32id`,
                                                                       `alt`,
                                                                       `title`,
-                                                                      `timeAdded`) VALUES (?, ?, ?, ?, ?)');
+                                                                      `timeAdded`) VALUES (?, ?, ?, ?, ?)
 
-    $query->execute([$hostImageId, $crc32id, $alt, $title, $timeAdded]);
+                                                                      ON DUPLICATE KEY UPDATE `alt`         = ?,
+                                                                                              `title`       = ?,
+                                                                                              `timeUpdated` = ?');
+
+    $query->execute([$hostImageId, $crc32id, $alt, $title, $timeAdded, $alt, $title, $timeUpdated]);
 
     return $this->_db->lastInsertId();
   }
@@ -239,15 +234,6 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function getHostImageToHostPage(int $hostImageId, int $hostPageId) {
-
-    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ? AND `hostPageId` = ? LIMIT 1');
-
-    $query->execute([$hostImageId, $hostPageId]);
-
-    return $query->fetch();
-  }
-
   public function getHostImageHostPages(int $hostImageId) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ?');
@@ -257,31 +243,20 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function addHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, mixed $timeUpdated, int $quantity) {
+  public function setHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, mixed $timeUpdated, int $quantity) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageToHostPage` (`hostImageId`,
                                                                      `hostPageId`,
                                                                      `timeAdded`,
                                                                      `timeUpdated`,
-                                                                     `quantity`) VALUES (?, ?, ?, ?, ?)');
+                                                                     `quantity`) VALUES (?, ?, ?, ?, ?)
 
-    $query->execute([$hostImageId, $hostPageId, $timeAdded, $timeUpdated, $quantity]);
+                                                                     ON DUPLICATE KEY UPDATE `timeUpdated` = ?,
+                                                                                             `quantity`    = `quantity` + ' . (int) $quantity);
+
+    $query->execute([$hostImageId, $hostPageId, $timeAdded, $timeUpdated, $quantity, $timeUpdated]);
 
     return $query->rowCount(); // no primary key
-  }
-
-  public function updateHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, int $quantity) {
-
-    $query = $this->_db->prepare('UPDATE `hostImageToHostPage` SET   `quantity` = `quantity` + ' . (int) $quantity . ', `timeUpdated` = ?
-
-                                                               WHERE `hostImageId` = ?
-                                                               AND   `hostPageId`  = ?
-
-                                                               LIMIT 1');
-
-    $query->execute([$timeAdded, $hostImageId, $hostPageId]);
-
-    return $query->rowCount();
   }
 
   public function deleteHostImageToHostPage(int $hostImageId) {
