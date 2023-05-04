@@ -15,19 +15,35 @@ $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
-// Define page basics
-$totalPages = $db->getTotalPages();
-
-$placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'), $totalPages),
-                                            sprintf(_('Over %s pages or enter the new one...'), $totalPages),
-                                            sprintf(_('Over %s pages or enter the new one...'), $totalPages),
-                                            ]);
-
 // Filter request data
 $t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'page';
 $m = !empty($_GET['m']) ? Filter::url($_GET['m']) : 'default';
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
+
+// Define page basics
+switch ($t) {
+
+  case 'image':
+
+    $totalPages = $db->getTotalImages();
+
+    $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s image or enter the new one...'), $totalPages),
+                                                sprintf(_('Over %s images or enter the new one...'), $totalPages),
+                                                sprintf(_('Over %s images or enter the new one...'), $totalPages),
+                                                ]);
+
+  break;
+  default:
+
+    $totalPages = $db->getTotalPages();
+
+    $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'), $totalPages),
+                                                sprintf(_('Over %s pages or enter the new one...'), $totalPages),
+                                                sprintf(_('Over %s pages or enter the new one...'), $totalPages),
+                                                ]);
+}
+
 
 // Crawl request
 if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
