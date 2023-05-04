@@ -190,7 +190,7 @@ if (!empty($q)) {
         display: block;
         font-size: 16px;
         font-weight: normal;
-        margin: 8px 0;
+        margin: 12px 0;
         color: #fff;
       }
 
