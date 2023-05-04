@@ -159,6 +159,7 @@ if (!empty($q)) {
       main {
         margin-top: 110px;
         margin-bottom: 76px;
+        padding: 0 20px;
       }
 
       h1 {
