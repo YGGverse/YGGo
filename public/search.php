@@ -157,7 +157,7 @@ if (!empty($q)) {
       }
 
       main {
-        margin-top: 92px;
+        margin-top: 110px;
         margin-bottom: 76px;
       }
 
@@ -173,8 +173,8 @@ if (!empty($q)) {
       h1 > a:hover {
         color: #fff;
         font-weight: normal;
-        font-size: 26px;
-        margin: 16px 0;
+        font-size: 24px;
+        margin: 10px 0;
         text-decoration: none;
       }
 
@@ -203,8 +203,8 @@ if (!empty($q)) {
 
       input {
         width: 100%;
-        margin: 16px 0;
-        padding: 14px 0;
+        margin: 12px 0;
+        padding: 10px 0;
         border-radius: 32px;
         background-color: #000;
         color: #fff;
@@ -227,10 +227,10 @@ if (!empty($q)) {
 
       label {
         font-size: 14px;
-        position: fixed;
-        top: 30px;
-        right: 120px;
-        color: #fff
+        color: #fff;
+        float: left;
+        margin-left: 16px;
+        margin-bottom: 14px;
       }
 
       label > input {
@@ -239,14 +239,14 @@ if (!empty($q)) {
       }
 
       button {
-        padding: 12px 16px;
+        padding: 8px 16px;
         border-radius: 4px;
         cursor: pointer;
         background-color: #3394fb;
         color: #fff;
         font-size: 14px;
         position: fixed;
-        top: 18px;
+        top: 15px;
         right: 24px;
       }
 
@@ -297,7 +297,8 @@ if (!empty($q)) {
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
         <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="<?php echo htmlentities($q) ?>" />
-        <label><input type="checkbox" name="t" value="image" <?php echo ($t == 'image' ? 'checked="checked"' : false) ?>/> <?php echo _('Images') ?></label>
+        <label><input type="radio" name="t" value="page" <?php echo ($t == 'page' ? 'checked="checked"' : false) ?>/> <?php echo _('Pages') ?></label>
+        <label><input type="radio" name="t" value="image" <?php echo ($t == 'image' ? 'checked="checked"' : false) ?>/> <?php echo _('Images') ?></label>
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
     </header>
