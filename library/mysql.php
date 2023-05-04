@@ -521,7 +521,7 @@ class MySQL {
 
                                           WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
 
-                                          ORDER BY `hostPage`.`hostPageId`
+                                          ORDER BY `hostPage`.`rank` DESC, RAND()
 
                                           LIMIT ' . (int) $limit);
 
@@ -553,7 +553,7 @@ class MySQL {
 
                                           WHERE (`hostImage`.`timeUpdated` IS NULL OR `hostImage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
 
-                                          ORDER BY `hostImage`.`hostImageId`
+                                          ORDER BY `hostImage`.`rank` DESC, RAND()
 
                                           LIMIT ' . (int) $limit);
 
