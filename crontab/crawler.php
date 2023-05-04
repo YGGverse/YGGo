@@ -266,10 +266,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
           // Save image info
+          $hostImageId = $db->getHostImageId($hostId, crc32($hostImageURI->string));
+
           if ($hostStatus && // host enabled
               $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
               $hostImageLimit > $db->getTotalHostImages($hostId) && // images quantity not reached host limit
-             !$hostImageId = $db->getHostImageId($hostId, crc32($hostImageURI->string))) {  // image not exists
+             !$hostImageId) {  // image not exists
 
               // Add host image
               if ($hostImageId = $db->addHostImage($hostId, crc32($hostImageURI->string), $hostImageURI->string, time(), null, 200)) {
