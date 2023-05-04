@@ -321,17 +321,14 @@ if (!empty($q)) {
                               $hostImage->uri;
 
               // Get remote image data
-              $hostImageCurl = curl_init($hostImageURL);
-                               curl_setopt($hostImageCurl, CURLOPT_RETURNTRANSFER, true);
-                               curl_setopt($hostImageCurl, CURLOPT_CONNECTTIMEOUT, 5);
-              $hostImageData = curl_exec($hostImageCurl);
+              $hostImageCurl = new Curl($hostImageURL);
 
               // Skip item render on timeout
-              if (curl_error($hostImageCurl)) continue;
+              if (200 != $hostImageCurl->getCode()) continue;
 
               // Convert remote image data to base64 string to prevent direct URL call
               if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
-              if (!$hostImageBase64 = @base64_encode($hostImageData)) continue;
+              if (!$hostImageBase64 = @base64_encode($hostImageCurl->getContent())) continue;
 
               $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
 
