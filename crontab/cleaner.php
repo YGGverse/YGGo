@@ -33,7 +33,7 @@ foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFS
   $hostURL = $host->scheme . '://' . $host->name . ($host->port ? ':' . $host->port : false);
 
   // Get robots.txt if exists
-  $curl = new Curl($hostURL . '/robots.txt');
+  $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
   if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
     $hostRobots = $curl->getContent();

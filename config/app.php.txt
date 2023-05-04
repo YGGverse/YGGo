@@ -74,7 +74,25 @@ define('DB_PASSWORD', '');
 define('SPHINX_HOST', '127.0.0.1');
 define('SPHINX_PORT', 9306);
 
-// Crawler settings
+// Proxy settings
+
+/*
+ * Search proxy User Agent name
+ *
+ * Shared to other hosts through CURL requests by search proxy
+ *
+ */
+define('PROXY_CURLOPT_USERAGENT', 'YGGo Search Proxy ( https://github.com/YGGverse/YGGo )');
+
+// Crawl settings
+
+/*
+ * Crawler / Bot User Agent name
+ *
+ * Shared to other hosts through CURL requests by crawler
+ *
+ */
+define('CRAWL_CURLOPT_USERAGENT', 'YGGo Search Crawler / Bot ( https://github.com/YGGverse/YGGo )');
 
 /*
  * Stop crawler on disk quota reached (Mb)

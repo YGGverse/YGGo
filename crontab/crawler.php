@@ -44,7 +44,7 @@ foreach ($db->getHostImageCrawlQueue(CRAWL_IMAGE_LIMIT, time() - CRAWL_IMAGE_SEC
   // Build URL from the DB
   $queueHostImageURL = $queueHostImage->scheme . '://' . $queueHostImage->name . ($queueHostImage->port ? ':' . $queueHostImage->port : false) . $queueHostImage->uri;
 
-  $curl = new Curl($queueHostImageURL);
+  $curl = new Curl($queueHostImageURL, CRAWL_CURLOPT_USERAGENT);
 
   // Update image index anyway, with the current time and http code
   $hostImagesProcessed += $db->updateHostImageCrawlQueue($queueHostImage->hostImageId, time(), $curl->getCode());
@@ -85,7 +85,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
   // Build URL from the DB
   $queueHostPageURL = $queueHostPage->scheme . '://' . $queueHostPage->name . ($queueHostPage->port ? ':' . $queueHostPage->port : false) . $queueHostPage->uri;
 
-  $curl = new Curl($queueHostPageURL);
+  $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT);
 
   // Update page index anyway, with the current time and http code
   $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
@@ -226,7 +226,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           } else {
 
             // Get robots.txt if exists
-            $curl = new Curl($hostImageURL->string . '/robots.txt');
+            $curl = new Curl($hostImageURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
             if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
               $hostRobots = $curl->getContent();
@@ -391,7 +391,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         } else {
 
           // Get robots.txt if exists
-          $curl = new Curl($hostURL->string . '/robots.txt');
+          $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
           if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
             $hostRobots = $curl->getContent();

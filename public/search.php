@@ -55,7 +55,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
         if (CRAWL_STOP_DISK_QUOTA_MB_LEFT < disk_free_space('/') / 1000000) {
 
           // Get robots.txt if exists
-          $curl = new Curl($hostURL->string . '/robots.txt');
+          $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
           if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
             $hostRobots = $curl->getContent();
@@ -323,7 +323,7 @@ if (!empty($q)) {
               // Get remote image data
               if (empty($hostImage->data)) {
 
-                $hostImageCurl = new Curl($hostImageURL);
+                $hostImageCurl = new Curl($hostImageURL, PROXY_CURLOPT_USERAGENT);
 
                 // Skip item render on timeout
                 $hostImageHttpCode = $hostImageCurl->getCode();
