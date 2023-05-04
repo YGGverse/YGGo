@@ -1,7 +1,7 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.3);
+define('API_VERSION', 0.4);
 
 // Load system dependencies
 require_once('../config/app.php');
@@ -132,6 +132,7 @@ if (API_ENABLED) {
               'crawlHostDefaultStatus'      => CRAWL_HOST_DEFAULT_STATUS,
               'crawlHostDefaultMetaOnly'    => CRAWL_HOST_DEFAULT_META_ONLY,
               'crawlHostPageSecondsOffset'  => CRAWL_PAGE_SECONDS_OFFSET,
+              'crawlHostImageSecondsOffset' => CRAWL_IMAGE_SECONDS_OFFSET,
               'cleanHostSecondsOffset'      => CLEAN_HOST_SECONDS_OFFSET,
               'crawlRobotsDefaultRules'     => CRAWL_ROBOTS_DEFAULT_RULES,
               'crawlRobotsPostfixRules'     => CRAWL_ROBOTS_POSTFIX_RULES,

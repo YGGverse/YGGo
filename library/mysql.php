@@ -502,7 +502,7 @@ class MySQL {
   }
 
   // Crawl tools
-  public function getCrawlQueue(int $limit, int $timeFrom) {
+  public function getHostPageCrawlQueue(int $limit, int $timeFrom) {
 
     $query = $this->_db->prepare('SELECT `hostPage`.`hostId`,
                                          `hostPage`.`hostPageId`,
@@ -530,11 +530,43 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function updateCrawlQueue(string $hostPageId, int $timeUpdated, int $httpCode) {
+  public function updateHostPageCrawlQueue(int $hostPageId, int $timeUpdated, int $httpCode) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `timeUpdated` = ?, `httpCode` = ? WHERE `hostPageId` = ? LIMIT 1');
 
     $query->execute([$timeUpdated, $httpCode, $hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function getHostImageCrawlQueue(int $limit, int $timeFrom) {
+
+    $query = $this->_db->prepare('SELECT `hostImage`.`hostId`,
+                                         `hostImage`.`hostImageId`,
+                                         `hostImage`.`uri`,
+                                         `host`.`scheme`,
+                                         `host`.`name`,
+                                         `host`.`port`
+
+                                          FROM `hostImage`
+                                          JOIN `host` ON (`host`.`hostId` = `hostImage`.`hostId`)
+
+                                          WHERE (`hostImage`.`timeUpdated` IS NULL OR `hostImage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
+
+                                          ORDER BY `hostImage`.`hostImageId`
+
+                                          LIMIT ' . (int) $limit);
+
+    $query->execute([$timeFrom]);
+
+    return $query->fetchAll();
+  }
+
+  public function updateHostImageCrawlQueue(int $hostImageId, int $timeUpdated, int $httpCode) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `timeUpdated` = ?, `httpCode` = ? WHERE `hostImageId` = ? LIMIT 1');
+
+    $query->execute([$timeUpdated, $httpCode, $hostImageId]);
 
     return $query->rowCount();
   }

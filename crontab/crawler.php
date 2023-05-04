@@ -27,17 +27,60 @@ if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
 // Debug
 $timeStart = microtime(true);
 
-$hostPagesProcessed = 0;
-$hostPagesIndexed   = 0;
-$hostPagesAdded     = 0;
-$hostImagesAdded    = 0;
-$hostsAdded         = 0;
+$hostPagesProcessed  = 0;
+$hostImagesProcessed = 0;
+$hostPagesIndexed    = 0;
+$hostImagesIndexed   = 0;
+$hostPagesAdded      = 0;
+$hostImagesAdded     = 0;
+$hostsAdded          = 0;
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
-// Process crawl queue
-foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
+// Process images crawl queue
+foreach ($db->getHostImageCrawlQueue(CRAWL_IMAGE_LIMIT, time() - CRAWL_IMAGE_SECONDS_OFFSET) as $queueHostImage) {
+
+  // Build URL from the DB
+  $queueHostImageURL = $queueHostImage->scheme . '://' . $queueHostImage->name . ($queueHostImage->port ? ':' . $queueHostImage->port : false) . $queueHostImage->uri;
+
+  $curl = new Curl($queueHostImageURL);
+
+  // Update image index anyway, with the current time and http code
+  $hostImagesProcessed += $db->updateHostImageCrawlQueue($queueHostImage->hostImageId, time(), $curl->getCode());
+
+  // Skip next image processing non 200 code
+  if (200 != $curl->getCode()) {
+
+    continue;
+  }
+
+  // Save image content on data settings enabled
+  if (!CRAWL_HOST_DEFAULT_META_ONLY) {
+
+    // Skip next image processing images without returned data
+    if (!$content = $curl->getContent()) {
+
+      continue;
+    }
+
+    // Convert remote image data to base64 string to prevent direct URL call
+    if (!$hostImageType = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
+
+      continue;
+    }
+
+    if (!$hostImageBase64 = @base64_encode($curl->getContent())) {
+
+      continue;
+    }
+
+    $hostImagesIndexed += $db->updateHostImageData($hostImage->hostImageId, (string) 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64, time());
+  }
+}
+
+// Process pages crawl queue
+foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
 
   // Build URL from the DB
   $queueHostPageURL = $queueHostPage->scheme . '://' . $queueHostPage->name . ($queueHostPage->port ? ':' . $queueHostPage->port : false) . $queueHostPage->uri;
@@ -45,7 +88,7 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
   $curl = new Curl($queueHostPageURL);
 
   // Update page index anyway, with the current time and http code
-  $hostPagesProcessed += $db->updateCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
+  $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
 
   // Skip next page processing non 200 code
   if (200 != $curl->getCode()) {
@@ -427,6 +470,8 @@ foreach ($db->getCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
+echo 'Images processed: ' . $hostImagesProcessed . PHP_EOL;
+echo 'Images indexed: ' . $hostImagesIndexed . PHP_EOL;
 echo 'Images added: ' . $hostImagesAdded . PHP_EOL;
 echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL;
