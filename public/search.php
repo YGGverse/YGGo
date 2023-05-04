@@ -108,15 +108,15 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 // Search request
 if (!empty($q)) {
 
-  if (!empty($t) && $t == 'image') {
+  if ($t == 'image') {
 
     $resultsTotal = $sphinx->searchHostImagesTotal(Filter::searchQuery($q, $m));
-    $results      = $sphinx->searchHostImages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+    $results      = $sphinx->searchHostImages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT, $resultsTotal);
 
   } else {
 
     $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m));
-    $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+    $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
   }
 
 } else {
@@ -297,7 +297,7 @@ if (!empty($q)) {
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
         <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="<?php echo htmlentities($q) ?>" />
-        <label><input type="checkbox" name="t" value="image" <?php echo (!empty($t) && $t == 'image' ? 'checked="checked"' : false) ?>/> <?php echo _('Images') ?></label>
+        <label><input type="checkbox" name="t" value="image" <?php echo ($t == 'image' ? 'checked="checked"' : false) ?>/> <?php echo _('Images') ?></label>
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
     </header>
@@ -310,8 +310,7 @@ if (!empty($q)) {
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
-          <?php if (!empty($t) && $t == 'image' &&
-                                  $hostImage = $db->getFoundHostImage($result->id)) { ?>
+          <?php if ($t == 'image' && $hostImage = $db->getFoundHostImage($result->id)) { ?>
             <?php
 
               // Built image url
@@ -389,9 +388,9 @@ if (!empty($q)) {
             </div>
           <?php } ?>
         <?php } ?>
-        <?php if ($p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT <= $resultsTotal) { ?>
+        <?php if ($p * ($t == 'image' ? WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT : WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT) <= $resultsTotal) { ?>
           <div>
-            <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
+            <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&t=<?php echo $t ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
           </div>
           <?php } ?>
       <?php } else { ?>
