@@ -320,17 +320,24 @@ if (!empty($q)) {
                              ($hostImage->port ? ':' . $hostImage->port : false) .
                               $hostImage->uri;
 
-              // Get remote image data
-              $hostImageCurl = new Curl($hostImageURL);
+              // Get image data
+              if (empty($hostImage->data)) {
 
-              // Skip item render on timeout
-              if (200 != $hostImageCurl->getCode()) continue;
+                $hostImageCurl = new Curl($hostImageURL);
 
-              // Convert remote image data to base64 string to prevent direct URL call
-              if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
-              if (!$hostImageBase64 = @base64_encode($hostImageCurl->getContent())) continue;
+                // Skip item render on timeout
+                if (200 != $hostImageCurl->getCode()) continue;
 
-              $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
+                // Convert remote image data to base64 string to prevent direct URL call
+                if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
+                if (!$hostImageBase64 = @base64_encode($hostImageCurl->getContent())) continue;
+
+                $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
+
+              } else {
+
+                $hostImageURLencoded = $hostImage->data;
+              }
 
             ?>
             <div>

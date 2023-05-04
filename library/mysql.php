@@ -149,7 +149,8 @@ class MySQL {
                               int $timeAdded,
                               mixed $timeUpdated = null,
                               mixed $httpCode = null,
-                              mixed $rank = null) {
+                              mixed $rank = null,
+                              mixed $data = null) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImage` ( `hostId`,
                                                             `crc32uri`,
@@ -157,9 +158,10 @@ class MySQL {
                                                             `timeAdded`,
                                                             `timeUpdated`,
                                                             `httpCode`,
-                                                            `rank`) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                                                            `rank`,
+                                                            `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $rank]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $rank, $data]);
 
     return $this->_db->lastInsertId();
   }
@@ -358,6 +360,7 @@ class MySQL {
   public function getFoundHostImage(int $hostImageId) {
 
     $query = $this->_db->prepare('SELECT `hostImage`.`uri`,
+                                         `hostImage`.`data`,
                                          `hostImage`.`rank`,
                                          `host`.`scheme`,
                                          `host`.`name`,
