@@ -224,6 +224,15 @@ class MySQL {
     return $query->fetch();
   }
 
+  public function getHostImageHostPages(int $hostImageId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ?');
+
+    $query->execute([$hostImageId]);
+
+    return $query->fetchAll();
+  }
+
   public function addHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, mixed $timeUpdated, int $quantity) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageToHostPage` (`hostImageId`,
@@ -342,6 +351,31 @@ class MySQL {
                                           LIMIT 1');
 
     $query->execute([$hostPageId]);
+
+    return $query->fetch();
+  }
+
+  public function getFoundHostImage(int $hostImageId) {
+
+    $query = $this->_db->prepare('SELECT `hostImage`.`uri`,
+                                         `hostImage`.`rank`,
+                                         `host`.`scheme`,
+                                         `host`.`name`,
+                                         `host`.`port`,
+
+                                         (SELECT  GROUP_CONCAT(CONCAT_WS(" | ", `hostImageDescription`.`alt`, `hostImageDescription`.`title`))
+
+                                            FROM  `hostImageDescription`
+                                            WHERE `hostImageDescription`.`hostImageId` = `hostImage`.`hostImageId`) AS `description`
+
+                                          FROM `hostImage`
+                                          JOIN `host` ON (`host`.`hostId` = `hostImage`.`hostId`)
+
+                                          WHERE `hostImage`.`hostImageId` = ?
+
+                                          LIMIT 1');
+
+    $query->execute([$hostImageId]);
 
     return $query->fetch();
   }

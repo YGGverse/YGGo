@@ -30,24 +30,48 @@ if (API_ENABLED) {
 
 
         // Filter request data
+        $type  = !empty($_GET['type']) ? Filter::url($_GET['type']) : 'page';
         $mode  = !empty($_GET['mode']) ? Filter::url($_GET['mode']) : 'default';
         $query = !empty($_GET['query']) ? Filter::url($_GET['query']) : '';
         $page  = !empty($_GET['page']) ? (int) $_GET['page'] : 1;
 
-        // Make search request
-        $sphinxResultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($query, $mode));
-        $sphinxResults      = $sphinx->searchHostPages(Filter::searchQuery($query, $mode), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
+        // Make image search request
+        if (!empty($type) && $type == 'image') {
+
+          $sphinxResultsTotal = $sphinx->searchHostImagesTotal(Filter::searchQuery($query, $mode));
+          $sphinxResults      = $sphinx->searchHostImages(Filter::searchQuery($query, $mode), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
+
+        // Make default search request
+        } else {
+
+          $sphinxResultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($query, $mode));
+          $sphinxResults      = $sphinx->searchHostPages(Filter::searchQuery($query, $mode), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
+        }
 
         // Generate results
         $dbResults = [];
 
         foreach ($sphinxResults as $i => $sphinxResult) {
 
-          if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
+          // Image
+          if (!empty($type) && $type == 'image') {
 
-            $dbResults[$i] = $hostPage;
+            if ($hostImage = $db->getFoundHostImage($sphinxResult->id)) {
 
-            $dbResults[$i]->weight = $sphinxResult->weight;
+              $dbResults[$i] = $hostImage;
+
+              $dbResults[$i]->weight = $sphinxResult->weight;
+            }
+
+          // Default
+          } else {
+
+            if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
+
+              $dbResults[$i] = $hostPage;
+
+              $dbResults[$i]->weight = $sphinxResult->weight;
+            }
           }
         }
 

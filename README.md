@@ -62,6 +62,7 @@ Could be enabled or disabled by `API_SEARCH_ENABLED` option
 ```
 GET action=search  - required
 GET query={string} - optional, search request, empty if not provided
+GET type={string}  - optional, search type, image|default or empty
 GET page={int}     - optional, search results page, 1 if not provided
 GET mode=SphinxQL  - optional, enable extended SphinxQL syntax
 ```
@@ -142,7 +143,7 @@ GET m=SphinxQL
 * [x] Add robots.txt support (Issue #2)
 * [ ] Improve yggdrasil links detection, add .ygg domain zone support
 * [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
-* [ ] Images search (basically implemented but requires testing and some performance optimization)
+* [x] Images search (basically implemented but requires testing and some performance optimization)
 * [x] Index cleaner
 * [ ] Crawl queue balancer, that depends from CPU available
 * [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority

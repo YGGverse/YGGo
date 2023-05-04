@@ -24,6 +24,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                                             ]);
 
 // Filter request data
+$t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'page';
 $m = !empty($_GET['m']) ? Filter::url($_GET['m']) : 'default';
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
@@ -107,8 +108,16 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 // Search request
 if (!empty($q)) {
 
-  $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m));
-  $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+  if (!empty($t) && $t == 'image') {
+
+    $resultsTotal = $sphinx->searchHostImagesTotal(Filter::searchQuery($q, $m));
+    $results      = $sphinx->searchHostImages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+
+  } else {
+
+    $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m));
+    $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_RESULTS_LIMIT, $resultsTotal);
+  }
 
 } else {
 
@@ -177,6 +186,14 @@ if (!empty($q)) {
         color: #fff;
       }
 
+      h3 {
+        display: block;
+        font-size: 16px;
+        font-weight: normal;
+        margin: 8px 0;
+        color: #fff;
+      }
+
       form {
         display: block;
         max-width: 678px;
@@ -208,6 +225,19 @@ if (!empty($q)) {
         color: #090808
       }
 
+      label {
+        font-size: 14px;
+        position: fixed;
+        top: 30px;
+        right: 120px;
+        color: #fff
+      }
+
+      label > input {
+        width: auto;
+        margin: 0 4px;
+      }
+
       button {
         padding: 12px 16px;
         border-radius: 4px;
@@ -235,10 +265,15 @@ if (!empty($q)) {
         color: #54a3f7;
       }
 
-      img {
+      img.icon {
         float: left;
         border-radius: 50%;
         margin-right: 8px;
+      }
+
+      img.image {
+        max-width: 100%;
+        border-radius: 3px;
       }
 
       div {
@@ -262,6 +297,7 @@ if (!empty($q)) {
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
         <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="<?php echo htmlentities($q) ?>" />
+        <label><input type="checkbox" name="t" value="image" <?php echo (!empty($t) && $t == 'image' ? 'checked="checked"' : false) ?>/> <?php echo _('Images') ?></label>
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
     </header>
@@ -274,15 +310,58 @@ if (!empty($q)) {
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
-          <?php if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
-          <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
+          <?php if (!empty($t) && $t == 'image' &&
+                                  $hostImage = $db->getFoundHostImage($result->id)) { ?>
+            <?php
+
+              // Built image url
+              $hostImageURL = $hostImage->scheme . '://' .
+                              $hostImage->name .
+                             ($hostImage->port ? ':' . $hostImage->port : false) .
+                              $hostImage->uri;
+
+              // Convert remote image to base64 string for the privacy reasons
+              if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
+              if (!$hostImageData   = @file_get_contents($hostImageURL)) continue;
+              if (!$hostImageBase64 = @base64_encode($hostImageData)) continue;
+
+              $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
+
+            ?>
+            <div>
+              <a href="<?php echo $hostImageURL ?>">
+                <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo $hostImage->description ?>" title="<?php echo $hostImageURL ?>" class="image" />
+              </a>
+              <?php foreach ((array) $db->getHostImageHostPages($result->id) as $hostPage) { ?>
+                <?php if ($hostPage = $db->getFoundHostPage($hostPage->hostPageId)) { ?>
+                  <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
+                  <h3><?php echo $hostPage->metaTitle ?></h3>
+                  <?php if (!empty($hostImage->description)) { ?>
+                    <span><?php echo $hostImage->description ?></span>
+                  <?php } ?>
+                  <a href="<?php echo $hostPageURL ?>">
+                    <img src="<?php echo WEBSITE_DOMAIN ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
+                    <?php echo $hostPageURL ?>
+                  </a>
+                <?php } ?>
+              <?php } ?>
+            </div>
+          <?php } else if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
+              <?php
+
+                $hostPageURL = $hostPage->scheme . '://' .
+                $hostPage->name .
+               ($hostPage->port ? ':' . $hostPage->port : false) .
+                $hostPage->uri;
+
+              ?>
             <div>
               <h2><?php echo $hostPage->metaTitle ?></h2>
               <?php if (!empty($hostPage->metaDescription)) { ?>
               <span><?php echo $hostPage->metaDescription ?></span>
               <?php } ?>
               <a href="<?php echo $hostPageURL ?>">
-                <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" />
+                <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
                 <?php echo $hostPageURL ?>
               </a>
             </div>
