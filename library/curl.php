@@ -5,12 +5,12 @@ class Curl {
   private $_connection;
   private $_response;
 
-  public function __construct(string $url) {
+  public function __construct(string $url, int $connectTimeout = 5) {
 
     $this->_connection = curl_init($url);
 
     curl_setopt($this->_connection, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($this->_connection, CURLOPT_TIMEOUT, 5);
+    curl_setopt($this->_connection, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
 
     $this->_response = curl_exec($this->_connection);
   }
