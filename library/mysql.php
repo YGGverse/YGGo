@@ -236,11 +236,27 @@ class MySQL {
 
   public function getHostImageHostPages(int $hostImageId, int $limit = 5) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage` WHERE `hostImageId` = ? LIMIT ' . (int) $limit);
+    $query = $this->_db->prepare('SELECT * FROM `hostImageToHostPage`
+                                           JOIN `hostPage` ON (`hostPage`.`hostPageId` = `hostImageToHostPage`.`hostPageId`)
+
+                                           WHERE `hostImageId` = ?
+
+                                           ORDER BY `hostPage`.`rank` DESC, RAND(`hostPage`.`hostId`)
+
+                                           LIMIT ' . (int) $limit);
 
     $query->execute([$hostImageId]);
 
     return $query->fetchAll();
+  }
+
+  public function getHostImageHostPagesTotal(int $hostImageId) {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostImageToHostPage` WHERE `hostImageId` = ?');
+
+    $query->execute([$hostImageId]);
+
+    return $query->fetch()->total;
   }
 
   public function setHostImageToHostPage(int $hostImageId, int $hostPageId, int $timeAdded, mixed $timeUpdated, int $quantity) {

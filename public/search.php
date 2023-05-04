@@ -291,6 +291,11 @@ if (!empty($q)) {
         margin: 8px 0;
       }
 
+      p {
+        margin: 16px 0;
+        text-align: right;
+      }
+
     </style>
   </head>
   <body>
@@ -355,7 +360,8 @@ if (!empty($q)) {
               <a href="<?php echo $hostImageURL ?>">
                 <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo htmlentities($hostImage->description) ?>" title="<?php echo htmlentities($hostImageURL) ?>" class="image" />
               </a>
-              <?php foreach ((array) $db->getHostImageHostPages($result->id) as $hostPage) { ?>
+              <?php $hostImageHostPagesTotal = $db->getHostImageHostPagesTotal($result->id) ?>
+              <?php foreach ((array) $db->getHostImageHostPages($result->id, WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT) as $hostPage) { ?>
                 <?php if ($hostPage = $db->getFoundHostPage($hostPage->hostPageId)) { ?>
                   <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
                   <h3><?php echo $hostPage->metaTitle ?></h3>
@@ -367,6 +373,18 @@ if (!empty($q)) {
                     <?php echo $hostPageURL ?>
                   </a>
                 <?php } ?>
+              <?php } ?>
+              <?php if ($hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT > 0) { ?>
+                <p>
+                  <small>
+                    <?php echo Filter::plural($hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT,
+                    [
+                      sprintf(_('+%s other page'),  $hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT),
+                      sprintf(_('+%s other pages'), $hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT),
+                      sprintf(_('+%s other pages'), $hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT),
+                    ]); ?>
+                  </small>
+                </p>
               <?php } ?>
             </div>
           <?php } else if ($hostPage = $db->getFoundHostPage($result->id)) { ?>

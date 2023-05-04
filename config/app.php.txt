@@ -50,16 +50,22 @@ error_reporting(E_ALL);
 define('WEBSITE_DOMAIN', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http') . '://' . (!empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ''));
 
 /*
- * Page search results before show the read more link.
+ * Page search results before show the read more link
  *
  */
 define('WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT', 100);
 
 /*
- * Image search results before show the read more link.
+ * Image search results before show the read more link
  *
  */
 define('WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT', 10);
+
+/*
+ * Quantity of related pages for each image in the search results
+ *
+ */
+define('WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT', 5);
 
 /*
  * Save ident icons to the static webp cache (placed in storage/cache) to prevent CPU overload
