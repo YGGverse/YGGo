@@ -2,12 +2,16 @@
 
 class Filter {
 
-  static public function url(string $url) {
+  static public function url(mixed $url) {
+
+    $url = (string) $url;
 
     return trim(urldecode($url));
   }
 
-  static public function pageTitle(string $title) {
+  static public function pageTitle(mixed $title) {
+
+    $title = (string) $title;
 
     $title = preg_replace('/[\s]+/', ' ', $title);
 
@@ -16,7 +20,9 @@ class Filter {
     return $title;
   }
 
-  static public function pageDescription(string $description) {
+  static public function pageDescription(mixed $description) {
+
+    $description = (string) $description;
 
     $description = preg_replace('/[\s]+/', ' ', $description);
 
@@ -25,7 +31,9 @@ class Filter {
     return $description;
   }
 
-  static public function pageKeywords(string $keywords) {
+  static public function pageKeywords(mixed $keywords) {
+
+    $keywords = (string) $keywords;
 
     $keywords = preg_replace('/[\s]+/', ' ', $keywords);
 
@@ -34,21 +42,27 @@ class Filter {
     return $keywords;
   }
 
-  static public function imageAlt(string $alt) {
+  static public function imageAlt(mixed $alt) {
+
+    $alt = (string) $alt;
 
     $alt = trim($alt);
 
     return $alt;
   }
 
-  static public function imageTitle(string $title) {
+  static public function imageTitle(mixed $title) {
+
+    $title = (string) $title;
 
     $title = trim($title);
 
     return $title;
   }
 
-  static public function pageData(string $data) {
+  static public function pageData(mixed $data) {
+
+    $data = (string) $data;
 
     $filterDataPre = [
       '/<script.*?\/script>/s',

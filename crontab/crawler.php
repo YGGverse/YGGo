@@ -288,7 +288,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           $hostImageDescriptionCRC32id = crc32(md5((string) $imageAlt . (string) $imageTitle));
 
           if (!$db->getHostImageDescription($hostImageId, $hostImageDescriptionCRC32id)) {
-               $db->addHostImageDescription($hostImageId, $hostImageDescriptionCRC32id, (string) Filter::imageAlt($imageAlt), (string) Filter::imageTitle($imageTitle), time());
+               $db->addHostImageDescription($hostImageId, $hostImageDescriptionCRC32id, Filter::imageAlt($imageAlt), Filter::imageTitle($imageTitle), time());
           }
 
           // Relate host image with host page was found
