@@ -363,7 +363,7 @@ class MySQL {
                                          `host`.`name`,
                                          `host`.`port`,
 
-                                         (SELECT  GROUP_CONCAT(CONCAT_WS(" | ", `hostImageDescription`.`alt`, `hostImageDescription`.`title`))
+                                         (SELECT  GROUP_CONCAT(CONCAT_WS(" ", `hostImageDescription`.`alt`, `hostImageDescription`.`title`))
 
                                             FROM  `hostImageDescription`
                                             WHERE `hostImageDescription`.`hostImageId` = `hostImage`.`hostImageId`) AS `description`
