@@ -177,6 +177,28 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function updateHostImageHttpCode(int $hostImageId,
+                                          int $httpCode,
+                                          int $timeUpdated) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `httpCode` = ?, `timeUpdated` = ? WHERE `hostImageId` = ? LIMIT 1');
+
+    $query->execute([$httpCode, $timeUpdated, $hostImageId]);
+
+    return $query->rowCount();
+  }
+
+  public function updateHostImageData(int $hostImageId,
+                                      string $data,
+                                      int $timeUpdated) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `data` = ?, `timeUpdated` = ? WHERE `hostImageId` = ? LIMIT 1');
+
+    $query->execute([$data, $timeUpdated, $hostImageId]);
+
+    return $query->rowCount();
+  }
+
   public function deleteHostImage(int $hostImageId) {
 
     $query = $this->_db->prepare('DELETE FROM `hostImage` WHERE `hostImageId` = ? LIMIT 1');
@@ -359,7 +381,8 @@ class MySQL {
 
   public function getFoundHostImage(int $hostImageId) {
 
-    $query = $this->_db->prepare('SELECT `hostImage`.`uri`,
+    $query = $this->_db->prepare('SELECT `hostImage`.`hostImageId`,
+                                         `hostImage`.`uri`,
                                          `hostImage`.`data`,
                                          `hostImage`.`rank`,
                                          `host`.`scheme`,

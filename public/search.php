@@ -256,7 +256,7 @@ if (!empty($q)) {
 
       a, a:visited, a:active {
         color: #9ba2ac;
-        display: block;
+        display: inline-block;
         font-size: 12px;
         margin-top: 8px;
       }
@@ -320,13 +320,17 @@ if (!empty($q)) {
                              ($hostImage->port ? ':' . $hostImage->port : false) .
                               $hostImage->uri;
 
-              // Get image data
+              // Get remote image data
               if (empty($hostImage->data)) {
 
                 $hostImageCurl = new Curl($hostImageURL);
 
                 // Skip item render on timeout
-                if (200 != $hostImageCurl->getCode()) continue;
+                $hostImageHttpCode = $hostImageCurl->getCode();
+
+                $db->updateHostImageHttpCode($hostImage->hostImageId, (int) $hostImageHttpCode, time());
+
+                if (200 != $hostImageHttpCode) continue;
 
                 // Convert remote image data to base64 string to prevent direct URL call
                 if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
@@ -334,6 +338,12 @@ if (!empty($q)) {
 
                 $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
 
+                // Save image content on data settings enabled
+                if (!CRAWL_HOST_DEFAULT_META_ONLY) {
+                  $db->updateHostImageData($hostImage->hostImageId, (string) $hostImageURLencoded, time());
+                }
+
+              // Local image data exists
               } else {
 
                 $hostImageURLencoded = $hostImage->data;
@@ -342,7 +352,7 @@ if (!empty($q)) {
             ?>
             <div>
               <a href="<?php echo $hostImageURL ?>">
-                <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo $hostImage->description ?>" title="<?php echo $hostImageURL ?>" class="image" />
+                <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo htmlentities($hostImage->description) ?>" title="<?php echo htmlentities($hostImageURL) ?>" class="image" />
               </a>
               <?php foreach ((array) $db->getHostImageHostPages($result->id) as $hostPage) { ?>
                 <?php if ($hostPage = $db->getFoundHostPage($hostPage->hostPageId)) { ?>

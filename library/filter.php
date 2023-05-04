@@ -34,6 +34,20 @@ class Filter {
     return $keywords;
   }
 
+  static public function imageAlt(string $alt) {
+
+    $alt = trim($alt);
+
+    return $alt;
+  }
+
+  static public function imageTitle(string $title) {
+
+    $title = trim($title);
+
+    return $title;
+  }
+
   static public function pageData(string $data) {
 
     $filterDataPre = [
