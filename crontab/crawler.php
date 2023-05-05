@@ -251,7 +251,7 @@ try {
         continue;
       }
 
-      // Skip image processing images without returned content
+      // Skip image processing without returned content
       if (!$content = $curl->getContent()) {
 
         continue;
@@ -301,7 +301,7 @@ try {
       continue;
     }
 
-    // Skip page processing pages without returned data
+    // Skip page processing without returned data
     if (!$content = $curl->getContent()) {
 
       continue;
