@@ -162,7 +162,6 @@ GET m=SphinxQL
   + [x] Hosts
   + [ ] Pages
   + [ ] Images
-* [x] Distributed index data sharing between YGGo nodes trough manifest API
 * [ ] Context advertising API
 
 ##### Crawler
@@ -173,6 +172,7 @@ GET m=SphinxQL
 * [x] Deprecated index auto cleaner
 * [x] Auto stop crawling on disk quota reached
 * [x] Transactions support to prevent data loss on queue failures
+* [x] Distributed index data crawling between YGGo nodes trough manifest API
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
