@@ -157,11 +157,11 @@ GET m=SphinxQL
 ##### API
 
 * [x] JSON API
-* * [x] Manifest
-* * [x] Search
-* * [x] Hosts
-* * [ ] Pages
-* * [ ] Images
+  + [x] Manifest
+  + [x] Search
+  + [x] Hosts
+  + [ ] Pages
+  + [ ] Images
 * [x] Distributed index data sharing between YGGo nodes trough manifest API
 * [ ] Context advertising API
 
