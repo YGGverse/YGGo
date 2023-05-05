@@ -136,13 +136,13 @@ Could be enabled with following attributes
 GET m=SphinxQL
 ```
 
-#### Roadmap / ideas
+#### Roadmap
 
 * [x] Web pages full text ranking search
 * [x] Make search results pagination
 * [x] Add robots.txt support (Issue #2)
 * [ ] Make page description with found matches highlight
-* [x] Images search (basically implemented but requires testing and some performance optimization)
+* [x] Images search
 * [x] Index cleaner
 * [ ] Crawl queue balancer, that depends of CPU available
 * [ ] Indexing new sites homepage in higher priority
