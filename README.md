@@ -150,7 +150,7 @@ GET m=SphinxQL
 * [ ] Implement database auto backup on crawl process completing
 * [x] Add transactions to prevent data loss on DB crashes
 * [x] JSON API
-* [ ] Distributed index data sharing between the nodes trough service API
+* [x] Distributed index data sharing between the nodes trough service API
 * [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] An idea to make some visitors counters, like in good old times?
 

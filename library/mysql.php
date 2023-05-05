@@ -29,6 +29,24 @@ class MySQL {
   }
 
   // Manifest
+  public function getTotalManifests() {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `manifest`');
+
+    $query->execute();
+
+    return $query->fetch()->total;
+  }
+
+  public function getManifests() {
+
+    $query = $this->_db->prepare('SELECT * FROM `manifest`');
+
+    $query->execute();
+
+    return $query->fetchAll();
+  }
+
   public function getManifest(int $crc32url) {
 
     $query = $this->_db->prepare('SELECT * FROM `manifest` WHERE `crc32url` = ? LIMIT 1');
@@ -45,6 +63,15 @@ class MySQL {
     $query->execute([$crc32url, $url, $status, $timeAdded, $timeUpdated]);
 
     return $this->_db->lastInsertId();
+  }
+
+  public function deleteManifest(int $manifestId) {
+
+    $query = $this->_db->prepare('DELETE FROM `manifest` WHERE `manifestId` = ? LIMIT 1');
+
+    $query->execute([$manifestId]);
+
+    return $query->rowCount();
   }
 
   // Host
@@ -567,6 +594,30 @@ class MySQL {
     $query = $this->_db->prepare('UPDATE `hostImage` SET `timeUpdated` = ?, `httpCode` = ? WHERE `hostImageId` = ? LIMIT 1');
 
     $query->execute([$timeUpdated, $httpCode, $hostImageId]);
+
+    return $query->rowCount();
+  }
+
+  public function getManifestCrawlQueue(int $limit, int $timeFrom) {
+
+    $query = $this->_db->prepare('SELECT * FROM `manifest`
+
+                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> 0
+
+                                           ORDER BY RAND()
+
+                                           LIMIT ' . (int) $limit);
+
+    $query->execute([$timeFrom]);
+
+    return $query->fetchAll();
+  }
+
+  public function updateManifestCrawlQueue(int $manifestId, int $timeUpdated, int $httpCode) {
+
+    $query = $this->_db->prepare('UPDATE `manifest` SET `timeUpdated` = ?, `httpCode` = ? WHERE `manifestId` = ? LIMIT 1');
+
+    $query->execute([$timeUpdated, $httpCode, $manifestId]);
 
     return $query->rowCount();
   }

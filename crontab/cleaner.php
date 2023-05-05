@@ -22,29 +22,31 @@ $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 $timeStart = microtime(true);
 
 $hostsTotal         = $db->getTotalHosts();
+$manifestsTotal     = $db->getTotalManifests();
 $hostsUpdated       = 0;
 $hostsPagesDeleted  = 0;
 $hostsImagesDeleted = 0;
+$manifestsDeleted   = 0;
 
-// Get host queue
-foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFSET) as $host) {
+// Begin update
+$db->beginTransaction();
 
-  // Parse host info
-  $hostURL = $host->scheme . '://' . $host->name . ($host->port ? ':' . $host->port : false);
+try {
 
-  // Get robots.txt if exists
-  $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+  // Get cleaner queue
+  foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFSET) as $host) {
 
-  if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-    $hostRobots = $curl->getContent();
-  } else {
-    $hostRobots = null;
-  }
+    // Parse host info
+    $hostURL = $host->scheme . '://' . $host->name . ($host->port ? ':' . $host->port : false);
 
-  // Begin update
-  $db->beginTransaction();
+    // Get robots.txt if exists
+    $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
-  try {
+    if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+      $hostRobots = $curl->getContent();
+    } else {
+      $hostRobots = null;
+    }
 
     // Update host data
     $hostsUpdated += $db->updateHostRobots($host->hostId, $hostRobots, time());
@@ -118,15 +120,66 @@ foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFS
       // Delete host image
       $hostsImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
     }
-
-    $db->commit();
-
-  } catch(Exception $e){
-
-    var_dump($e);
-
-    $db->rollBack();
   }
+
+  // Clean up deprecated manifests
+  foreach ($db->getManifests() as $manifest) {
+
+    $delete = false;
+
+    $curl = new Curl($manifest->url);
+
+    // Skip processing non 200 code
+    if (200 != $curl->getCode()) {
+
+      continue; // Wait for reconnect
+    }
+
+    // Skip processing without returned data
+    if (!$remoteManifest = $curl->getContent()) {
+
+      $delete = true;
+    }
+
+    // Skip processing on json encoding error
+    if (!$remoteManifest = @json_decode($remoteManifest)) {
+
+      $delete = true;
+    }
+
+    // Skip processing on required fields missed
+    if (empty($remoteManifest->status) ||
+        empty($remoteManifest->result->config->crawlUrlRegexp) ||
+        empty($remoteManifest->result->api->version)) {
+
+      $delete = true;
+    }
+
+    // Skip processing on API version not compatible
+    if ($remoteManifest->result->api->version !== CRAWL_MANIFEST_API_VERSION) {
+
+      $delete = true;
+    }
+
+    // Skip processing on crawlUrlRegexp does not match CRAWL_URL_REGEXP condition
+    if ($remoteManifest->result->config->crawlUrlRegexp !== CRAWL_URL_REGEXP) {
+
+      $delete = true;
+    }
+
+    if ($delete) {
+
+      $manifestsDeleted += $db->deleteManifest($manifest->manifestId);
+    }
+  }
+
+  $db->commit();
+
+} catch(Exception $e){
+
+  var_dump($e);
+
+  $db->rollBack();
 }
 
 // Debug
@@ -134,4 +187,6 @@ echo 'Hosts total: ' . $hostsTotal . PHP_EOL;
 echo 'Hosts updated: ' . $hostsUpdated . PHP_EOL;
 echo 'Hosts pages deleted: ' . $hostsPagesDeleted . PHP_EOL;
 echo 'Hosts images deleted: ' . $hostsImagesDeleted . PHP_EOL;
-echo 'Execution time: ' . microtime(true) - $timeStart . PHP_EOL;
+echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
+echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
+echo 'Execution time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;

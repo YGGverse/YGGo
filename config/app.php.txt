@@ -121,8 +121,10 @@ define('CRAWL_STOP_DISK_QUOTA_MB_LEFT', 500);
  * Usually up to 20 pages per minute,
  * to prevent websites overload by sending GET crawling requests
  *
+ * Set 0 to disable
+ *
  */
-define('CRAWL_PAGE_LIMIT', 10);
+define('CRAWL_PAGE_LIMIT', 20);
 
 /*
  * Images (URI) processing limit in the crawler.php queue
@@ -133,8 +135,27 @@ define('CRAWL_PAGE_LIMIT', 10);
  * Usually up to 20 pages per minute,
  * to prevent websites overload by sending GET crawling requests
  *
+ * Set 0 to disable
+ *
  */
-define('CRAWL_IMAGE_LIMIT', 20);
+define('CRAWL_IMAGE_LIMIT', 10);
+
+/*
+ * Manifest (URI) processing limit in the crawler.php queue
+ *
+ * Used to collect distributed data index
+ * that match CRAWL_URL_REGEXP & CRAWL_MANIFEST_API_VERSION
+ *
+ * This option related to CRAWL_MANIFEST_SECONDS_OFFSET value
+ * and the crontab task frequency (https://github.com/YGGverse/YGGo#crontab)
+ *
+ * Usually up to 20 pages per minute,
+ * to prevent websites overload by sending GET crawling requests
+ *
+ * Set 0 to disable
+ *
+ */
+define('CRAWL_MANIFEST_LIMIT', 10);
 
 /*
  * Renew page index by timing offset provided
@@ -161,6 +182,19 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
  *
  */
 define('CRAWL_IMAGE_SECONDS_OFFSET', 60*60*24*30*12);
+
+/*
+ * Renew manifests index by timing offset provided
+ *
+ * This option works with CRAWL_MANIFEST_LIMIT step queue
+ *
+ * Pay attention, that CRAWL_MANIFEST_LIMIT + CRAWL_MANIFEST_SECONDS_OFFSET pair
+ * must have enough value to crawl all manifests collected in the DB index
+ *
+ * or the crawler can stuck in queue
+ *
+ */
+define('CRAWL_MANIFEST_SECONDS_OFFSET', 60*60*24*30);
 
 /*
  * Only URL addresses match this rule will be auto-crawled
@@ -241,6 +275,12 @@ define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
  *
  */
 define('CRAWL_MANIFEST', true);
+
+/*
+ * Manifest API version compatibility
+ *
+ */
+define('CRAWL_MANIFEST_API_VERSION', 0.4);
 
 /*
  * Set default auto-crawl status for new manifest added
