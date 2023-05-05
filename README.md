@@ -154,6 +154,8 @@ GET m=SphinxQL
 * [x] Unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] Link clicks counter, trough internal stats redirect controller
 * [ ] The time machine feature by content history cache preview
+* [ ] Context advertising API
+* [ ] Administrative panel for useful index moderation
 
 #### Contributions
 
