@@ -159,6 +159,8 @@ GET m=SphinxQL
 * [ ] Index API
   + [x] Manifest
   + [x] Search
+    + [x] Pages
+    + [x] Images
   + [x] Hosts
   + [ ] Pages
   + [ ] Images
