@@ -140,10 +140,12 @@ GET m=SphinxQL
 
 * [x] Web pages full text ranking search
 * [x] Make search results pagination
-* [x] Robots.txt / robots meta tags support (Issue #2)
+* [x] Robots.txt / robots meta tags support (#2)
 * [ ] Redirect codes extended processing
 * [ ] Make page description with found matches highlight
+* [ ] Content genre tabs (#1)
 * [x] Images search with safe proxy preview support
+* [ ] Palette image index / filter
 * [x] Deprecated index auto cleaner
 * [ ] Crawl queue balancer, that depends of CPU available
 * [x] Auto stop crawling on disk quota reached
