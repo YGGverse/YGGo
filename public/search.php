@@ -386,7 +386,7 @@ if (!empty($q)) {
                   <?php } ?>
                   <a href="<?php echo $hostPageURL ?>">
                     <img src="<?php echo WEBSITE_DOMAIN ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
-                    <?php echo $hostPageURL ?>
+                    <?php echo htmlentities(urldecode($hostPageURL)) ?>
                   </a>
                 <?php } ?>
               <?php } ?>
@@ -419,7 +419,7 @@ if (!empty($q)) {
               <?php } ?>
               <a href="<?php echo $hostPageURL ?>">
                 <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
-                <?php echo $hostPageURL ?>
+                <?php echo htmlentities(urldecode($hostPageURL)) ?>
               </a>
             </div>
           <?php } ?>
