@@ -140,7 +140,8 @@ GET m=SphinxQL
 
 * [x] Web pages full text ranking search
 * [x] Make search results pagination
-* [x] Add robots.txt support (Issue #2)
+* [x] Robots.txt / robots meta tags support (Issue #2)
+* [ ] Redirect codes extended processing
 * [ ] Make page description with found matches highlight
 * [x] Images search
 * [x] Deprecated index auto cleaner
