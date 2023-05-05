@@ -230,7 +230,7 @@ try {
     // Update image index anyway, with the current time and http code
     $hostImagesProcessed += $db->updateHostImageCrawlQueue($queueHostImage->hostImageId, time(), $curl->getCode());
 
-    // Skip next image processing non 200 code
+    // Skip image processing non 200 code
     if (200 != $curl->getCode()) {
 
       continue;
@@ -239,7 +239,19 @@ try {
     // Save image content on data settings enabled
     if (!CRAWL_HOST_DEFAULT_META_ONLY) {
 
-      // Skip next image processing images without returned data
+      // Skip image processing on MIME type not provided
+      if (!$contentType = $curl->getContentType()) {
+
+        continue;
+      }
+
+      // Skip image processing on MIME type not allowed in settings
+      if (false === strpos($contentType, CRAWL_IMAGE_MIME_TYPE)) {
+
+        continue;
+      }
+
+      // Skip image processing images without returned content
       if (!$content = $curl->getContent()) {
 
         continue;
@@ -271,13 +283,25 @@ try {
     // Update page index anyway, with the current time and http code
     $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
 
-    // Skip next page processing non 200 code
+    // Skip page processing non 200 code
     if (200 != $curl->getCode()) {
 
       continue;
     }
 
-    // Skip next page processing pages without returned data
+    // Skip page processing on MIME type not provided
+    if (!$contentType = $curl->getContentType()) {
+
+      continue;
+    }
+
+    // Skip page processing on MIME type not allowed in settings
+    if (false === strpos($contentType, CRAWL_PAGE_MIME_TYPE)) {
+
+      continue;
+    }
+
+    // Skip page processing pages without returned data
     if (!$content = $curl->getContent()) {
 
       continue;

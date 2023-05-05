@@ -85,7 +85,7 @@ try {
     // Apply new robots.txt rules
     $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
-    foreach ($db->getHostImages($host->hostId) as $hostImage) {
+    foreach ($db->getHostImages($host->hostId) as $hostImage) { // @TODO implement CRAWL_IMAGE_MIME_TYPE updates
 
       if (!$robots->uriAllowed($hostImage->uri)) {
 
@@ -98,7 +98,7 @@ try {
       }
     }
 
-    foreach ($db->getHostPages($host->hostId) as $hostPage) {
+    foreach ($db->getHostPages($host->hostId) as $hostPage) { // @TODO implement CRAWL_PAGE_MIME_TYPE updates
 
       if (!$robots->uriAllowed($hostPage->uri)) {
 

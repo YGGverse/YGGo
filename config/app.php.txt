@@ -171,6 +171,22 @@ define('CRAWL_MANIFEST_LIMIT', 10);
 define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
 
 /*
+ * Index pages match MIME types
+ *
+ * comma separated
+ *
+ */
+define('CRAWL_PAGE_MIME_TYPE', 'text/html');
+
+/*
+ * Index images match MIME types
+ *
+ * comma separated
+ *
+ */
+define('CRAWL_IMAGE_MIME_TYPE', 'image/webp,image/png,image/gif,image/jpg,image/ico');
+
+/*
  * Renew image index by timing offset provided
  *
  * This option works with CRAWL_IMAGE_LIMIT step queue

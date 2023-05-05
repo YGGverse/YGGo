@@ -42,6 +42,11 @@ class Curl {
 
   }
 
+  public function getContentType() {
+
+    return curl_getinfo($this->_connection, CURLINFO_CONTENT_TYPE);
+  }
+
   public function getContent() {
 
     return $this->_response;
