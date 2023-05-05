@@ -143,8 +143,9 @@ GET m=SphinxQL
 * [x] Add robots.txt support (Issue #2)
 * [ ] Make page description with found matches highlight
 * [x] Images search
-* [x] Index cleaner
+* [x] Deprecated index auto cleaner
 * [ ] Crawl queue balancer, that depends of CPU available
+* [x] Auto stop crawling on disk quota reached
 * [ ] Indexing new sites homepage in higher priority
 * [x] Add transactions to prevent data loss on DB crashes
 * [x] JSON API
