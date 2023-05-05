@@ -166,7 +166,7 @@ GET m=SphinxQL
 * [x] Specific rules configuration for every host
 * [x] Deprecated index auto cleaner
 * [x] Auto stop crawling on disk quota reached
-* [x] Transactions support to prevent data loss in queue failures
+* [x] Transactions support to prevent data loss on queue failures
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
