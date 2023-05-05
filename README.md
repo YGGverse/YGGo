@@ -156,7 +156,7 @@ GET m=SphinxQL
 
 ##### API
 
-* [x] JSON API
+* [ ] Index API
   + [x] Manifest
   + [x] Search
   + [x] Hosts
