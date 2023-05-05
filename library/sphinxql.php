@@ -21,9 +21,9 @@ class SphinxQL {
 
                                       ORDER BY `rank` DESC, WEIGHT() DESC
 
-                                      LIMIT ' . (int) ($start > $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
+                                      LIMIT ' . (int) ($start >= $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
 
-                                      OPTION `max_matches`=' . (int) ($maxMatches > 1 ? $maxMatches : 1));
+                                      OPTION `max_matches`=' . (int) ($maxMatches >= 1 ? $maxMatches : 1));
 
     $query->execute([$keyword]);
 
@@ -40,9 +40,9 @@ class SphinxQL {
 
                                       ORDER BY `rank` DESC, WEIGHT() DESC
 
-                                      LIMIT ' . (int) ($start > $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
+                                      LIMIT ' . (int) ($start >= $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
 
-                                      OPTION `max_matches`=' . (int) ($maxMatches > 1 ? $maxMatches : 1));
+                                      OPTION `max_matches`=' . (int) ($maxMatches >= 1 ? $maxMatches : 1));
 
     $query->execute([$keyword]);
 
