@@ -147,6 +147,7 @@ GET m=SphinxQL
 
 ##### UI
 
+* [x] CSS only, JS-less interface
 * [x] Unique ident icons for sites without favicons
 * [ ] Results with found matches highlight
 * [ ] Content genre tabs (#1)
