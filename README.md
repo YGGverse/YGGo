@@ -138,26 +138,44 @@ GET m=SphinxQL
 
 #### Roadmap
 
+##### Basic features
+
 * [x] Web pages full text ranking search
-* [x] Make search results pagination
-* [x] Robots.txt / robots meta tags support (#2)
-* [ ] Redirect codes extended processing
-* [ ] Make page description with found matches highlight
-* [ ] Content genre tabs (#1)
 * [x] Images search with safe proxy preview support
-* [ ] Palette image index / filter
-* [x] Deprecated index auto cleaner
-* [ ] Crawl queue balancer, that depends of CPU available
-* [x] Auto stop crawling on disk quota reached
-* [ ] Indexing new sites homepage in higher priority
-* [x] Add transactions to prevent data loss on DB crashes
-* [x] JSON API
-* [x] Distributed index data sharing between the nodes trough manifest API
-* [x] Unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
-* [ ] Link clicks counter, trough internal stats redirect controller
+* [x] Extended syntax support
+* [x] Flexible settings compatible with IPv4/IPv6 networks
+
+##### UI
+
+* [x] Unique ident icons for sites without favicons
+* [ ] Results with found matches highlight
+* [ ] Content genre tabs (#1)
 * [ ] The time machine feature by content history cache preview
+* [ ] Link clicks counter
+
+##### API
+
+* [x] JSON API
+* [x] Distributed index data sharing between YGGo nodes trough manifest API
 * [ ] Context advertising API
+
+##### Crawler
+
+* [x] Auto crawl links by regular expression rules
+* [x] Robots.txt / robots meta tags support (#2)
+* [x] Specific rules configuration for every host
+* [x] Deprecated index auto cleaner
+* [x] Auto stop crawling on disk quota reached
+* [x] Transactions support to prevent data loss in queue failures
+* [ ] Indexing new sites homepage in higher priority
+* [ ] Redirect codes extended processing
+* [ ] Palette image index / filter
+* [ ] Crawl queue balancer, that depends of CPU available
+
+##### Other
+
 * [ ] Administrative panel for useful index moderation
+
 
 #### Contributions
 
