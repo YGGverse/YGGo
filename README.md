@@ -143,7 +143,7 @@ GET m=SphinxQL
 * [x] Robots.txt / robots meta tags support (Issue #2)
 * [ ] Redirect codes extended processing
 * [ ] Make page description with found matches highlight
-* [x] Images search
+* [x] Images search with safe proxy preview support
 * [x] Deprecated index auto cleaner
 * [ ] Crawl queue balancer, that depends of CPU available
 * [x] Auto stop crawling on disk quota reached
