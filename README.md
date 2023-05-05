@@ -150,7 +150,7 @@ GET m=SphinxQL
 * [ ] Indexing new sites homepage in higher priority
 * [x] Add transactions to prevent data loss on DB crashes
 * [x] JSON API
-* [x] Distributed index data sharing between the nodes trough service API
+* [x] Distributed index data sharing between the nodes trough manifest API
 * [x] Unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
 * [ ] Link clicks counter, trough internal stats redirect controller
 * [ ] The time machine feature by content history cache preview
