@@ -141,18 +141,17 @@ GET m=SphinxQL
 * [x] Web pages full text ranking search
 * [x] Make search results pagination
 * [x] Add robots.txt support (Issue #2)
-* [ ] Improve yggdrasil links detection, add .ygg domain zone support
-* [ ] Make page description visible - based on the cached content dump, when website description tag not available, add condition highlights
+* [ ] Make page description with found matches highlight
 * [x] Images search (basically implemented but requires testing and some performance optimization)
 * [x] Index cleaner
-* [ ] Crawl queue balancer, that depends from CPU available
-* [ ] Implement smart queue algorithm that indexing new sites homepage in higher priority
-* [ ] Implement database auto backup on crawl process completing
+* [ ] Crawl queue balancer, that depends of CPU available
+* [ ] Indexing new sites homepage in higher priority
 * [x] Add transactions to prevent data loss on DB crashes
 * [x] JSON API
 * [x] Distributed index data sharing between the nodes trough service API
-* [x] An idea to make unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
-* [ ] An idea to make some visitors counters, like in good old times?
+* [x] Unique gravatars for sites without favicons, because simpler to ident, comparing to ipv6
+* [ ] Link clicks counter, trough internal stats redirect controller
+* [ ] The time machine feature by content history cache preview
 
 #### Contributions
 
