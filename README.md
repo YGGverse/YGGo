@@ -181,7 +181,7 @@ GET m=SphinxQL
 ##### Other
 
 * [ ] Administrative panel for useful index moderation
-* [ ] Engine deployment tools
+* [ ] Deployment tools
 
 #### Contributions
 
