@@ -36,6 +36,8 @@ $manifestsIndexed    = 0;
 $hostPagesAdded      = 0;
 $hostImagesAdded     = 0;
 $hostsAdded          = 0;
+$hostPagesBanned     = 0;
+$hostImagesBanned    = 0;
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
@@ -237,6 +239,8 @@ try {
     // Skip image processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $hostImagesBanned++;
+
       $hostImageTimeBanned = time();
 
       continue;
@@ -245,6 +249,8 @@ try {
     // Skip image processing on MIME type not provided
     if (!$hostImageContentType = $curl->getContentType()) {
 
+      $hostImagesBanned++;
+
       $hostImageTimeBanned = time();
 
       continue;
@@ -252,6 +258,8 @@ try {
 
     // Skip image processing on MIME type not allowed in settings
     if (false === strpos(CRAWL_IMAGE_MIME_TYPE, $hostImageContentType)) {
+
+      $hostImagesBanned++;
 
       $hostImageTimeBanned = time();
 
@@ -264,6 +272,8 @@ try {
       // Skip image processing without returned content
       if (!$hostImageContent = $curl->getContent()) {
 
+        $hostImagesBanned++;
+
         $hostImageTimeBanned = time();
 
         continue;
@@ -271,12 +281,16 @@ try {
 
       if (!$hostImageExtension = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
 
+        $hostImagesBanned++;
+
         $hostImageTimeBanned = time();
 
         continue;
       }
 
       if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
+
+        $hostImagesBanned++;
 
         $hostImageTimeBanned = time();
 
@@ -315,6 +329,8 @@ try {
     // Skip page processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $hostPagesBanned++;
+
       $hostPageTimeBanned = time();
 
       continue;
@@ -322,6 +338,8 @@ try {
 
     // Skip page processing on MIME type not provided
     if (!$contentType = $curl->getContentType()) {
+
+      $hostPagesBanned++;
 
       $hostPageTimeBanned = time();
 
@@ -331,6 +349,8 @@ try {
     // Skip page processing on MIME type not allowed in settings
     if (false === strpos(CRAWL_PAGE_MIME_TYPE, $contentType)) {
 
+      $hostPagesBanned++;
+
       $hostPageTimeBanned = time();
 
       continue;
@@ -338,6 +358,8 @@ try {
 
     // Skip page processing without returned data
     if (!$content = $curl->getContent()) {
+
+      $hostPagesBanned++;
 
       $hostPageTimeBanned = time();
 
@@ -353,6 +375,8 @@ try {
     $title = @$dom->getElementsByTagName('title');
 
     if ($title->length == 0) {
+
+      $hostPagesBanned++;
 
       $hostPageTimeBanned = time();
 
@@ -386,6 +410,8 @@ try {
 
     // Append page with meta robots:noindex value to the robotsPostfix disallow list
     if (false !== stripos($metaRobots, 'noindex')) {
+
+      $hostPagesBanned++;
 
       $hostPageTimeBanned = time();
 
@@ -713,4 +739,6 @@ echo 'Images added: ' . $hostImagesAdded . PHP_EOL;
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
 echo 'Manifests indexed: ' . $manifestsIndexed . PHP_EOL;
 echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
+echo 'Hosts pages banned: ' . $hostPagesBanned . PHP_EOL;
+echo 'Hosts images banned: ' . $hostImagesBanned . PHP_EOL;
 echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;
