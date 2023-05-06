@@ -250,7 +250,7 @@ try {
     }
 
     // Skip image processing on MIME type not allowed in settings
-    if (false === strpos(CRAWL_IMAGE_MIME_TYPE, $hostImageContentType)) {
+    if (false === strpos(CRAWL_IMAGE_MIME, $hostImageContentType)) {
 
       $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
 
@@ -324,7 +324,7 @@ try {
     }
 
     // Skip page processing on MIME type not allowed in settings
-    if (false === strpos(CRAWL_PAGE_MIME_TYPE, $contentType)) {
+    if (false === strpos(CRAWL_PAGE_MIME, $contentType)) {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 

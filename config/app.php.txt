@@ -176,7 +176,7 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
  * comma separated
  *
  */
-define('CRAWL_PAGE_MIME_TYPE', 'text/html');
+define('CRAWL_PAGE_MIME', 'text/html');
 
 /*
  * Index images match MIME types
@@ -184,7 +184,7 @@ define('CRAWL_PAGE_MIME_TYPE', 'text/html');
  * comma separated
  *
  */
-define('CRAWL_IMAGE_MIME_TYPE', 'image/webp,image/png,image/gif,image/jpeg,image/ico');
+define('CRAWL_IMAGE_MIME', 'image/webp,image/png,image/gif,image/jpeg,image/ico');
 
 /*
  * Renew image index by timing offset provided
@@ -296,7 +296,7 @@ define('CRAWL_MANIFEST', true);
  * Manifest API version compatibility
  *
  */
-define('CRAWL_MANIFEST_API_VERSION', 0.5);
+define('CRAWL_MANIFEST_API_VERSION', 0.6);
 
 /*
  * Set default auto-crawl status for new manifest added

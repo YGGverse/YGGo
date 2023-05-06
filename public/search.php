@@ -372,7 +372,7 @@ if (!empty($q)) {
                 }
 
                 // Skip image processing on MIME type not allowed in settings
-                if (false === strpos(CRAWL_IMAGE_MIME_TYPE, $hostImageContentType)) {
+                if (false === strpos(CRAWL_IMAGE_MIME, $hostImageContentType)) {
 
                   $hostImageTimeBanned = time();
 
