@@ -175,7 +175,7 @@ GET m=SphinxQL
 * [x] Auto stop crawling on disk quota reached
 * [x] Transactions support to prevent data loss on queue failures
 * [x] Distributed index crawling between YGGo nodes trough manifest API
-* [ ] MIME Content-type crawler settings
+* [x] MIME Content-type crawler settings
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter

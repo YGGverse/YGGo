@@ -353,17 +353,17 @@ if (!empty($q)) {
                 $db->updateHostImageHttpCode($hostImage->hostImageId, (int) $hostImageHttpCode, time());
 
                 if (200 != $hostImageHttpCode) continue;
+                if (!$hostImageContentType = $hostImageCurl->getContentType()) continue;
+                if (false === strpos($hostImageContentType, CRAWL_IMAGE_MIME_TYPE)) continue;
 
                 // Convert remote image data to base64 string to prevent direct URL call
-                if (!$hostImageType   = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
+                if (!$hostImageExtension = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
                 if (!$hostImageBase64 = @base64_encode($hostImageCurl->getContent())) continue;
 
-                $hostImageURLencoded  = 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64;
+                $hostImageURLencoded  = 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64;
 
                 // Save image content on data settings enabled
-                if (!CRAWL_HOST_DEFAULT_META_ONLY) {
-                  $db->updateHostImageData($hostImage->hostImageId, (string) $hostImageURLencoded, time());
-                }
+                $db->updateHostImage($hostImage->hostImageId, Filter::mime($hostImageContentType), (!CRAWL_HOST_DEFAULT_META_ONLY ? $hostImageURLencoded : null), time());
 
               // Local image data exists
               } else {

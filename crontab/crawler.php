@@ -236,40 +236,39 @@ try {
       continue;
     }
 
-    // Save image content on data settings enabled
-    if (!CRAWL_HOST_DEFAULT_META_ONLY) {
+    // Skip image processing on MIME type not provided
+    if (!$hostImageContentType = $curl->getContentType()) {
 
-      // Skip image processing on MIME type not provided
-      if (!$contentType = $curl->getContentType()) {
-
-        continue;
-      }
-
-      // Skip image processing on MIME type not allowed in settings
-      if (false === strpos($contentType, CRAWL_IMAGE_MIME_TYPE)) {
-
-        continue;
-      }
-
-      // Skip image processing without returned content
-      if (!$content = $curl->getContent()) {
-
-        continue;
-      }
-
-      // Convert remote image data to base64 string to prevent direct URL call
-      if (!$hostImageType = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
-
-        continue;
-      }
-
-      if (!$hostImageBase64 = @base64_encode($curl->getContent())) {
-
-        continue;
-      }
-
-      $hostImagesIndexed += $db->updateHostImageData($hostImage->hostImageId, (string) 'data:image/' . $hostImageType . ';base64,' . $hostImageBase64, time());
+      continue;
     }
+
+    // Skip image processing on MIME type not allowed in settings
+    if (false === strpos($hostImageContentType, CRAWL_IMAGE_MIME_TYPE)) {
+
+      continue;
+    }
+
+    // Skip image processing without returned content
+    if (!$content = $curl->getContent()) {
+
+      continue;
+    }
+
+    // Convert remote image data to base64 string to prevent direct URL call
+    if (!$hostImageExtension = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
+
+      continue;
+    }
+
+    if (!$hostImageBase64 = @base64_encode($curl->getContent())) {
+
+      continue;
+    }
+
+    $hostImagesIndexed += $db->updateHostImage($hostImage->hostImageId,
+                                               Filter::mime($hostImageContentType),
+                                              (!CRAWL_HOST_DEFAULT_META_ONLY ? 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64 : null),
+                                               time());
   }
 
   // Process pages crawl queue
@@ -344,26 +343,6 @@ try {
       }
     }
 
-    // Update queued page data
-    $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
-                                            Filter::pageTitle($title->item(0)->nodeValue),
-                                            Filter::pageDescription($metaDescription),
-                                            Filter::pageKeywords($metaKeywords),
-                                            CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
-
-    // Update manifest registry
-    if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
-
-      $metaYggoManifestCRC32 = crc32($metaYggoManifest);
-
-      if (!$db->getManifest($metaYggoManifestCRC32)) {
-          $db->addManifest($metaYggoManifestCRC32,
-                            $metaYggoManifest,
-                            (string) CRAWL_MANIFEST_DEFAULT_STATUS,
-                            time());
-      }
-    }
-
     // Append page with meta robots:noindex value to the robotsPostfix disallow list
     if (false !== stripos($metaRobots, 'noindex')) {
 
@@ -374,6 +353,27 @@ try {
     if (false !== stripos($metaRobots, 'nofollow')) {
 
       continue;
+    }
+
+    // Update queued page data
+    $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
+                                             Filter::pageTitle($title->item(0)->nodeValue),
+                                             Filter::pageDescription($metaDescription),
+                                             Filter::pageKeywords($metaKeywords),
+                                             Filter::mime($contentType),
+                                             CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
+
+    // Update manifest registry
+    if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
+
+      $metaYggoManifestCRC32 = crc32($metaYggoManifest);
+
+      if (!$db->getManifest($metaYggoManifestCRC32)) {
+           $db->addManifest($metaYggoManifestCRC32,
+                            $metaYggoManifest,
+                            (string) CRAWL_MANIFEST_DEFAULT_STATUS,
+                            time());
+      }
     }
 
     // Collect page images
@@ -402,7 +402,7 @@ try {
 
           $imageSrc = $queueHostPage->scheme . '://' .
                       $queueHostPage->name .
-                    ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
+                     ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
                       '/' . trim(ltrim(str_replace(['./', '../'], '', $imageSrc), '/'), '.');
         }
 
@@ -466,16 +466,19 @@ try {
           // Init robots parser
           $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
-          // Save image info
+          // Save new image info
           $hostImageId = $db->getHostImageId($hostId, crc32($hostImageURI->string));
 
           if (!$hostImageId && // image not exists
-                $hostStatus && // host enabled
-                $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
-                $hostImageLimit > $db->getTotalHostImages($hostId)) { // images quantity not reached host limit
+               $hostStatus && // host enabled
+               $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
+               $hostImageLimit > $db->getTotalHostImages($hostId)) { // images quantity not reached host limit
 
             // Add host image
-            if ($hostImageId = $db->addHostImage($hostId, crc32($hostImageURI->string), $hostImageURI->string, time(), null, 200)) {
+            if ($hostImageId = $db->addHostImage($hostId,
+                                                 crc32($hostImageURI->string),
+                                                 $hostImageURI->string,
+                                                 time())) {
 
               $hostImagesAdded++;
 

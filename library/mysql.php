@@ -180,13 +180,14 @@ class MySQL {
   }
 
   public function addHostImage(int $hostId,
-                              int $crc32uri,
-                              string $uri,
-                              int $timeAdded,
-                              mixed $timeUpdated = null,
-                              mixed $httpCode = null,
-                              mixed $rank = null,
-                              mixed $data = null) {
+                               int $crc32uri,
+                               string $uri,
+                               int $timeAdded,
+                               mixed $timeUpdated = null,
+                               mixed $httpCode = null,
+                               mixed $mime = null,
+                               mixed $rank = null,
+                               mixed $data = null) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImage` ( `hostId`,
                                                             `crc32uri`,
@@ -194,10 +195,11 @@ class MySQL {
                                                             `timeAdded`,
                                                             `timeUpdated`,
                                                             `httpCode`,
+                                                            `mime`,
                                                             `rank`,
-                                                            `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $rank, $data]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $mime, $rank, $data]);
 
     return $this->_db->lastInsertId();
   }
@@ -224,13 +226,14 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function updateHostImageData(int $hostImageId,
-                                      string $data,
-                                      int $timeUpdated) {
+  public function updateHostImage(int $hostImageId,
+                                  string $mime,
+                                  mixed $data,
+                                  int $timeUpdated) {
 
-    $query = $this->_db->prepare('UPDATE `hostImage` SET `data` = ?, `timeUpdated` = ? WHERE `hostImageId` = ? LIMIT 1');
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `mime` = ?, `data` = ?, `timeUpdated` = ? WHERE `hostImageId` = ? LIMIT 1');
 
-    $query->execute([$data, $timeUpdated, $hostImageId]);
+    $query->execute([$mime, $data, $timeUpdated, $hostImageId]);
 
     return $query->rowCount();
   }
@@ -439,6 +442,7 @@ class MySQL {
                               int $timeAdded,
                               mixed $timeUpdated = null,
                               mixed $httpCode = null,
+                              mixed $mime = null,
                               mixed $rank = null,
                               mixed $metaTitle = null,
                               mixed $metaDescription = null,
@@ -451,13 +455,14 @@ class MySQL {
                                                           `timeAdded`,
                                                           `timeUpdated`,
                                                           `httpCode`,
+                                                          `mime`,
                                                           `rank`,
                                                           `metaTitle`,
                                                           `metaDescription`,
                                                           `metaKeywords`,
-                                                          `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                          `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $rank, $metaTitle, $metaDescription, $metaKeywords, $data]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $mime, $rank, $metaTitle, $metaDescription, $metaKeywords, $data]);
 
     return $this->_db->lastInsertId();
   }
@@ -466,14 +471,16 @@ class MySQL {
                                   mixed $metaTitle,
                                   mixed $metaDescription,
                                   mixed $metaKeywords,
+                                  string $mime,
                                   mixed $data) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `metaTitle`       = ?,
                                                         `metaDescription` = ?,
                                                         `metaKeywords`    = ?,
+                                                        `mime`            = ?,
                                                         `data`            = ? WHERE `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $data, $hostPageId]);
+    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $mime, $data, $hostPageId]);
 
     return $query->rowCount();
   }

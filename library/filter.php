@@ -9,6 +9,13 @@ class Filter {
     return trim(urldecode($url));
   }
 
+  static public function mime(mixed $mime) {
+
+    $mime = (string) $mime;
+
+    return trim($mime);
+  }
+
   static public function pageTitle(mixed $title) {
 
     $title = (string) $title;
