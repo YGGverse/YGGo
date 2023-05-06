@@ -345,6 +345,10 @@ if (!empty($q)) {
               // Get remote image data
               if (empty($hostImage->data)) {
 
+                // Define image variables
+                $hostImageTimeBanned = null;
+
+                // Init image request
                 $hostImageCurl = new Curl($hostImageURL, PROXY_CURLOPT_USERAGENT);
 
                 // Skip item render on timeout
@@ -352,18 +356,60 @@ if (!empty($q)) {
 
                 $db->updateHostImageHttpCode($hostImage->hostImageId, (int) $hostImageHttpCode, time());
 
-                if (200 != $hostImageHttpCode) continue;
-                if (!$hostImageContentType = $hostImageCurl->getContentType()) continue;
-                if (false === strpos($hostImageContentType, CRAWL_IMAGE_MIME_TYPE)) continue;
+                if (200 != $hostImageHttpCode) {
+
+                  $hostImageTimeBanned = time();
+
+                  continue;
+                }
+
+                // Skip image processing on MIME type not provided
+                if (!$hostImageContentType = $hostImageCurl->getContentType()) {
+
+                  $hostImageTimeBanned = time();
+
+                  continue;
+                }
+
+                // Skip image processing on MIME type not allowed in settings
+                if (false === strpos(CRAWL_IMAGE_MIME_TYPE, $hostImageContentType)) {
+
+                  $hostImageTimeBanned = time();
+
+                  continue;
+                }
+
+                // Skip image processing without returned content
+                if (!$hostImageContent = $hostImageCurl->getContent()) {
+
+                  $hostImageTimeBanned = time();
+
+                  continue;
+                }
 
                 // Convert remote image data to base64 string to prevent direct URL call
-                if (!$hostImageExtension = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) continue;
-                if (!$hostImageBase64 = @base64_encode($hostImageCurl->getContent())) continue;
+                if (!$hostImageExtension = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) {
+
+                  $hostImageTimeBanned = time();
+
+                  continue;
+                }
+
+                if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
+
+                  $hostImageTimeBanned = time();
+
+                  continue;
+                }
 
                 $hostImageURLencoded  = 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64;
 
                 // Save image content on data settings enabled
-                $db->updateHostImage($hostImage->hostImageId, Filter::mime($hostImageContentType), (!CRAWL_HOST_DEFAULT_META_ONLY ? $hostImageURLencoded : null), time());
+                $db->updateHostImage($hostImage->hostImageId,
+                                     Filter::mime($hostImageContentType),
+                                     CRAWL_HOST_DEFAULT_META_ONLY ? null : $hostImageURLencoded,
+                                     time(),
+                                     $hostImageTimeBanned);
 
               // Local image data exists
               } else {

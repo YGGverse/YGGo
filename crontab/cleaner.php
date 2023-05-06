@@ -21,12 +21,14 @@ $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 // Debug
 $timeStart = microtime(true);
 
-$hostsTotal         = $db->getTotalHosts();
-$manifestsTotal     = $db->getTotalManifests();
-$hostsUpdated       = 0;
-$hostsPagesDeleted  = 0;
-$hostsImagesDeleted = 0;
-$manifestsDeleted   = 0;
+$hostsTotal            = $db->getTotalHosts();
+$manifestsTotal        = $db->getTotalManifests();
+$hostsUpdated          = 0;
+$hostsPagesDeleted     = 0;
+$hostsImagesDeleted    = 0;
+$manifestsDeleted      = 0;
+$hostPagesBansRemoved  = 0;
+$hostImagesBansRemoved = 0;
 
 // Begin update
 $db->beginTransaction();
@@ -85,7 +87,7 @@ try {
     // Apply new robots.txt rules
     $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
-    foreach ($db->getHostImages($host->hostId) as $hostImage) { // @TODO implement CRAWL_IMAGE_MIME_TYPE updates
+    foreach ($db->getHostImages($host->hostId) as $hostImage) {
 
       if (!$robots->uriAllowed($hostImage->uri)) {
 
@@ -98,7 +100,7 @@ try {
       }
     }
 
-    foreach ($db->getHostPages($host->hostId) as $hostPage) { // @TODO implement CRAWL_PAGE_MIME_TYPE updates
+    foreach ($db->getHostPages($host->hostId) as $hostPage) {
 
       if (!$robots->uriAllowed($hostPage->uri)) {
 
@@ -173,6 +175,12 @@ try {
     }
   }
 
+  // Reset banned pages
+  $hostPagesBansRemoved += $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
+
+  // Reset banned images
+  $hostImagesBansRemoved += $db->resetBannedHostImages(time() - CLEAN_IMAGE_BAN_SECONDS_OFFSET);
+
   $db->commit();
 
 } catch(Exception $e){
@@ -189,4 +197,6 @@ echo 'Hosts pages deleted: ' . $hostsPagesDeleted . PHP_EOL;
 echo 'Hosts images deleted: ' . $hostsImagesDeleted . PHP_EOL;
 echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
 echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
+echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
+echo 'Host images bans removed: ' . $hostImagesBansRemoved . PHP_EOL;
 echo 'Execution time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;

@@ -184,7 +184,7 @@ define('CRAWL_PAGE_MIME_TYPE', 'text/html');
  * comma separated
  *
  */
-define('CRAWL_IMAGE_MIME_TYPE', 'image/webp,image/png,image/gif,image/jpg,image/ico');
+define('CRAWL_IMAGE_MIME_TYPE', 'image/webp,image/png,image/gif,image/jpeg,image/ico');
 
 /*
  * Renew image index by timing offset provided
@@ -333,6 +333,24 @@ define('CLEAN_HOST_LIMIT', 20);
  *
  */
 define('CLEAN_HOST_SECONDS_OFFSET', 60*60*24*30);
+
+/*
+ * Remove page ban after following time
+ *
+ * This option used in crawler and search page
+ * to prevent extra http requests to unavailable or not condition resources
+ *
+ */
+define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
+
+/*
+ * Remove image ban after following time
+ *
+ * This option used in crawler and search page
+ * to prevent extra http requests to unavailable or not condition resources
+ *
+ */
+define('CLEAN_IMAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
 
 // API settings
 

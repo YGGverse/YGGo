@@ -15,7 +15,7 @@ source hostPage : common
     SELECT hostPage.hostPageId, hostPage.rank, hostPage.metaTitle, hostPage.metaDescription, hostPage.metaKeywords, hostPage.data, hostPage.uri, host.name  \
     FROM hostPage \
     JOIN host ON (host.hostId = hostPage.hostId) \
-    WHERE host.status = '1' AND hostPage.httpCode = 200
+    WHERE host.status = '1' AND hostPage.httpCode = 200 AND hostPage.timeBanned IS NULL
 
   sql_attr_uint = rank
 }
@@ -32,7 +32,7 @@ source hostImage : common
               WHERE hostPage.hostPageId IN (SELECT hostImageToHostPage.hostPageId FROM hostImageToHostPage WHERE hostImageToHostPage.hostImageId = hostImage.hostImageId)) AS pageDescription \
     FROM hostImage \
     JOIN host ON (host.hostId = hostImage.hostId) \
-    WHERE host.status = '1' AND hostImage.httpCode = 200
+    WHERE host.status = '1' AND hostImage.httpCode = 200 AND hostImage.timeBanned IS NULL
 
   sql_attr_uint = rank
 }

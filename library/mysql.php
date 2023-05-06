@@ -184,6 +184,7 @@ class MySQL {
                                string $uri,
                                int $timeAdded,
                                mixed $timeUpdated = null,
+                               mixed $timeBanned = null,
                                mixed $httpCode = null,
                                mixed $mime = null,
                                mixed $rank = null,
@@ -194,12 +195,13 @@ class MySQL {
                                                             `uri`,
                                                             `timeAdded`,
                                                             `timeUpdated`,
+                                                            `timeBanned`,
                                                             `httpCode`,
                                                             `mime`,
                                                             `rank`,
-                                                            `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $mime, $rank, $data]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $timeBanned, $httpCode, $mime, $rank, $data]);
 
     return $this->_db->lastInsertId();
   }
@@ -229,11 +231,12 @@ class MySQL {
   public function updateHostImage(int $hostImageId,
                                   string $mime,
                                   mixed $data,
-                                  int $timeUpdated) {
+                                  int $timeUpdated,
+                                  mixed $timeBanned = null) {
 
-    $query = $this->_db->prepare('UPDATE `hostImage` SET `mime` = ?, `data` = ?, `timeUpdated` = ? WHERE `hostImageId` = ? LIMIT 1');
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `mime` = ?, `data` = ?, `timeUpdated` = ?, `timeBanned` = ? WHERE `hostImageId` = ? LIMIT 1');
 
-    $query->execute([$mime, $data, $timeUpdated, $hostImageId]);
+    $query->execute([$mime, $data, $timeUpdated, $timeBanned, $hostImageId]);
 
     return $query->rowCount();
   }
@@ -441,6 +444,7 @@ class MySQL {
                               string $uri,
                               int $timeAdded,
                               mixed $timeUpdated = null,
+                              mixed $timeBanned = null,
                               mixed $httpCode = null,
                               mixed $mime = null,
                               mixed $rank = null,
@@ -454,15 +458,16 @@ class MySQL {
                                                           `uri`,
                                                           `timeAdded`,
                                                           `timeUpdated`,
+                                                          `timeBanned`,
                                                           `httpCode`,
                                                           `mime`,
                                                           `rank`,
                                                           `metaTitle`,
                                                           `metaDescription`,
                                                           `metaKeywords`,
-                                                          `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                          `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $httpCode, $mime, $rank, $metaTitle, $metaDescription, $metaKeywords, $data]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $timeBanned, $httpCode, $mime, $rank, $metaTitle, $metaDescription, $metaKeywords, $data]);
 
     return $this->_db->lastInsertId();
   }
@@ -472,15 +477,19 @@ class MySQL {
                                   mixed $metaDescription,
                                   mixed $metaKeywords,
                                   string $mime,
-                                  mixed $data) {
+                                  mixed $data,
+                                  int $timeUpdated,
+                                  mixed $timeBanned = null) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `metaTitle`       = ?,
                                                         `metaDescription` = ?,
                                                         `metaKeywords`    = ?,
                                                         `mime`            = ?,
-                                                        `data`            = ? WHERE `hostPageId` = ? LIMIT 1');
+                                                        `data`            = ?,
+                                                        `timeUpdated`     = ?,
+                                                        `timeBanned`      = ? WHERE `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $mime, $data, $hostPageId]);
+    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $mime, $data, $timeUpdated, $timeBanned, $hostPageId]);
 
     return $query->rowCount();
   }
@@ -535,6 +544,24 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function resetBannedHostPages(int $timeOffset) {
+
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` > ' . (int) $timeOffset);
+
+    $query->execute();
+
+    return $query->rowCount();
+  }
+
+  public function resetBannedHostImages(int $timeOffset) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` > ' . (int) $timeOffset);
+
+    $query->execute();
+
+    return $query->rowCount();
+  }
+
   // Crawl tools
   public function getHostPageCrawlQueue(int $limit, int $timeFrom) {
 
@@ -554,6 +581,7 @@ class MySQL {
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
                                           WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
+                                                                                                                    AND `hostPage`.`timeBanned` IS NULL
 
                                           ORDER BY `hostPage`.`rank` DESC, RAND()
 
@@ -586,6 +614,7 @@ class MySQL {
                                           JOIN `host` ON (`host`.`hostId` = `hostImage`.`hostId`)
 
                                           WHERE (`hostImage`.`timeUpdated` IS NULL OR `hostImage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
+                                                                                                                      AND `hostImage`.`timeBanned` IS NULL
 
                                           ORDER BY `hostImage`.`rank` DESC, RAND()
 

@@ -222,9 +222,13 @@ try {
   // Process images crawl queue
   foreach ($db->getHostImageCrawlQueue(CRAWL_IMAGE_LIMIT, time() - CRAWL_IMAGE_SECONDS_OFFSET) as $queueHostImage) {
 
+    // Define image variables
+    $hostImageTimeBanned = null;
+
     // Build URL from the DB
     $queueHostImageURL = $queueHostImage->scheme . '://' . $queueHostImage->name . ($queueHostImage->port ? ':' . $queueHostImage->port : false) . $queueHostImage->uri;
 
+    // Init image request
     $curl = new Curl($queueHostImageURL, CRAWL_CURLOPT_USERAGENT);
 
     // Update image index anyway, with the current time and http code
@@ -233,50 +237,76 @@ try {
     // Skip image processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $hostImageTimeBanned = time();
+
       continue;
     }
 
     // Skip image processing on MIME type not provided
     if (!$hostImageContentType = $curl->getContentType()) {
 
+      $hostImageTimeBanned = time();
+
       continue;
     }
 
     // Skip image processing on MIME type not allowed in settings
-    if (false === strpos($hostImageContentType, CRAWL_IMAGE_MIME_TYPE)) {
+    if (false === strpos(CRAWL_IMAGE_MIME_TYPE, $hostImageContentType)) {
+
+      $hostImageTimeBanned = time();
 
       continue;
     }
 
-    // Skip image processing without returned content
-    if (!$content = $curl->getContent()) {
+    // Convert remote image data to base64 string
+    if (!CRAWL_HOST_DEFAULT_META_ONLY) {
 
-      continue;
-    }
+      // Skip image processing without returned content
+      if (!$hostImageContent = $curl->getContent()) {
 
-    // Convert remote image data to base64 string to prevent direct URL call
-    if (!$hostImageExtension = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
+        $hostImageTimeBanned = time();
 
-      continue;
-    }
+        continue;
+      }
 
-    if (!$hostImageBase64 = @base64_encode($curl->getContent())) {
+      if (!$hostImageExtension = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
 
-      continue;
+        $hostImageTimeBanned = time();
+
+        continue;
+      }
+
+      if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
+
+        $hostImageTimeBanned = time();
+
+        continue;
+      }
+
+      $hostImageData = 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64;
+
+    } else {
+
+      $hostImageData = null;
     }
 
     $hostImagesIndexed += $db->updateHostImage($hostImage->hostImageId,
                                                Filter::mime($hostImageContentType),
-                                              (!CRAWL_HOST_DEFAULT_META_ONLY ? 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64 : null),
-                                               time());
+                                               $hostImageData,
+                                               time(),
+                                               $hostImageTimeBanned);
   }
 
   // Process pages crawl queue
   foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
 
+    // Define page variables
+    $hostPageTimeBanned = null;
+
     // Build URL from the DB
     $queueHostPageURL = $queueHostPage->scheme . '://' . $queueHostPage->name . ($queueHostPage->port ? ':' . $queueHostPage->port : false) . $queueHostPage->uri;
 
+    // Init page request
     $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT);
 
     // Update page index anyway, with the current time and http code
@@ -285,23 +315,31 @@ try {
     // Skip page processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $hostPageTimeBanned = time();
+
       continue;
     }
 
     // Skip page processing on MIME type not provided
     if (!$contentType = $curl->getContentType()) {
 
+      $hostPageTimeBanned = time();
+
       continue;
     }
 
     // Skip page processing on MIME type not allowed in settings
-    if (false === strpos($contentType, CRAWL_PAGE_MIME_TYPE)) {
+    if (false === strpos(CRAWL_PAGE_MIME_TYPE, $contentType)) {
+
+      $hostPageTimeBanned = time();
 
       continue;
     }
 
     // Skip page processing without returned data
     if (!$content = $curl->getContent()) {
+
+      $hostPageTimeBanned = time();
 
       continue;
     }
@@ -315,6 +353,9 @@ try {
     $title = @$dom->getElementsByTagName('title');
 
     if ($title->length == 0) {
+
+      $hostPageTimeBanned = time();
+
       continue;
     }
 
@@ -346,6 +387,8 @@ try {
     // Append page with meta robots:noindex value to the robotsPostfix disallow list
     if (false !== stripos($metaRobots, 'noindex')) {
 
+      $hostPageTimeBanned = time();
+
       continue;
     }
 
@@ -361,7 +404,9 @@ try {
                                              Filter::pageDescription($metaDescription),
                                              Filter::pageKeywords($metaKeywords),
                                              Filter::mime($contentType),
-                                             CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content));
+                                             CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content),
+                                             time(),
+                                             $hostPageTimeBanned);
 
     // Update manifest registry
     if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
