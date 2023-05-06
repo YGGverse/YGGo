@@ -217,6 +217,15 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function updateHostImageTimeBanned(int $hostImageId, int $timeBanned) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `timeBanned` = ? WHERE `hostImageId` = ? LIMIT 1');
+
+    $query->execute([$timeBanned, $hostImageId]);
+
+    return $query->rowCount();
+  }
+
   public function updateHostImageHttpCode(int $hostImageId,
                                           int $httpCode,
                                           int $timeUpdated) {
@@ -506,6 +515,15 @@ class MySQL {
                                                     LIMIT 1');
 
     $query->execute([$hostId, $crc32uri]);
+
+    return $query->rowCount();
+  }
+
+  public function updateHostPageTimeBanned(int $hostPageId, int $timeBanned) {
+
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = ? WHERE `hostPageId` = ? LIMIT 1');
+
+    $query->execute([$timeBanned, $hostPageId]);
 
     return $query->rowCount();
   }
