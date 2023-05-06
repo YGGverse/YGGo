@@ -176,6 +176,7 @@ GET m=SphinxQL
 * [x] Transactions support to prevent data loss on queue failures
 * [x] Distributed index crawling between YGGo nodes trough manifest API
 * [x] MIME Content-type crawler settings
+* [ ] Ban non-condition links to prevent extra requests
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
