@@ -292,6 +292,8 @@ try {
     if ($hostImageBanned) {
 
       $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
+
+      continue;
     }
 
     // Convert remote image data to base64 string
@@ -319,7 +321,7 @@ try {
         continue;
       }
 
-      $hostImageData = 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64;
+      $hostImageData = 'data:image/' . str_replace(['svg'], ['svg+xml'], $hostImageExtension) . ';base64,' . $hostImageBase64;
 
     } else {
 
@@ -380,6 +382,8 @@ try {
     if ($hostPageBanned) {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+      continue;
     }
 
     // Skip page processing without returned data

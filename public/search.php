@@ -382,6 +382,8 @@ if (!empty($q)) {
                 if ($hostImageBanned) {
 
                   $hostImagesBanned += $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+
+                  continue;
                 }
 
                 // Skip image processing without returned content
@@ -407,7 +409,7 @@ if (!empty($q)) {
                   continue;
                 }
 
-                $hostImageURLencoded  = 'data:image/' . $hostImageExtension . ';base64,' . $hostImageBase64;
+                $hostImageURLencoded  = 'data:image/' . str_replace(['svg'], ['svg+xml'], $hostImageExtension) . ';base64,' . $hostImageBase64;
 
                 // Save image content on data settings enabled
                 $db->updateHostImage($hostImage->hostImageId,
