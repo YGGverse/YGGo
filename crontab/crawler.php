@@ -289,7 +289,7 @@ try {
       $hostImageData = null;
     }
 
-    $hostImagesIndexed += $db->updateHostImage($hostImage->hostImageId,
+    $hostImagesIndexed += $db->updateHostImage($queueHostImage->hostImageId,
                                                Filter::mime($hostImageContentType),
                                                $hostImageData,
                                                time());
