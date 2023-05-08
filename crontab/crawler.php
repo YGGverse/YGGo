@@ -267,7 +267,7 @@ try {
 
       $db->updateHostImageHttpCode($queueHostImage->hostImageId, $curl->getCode(), time());
 
-      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, $curl->getCode(), time());
+      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
 
       continue;
     }
