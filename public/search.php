@@ -355,6 +355,8 @@ if (!empty($q)) {
 
                 if (200 != $hostImageHttpCode) {
 
+                  $db->updateHostImageHttpCode($hostImage->hostImageId, $hostImageHttpCode, time());
+
                   $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 
                   continue;
@@ -380,6 +382,8 @@ if (!empty($q)) {
                 }
 
                 if ($hostImageBanned) {
+
+                  $db->updateHostImageMime($hostImage->hostImageId, $hostImageContentType, time());
 
                   $hostImagesBanned += $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 

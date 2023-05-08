@@ -37,7 +37,7 @@ $hostImagesProcessed   = 0;
 $manifestsProcessed    = 0;
 $hostPagesIndexed      = 0;
 $hostImagesIndexed     = 0;
-$manifestsAdded         = 0;
+$manifestsAdded        = 0;
 $hostPagesAdded        = 0;
 $hostImagesAdded       = 0;
 $hostsAdded            = 0;
@@ -265,7 +265,9 @@ try {
     // Skip image processing non 200 code
     if (200 != $curl->getCode()) {
 
-      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
+      $db->updateHostImageHttpCode($queueHostImage->hostImageId, $curl->getCode(), time());
+
+      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, $curl->getCode(), time());
 
       continue;
     }
@@ -290,6 +292,8 @@ try {
     }
 
     if ($hostImageBanned) {
+
+      $db->updateHostImageMime($queueHostImage->hostImageId, $hostImageContentType, time());
 
       $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
 
@@ -355,6 +359,8 @@ try {
     // Skip page processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $db->updateHostPageHttpCode($queueHostPage->hostPageId, $curl->getCode(), time());
+
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
       continue;
@@ -380,6 +386,8 @@ try {
     }
 
     if ($hostPageBanned) {
+
+      $db->updateHostPageMime($queueHostPage->hostPageId, $contentType, time());
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 

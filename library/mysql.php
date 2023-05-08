@@ -228,6 +228,17 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function updateHostImageMime(int $hostImageId,
+                                      string $mime,
+                                      int $timeUpdated) {
+
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `mime` = ?, `timeUpdated` = ? WHERE `hostImageId` = ? LIMIT 1');
+
+    $query->execute([$mime, $timeUpdated, $hostImageId]);
+
+    return $query->rowCount();
+  }
+
   public function updateHostImage(int $hostImageId,
                                   string $mime,
                                   mixed $data,
@@ -506,6 +517,24 @@ class MySQL {
     $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = ? WHERE `hostPageId` = ? LIMIT 1');
 
     $query->execute([$timeBanned, $hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function updateHostPageHttpCode(int $hostPageId, int $httpCode) {
+
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `httpCode` = ? WHERE `hostPageId` = ? LIMIT 1');
+
+    $query->execute([$httpCode, $hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function updateHostPageMime(int $hostPageId, string $mime) {
+
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `mime` = ? WHERE `hostPageId` = ? LIMIT 1');
+
+    $query->execute([$mime, $hostPageId]);
 
     return $query->rowCount();
   }
