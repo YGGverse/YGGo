@@ -196,7 +196,7 @@ define('CRAWL_PAGE_MIME', 'text/html');
  * comma separated
  *
  */
-define('CRAWL_IMAGE_MIME', 'image/webp,image/png,image/gif,image/jpeg,image/ico');
+define('CRAWL_IMAGE_MIME', 'image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml');
 
 /*
  * Renew image index by timing offset provided
