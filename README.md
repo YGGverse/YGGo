@@ -169,18 +169,34 @@ GET m=SphinxQL
 ##### Crawler
 
 * [x] Auto crawl links by regular expression rules
+  + [x] Pages
+  + [x] Images
+  + [x] Manifests
 * [x] Robots.txt / robots meta tags support (#2)
 * [x] Specific rules configuration for every host
-* [x] Deprecated index auto cleaner
 * [x] Auto stop crawling on disk quota reached
 * [x] Transactions support to prevent data loss on queue failures
 * [x] Distributed index crawling between YGGo nodes trough manifest API
 * [x] MIME Content-type crawler settings
 * [x] Ban non-condition links to prevent extra requests
+* [x] Debug log
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
 * [ ] Crawl queue balancer, that depends of CPU available
+
+##### Cleaner
+* [x] Deprecated DB items auto deletion / host settings update
+  + [x] Pages
+  + [x] Images
+  + [x] Manifests
+  + [x] Logs
+    + [x] Crawler
+    + [x] Cleaner
+* [x] Banned resources reset by timeout
+  + [x] Pages
+  + [x] Images
+* [x] Debug log
 
 ##### Other
 

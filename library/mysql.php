@@ -564,7 +564,7 @@ class MySQL {
 
   public function resetBannedHostPages(int $timeOffset) {
 
-    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` > ' . (int) $timeOffset);
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
 
     $query->execute();
 
@@ -573,7 +573,72 @@ class MySQL {
 
   public function resetBannedHostImages(int $timeOffset) {
 
-    $query = $this->_db->prepare('UPDATE `hostImage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` > ' . (int) $timeOffset);
+    $query = $this->_db->prepare('UPDATE `hostImage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
+
+    $query->execute();
+
+    return $query->rowCount();
+  }
+
+  public function addCleanerLog(int $timeAdded,
+                                int $hostsTotal,
+                                int $hostsUpdated,
+                                int $hostPagesDeleted,
+                                int $hostPagesBansRemoved,
+                                int $hostImagesDeleted,
+                                int $hostImagesBansRemoved,
+                                int $manifestsTotal,
+                                int $manifestsDeleted,
+                                int $logsCleanerDeleted,
+                                int $logsCrawlerDeleted,
+                                int $httpRequestsTotal,
+                                int $httpRequestsSizeTotal,
+                                int $httpDownloadSizeTotal,
+                                float $httpRequestsTimeTotal,
+                                float $executionTimeTotal) {
+
+    $query = $this->_db->prepare('INSERT INTO `logCleaner` (`timeAdded`,
+                                                            `hostsTotal`,
+                                                            `hostsUpdated`,
+                                                            `hostPagesDeleted`,
+                                                            `hostPagesBansRemoved`,
+                                                            `hostImagesDeleted`,
+                                                            `hostImagesBansRemoved`,
+                                                            `manifestsTotal`,
+                                                            `manifestsDeleted`,
+                                                            `logsCleanerDeleted`,
+                                                            `logsCrawlerDeleted`,
+                                                            `httpRequestsTotal`,
+                                                            `httpRequestsSizeTotal`,
+                                                            `httpDownloadSizeTotal`,
+                                                            `httpRequestsTimeTotal`,
+                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+    $query->execute([
+      $timeAdded,
+      $hostsTotal,
+      $hostsUpdated,
+      $hostPagesDeleted,
+      $hostPagesBansRemoved,
+      $hostImagesDeleted,
+      $hostImagesBansRemoved,
+      $manifestsTotal,
+      $manifestsDeleted,
+      $logsCleanerDeleted,
+      $logsCrawlerDeleted,
+      $httpRequestsTotal,
+      $httpRequestsSizeTotal,
+      $httpDownloadSizeTotal,
+      $httpRequestsTimeTotal,
+      $executionTimeTotal
+    ]);
+
+    return $this->_db->lastInsertId();
+  }
+
+  public function deleteLogCleaner(int $timeOffset) {
+
+    $query = $this->_db->prepare('DELETE FROM `logCleaner` WHERE `timeAdded` < ' . (int) $timeOffset);
 
     $query->execute();
 
@@ -672,6 +737,74 @@ class MySQL {
     $query = $this->_db->prepare('UPDATE `manifest` SET `timeUpdated` = ?, `httpCode` = ? WHERE `manifestId` = ? LIMIT 1');
 
     $query->execute([$timeUpdated, $httpCode, $manifestId]);
+
+    return $query->rowCount();
+  }
+
+  public function addCrawlerLog(int $timeAdded,
+                                int $hostsAdded,
+                                int $hostPagesProcessed,
+                                int $hostPagesIndexed,
+                                int $hostPagesAdded,
+                                int $hostPagesBanned,
+                                int $hostImagesIndexed,
+                                int $hostImagesProcessed,
+                                int $hostImagesAdded,
+                                int $hostImagesBanned,
+                                int $manifestsProcessed,
+                                int $manifestsAdded,
+                                int $httpRequestsTotal,
+                                int $httpRequestsSizeTotal,
+                                int $httpDownloadSizeTotal,
+                                float $httpRequestsTimeTotal,
+                                float $executionTimeTotal) {
+
+    $query = $this->_db->prepare('INSERT INTO `logCrawler` (`timeAdded`,
+                                                            `hostsAdded`,
+                                                            `hostPagesProcessed`,
+                                                            `hostPagesIndexed`,
+                                                            `hostPagesAdded`,
+                                                            `hostPagesBanned`,
+                                                            `hostImagesIndexed`,
+                                                            `hostImagesProcessed`,
+                                                            `hostImagesAdded`,
+                                                            `hostImagesBanned`,
+                                                            `manifestsProcessed`,
+                                                            `manifestsAdded`,
+                                                            `httpRequestsTotal`,
+                                                            `httpRequestsSizeTotal`,
+                                                            `httpDownloadSizeTotal`,
+                                                            `httpRequestsTimeTotal`,
+                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+    $query->execute([
+      $timeAdded,
+      $hostsAdded,
+      $hostPagesProcessed,
+      $hostPagesIndexed,
+      $hostPagesAdded,
+      $hostPagesBanned,
+      $hostImagesIndexed,
+      $hostImagesProcessed,
+      $hostImagesAdded,
+      $hostImagesBanned,
+      $manifestsProcessed,
+      $manifestsAdded,
+      $httpRequestsTotal,
+      $httpRequestsSizeTotal,
+      $httpDownloadSizeTotal,
+      $httpRequestsTimeTotal,
+      $executionTimeTotal
+    ]);
+
+    return $this->_db->lastInsertId();
+  }
+
+  public function deleteLogCrawler(int $timeOffset) {
+
+    $query = $this->_db->prepare('DELETE FROM `logCrawler` WHERE `timeAdded` < ' . (int) $timeOffset);
+
+    $query->execute();
 
     return $query->rowCount();
   }

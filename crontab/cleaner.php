@@ -21,19 +21,22 @@ $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 // Debug
 $timeStart = microtime(true);
 
-$requestsTotal         = 0;
-$requestSizeTotal      = 0;
-$downloadSizeTotal     = 0;
-$requestsTotalTime     = 0;
+$httpRequestsTotal     = 0;
+$httpRequestsSizeTotal = 0;
+$httpDownloadSizeTotal = 0;
+$httpRequestsTimeTotal = 0;
 
 $hostsTotal            = $db->getTotalHosts();
 $manifestsTotal        = $db->getTotalManifests();
 $hostsUpdated          = 0;
-$hostsPagesDeleted     = 0;
-$hostsImagesDeleted    = 0;
+$hostPagesDeleted      = 0;
+$hostImagesDeleted     = 0;
 $manifestsDeleted      = 0;
 $hostPagesBansRemoved  = 0;
 $hostImagesBansRemoved = 0;
+
+$logsCleanerDeleted    = 0;
+$logsCrawlerDeleted    = 0;
 
 // Begin update
 $db->beginTransaction();
@@ -50,10 +53,10 @@ try {
     $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
-    $requestsTotal++;
-    $requestSizeTotal  += $curl->getSizeRequest();
-    $downloadSizeTotal += $curl->getSizeDownload();
-    $requestsTotalTime += $curl->getTotalTime();
+    $httpRequestsTotal++;
+    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpDownloadSizeTotal += $curl->getSizeDownload();
+    $httpRequestsTimeTotal += $curl->getTotalTime();
 
     if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
       $hostRobots = $curl->getContent();
@@ -76,7 +79,7 @@ try {
         $db->deleteHostImageToHostPage($hostImage->hostImageId);
 
         // Delete host image
-        $hostsImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
+        $hostImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
       }
     }
 
@@ -91,7 +94,7 @@ try {
         $db->deleteHostPageToHostImage($hostPage->hostPageId);
 
         // Delete host page
-        $hostsPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+        $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
       }
     }
 
@@ -107,7 +110,7 @@ try {
         $db->deleteHostImageToHostPage($hostImage->hostImageId);
 
         // Delete host image
-        $hostsImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
+        $hostImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
       }
     }
 
@@ -119,7 +122,7 @@ try {
         $db->deleteHostPageToHostImage($hostPage->hostPageId);
 
         // Delete host page
-        $hostsPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+        $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
       }
     }
 
@@ -131,7 +134,7 @@ try {
       $db->deleteHostImageToHostPage($hostImage->hostImageId);
 
       // Delete host image
-      $hostsImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
+      $hostImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
     }
   }
 
@@ -143,10 +146,10 @@ try {
     $curl = new Curl($manifest->url);
 
     // Update curl stats
-    $requestsTotal++;
-    $requestSizeTotal  += $curl->getSizeRequest();
-    $downloadSizeTotal += $curl->getSizeDownload();
-    $requestsTotalTime += $curl->getTotalTime();
+    $httpRequestsTotal++;
+    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpDownloadSizeTotal += $curl->getSizeDownload();
+    $httpRequestsTimeTotal += $curl->getTotalTime();
 
     // Skip processing non 200 code
     if (200 != $curl->getCode()) {
@@ -198,6 +201,10 @@ try {
   // Reset banned images
   $hostImagesBansRemoved += $db->resetBannedHostImages(time() - CLEAN_IMAGE_BAN_SECONDS_OFFSET);
 
+  // Delete deprecated logs
+  $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
+  $logsCrawlerDeleted += $db->deleteLogCrawler(time() - CRAWL_LOG_SECONDS_OFFSET);
+
   $db->commit();
 
 } catch(Exception $e){
@@ -208,10 +215,34 @@ try {
 }
 
 // Debug
+$executionTimeTotal    = microtime(true) - $timeStart;
+$httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
+
+if (CLEAN_LOG_ENABLED) {
+
+  $db->addCleanerLog( time(),
+                      $hostsTotal,
+                      $hostsUpdated,
+                      $hostPagesDeleted,
+                      $hostPagesBansRemoved,
+                      $hostImagesDeleted,
+                      $hostImagesBansRemoved,
+                      $manifestsTotal,
+                      $manifestsDeleted,
+                      $logsCleanerDeleted,
+                      $logsCrawlerDeleted,
+                      $httpRequestsTotal,
+                      $httpRequestsSizeTotal,
+                      $httpDownloadSizeTotal,
+                      $httpRequestsTimeTotal,
+                      $executionTimeTotal);
+
+}
+
 echo 'Hosts total: ' . $hostsTotal . PHP_EOL;
 echo 'Hosts updated: ' . $hostsUpdated . PHP_EOL;
-echo 'Hosts pages deleted: ' . $hostsPagesDeleted . PHP_EOL;
-echo 'Hosts images deleted: ' . $hostsImagesDeleted . PHP_EOL;
+echo 'Hosts pages deleted: ' . $hostPagesDeleted . PHP_EOL;
+echo 'Hosts images deleted: ' . $hostImagesDeleted . PHP_EOL;
 
 echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
 echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
@@ -219,9 +250,12 @@ echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
 echo 'Host images bans removed: ' . $hostImagesBansRemoved . PHP_EOL;
 
-echo 'HTTP Requests total: ' . $requestsTotal . PHP_EOL;
-echo 'HTTP Requests total size: ' . $requestSizeTotal . PHP_EOL;
-echo 'HTTP Download total size: ' . $downloadSizeTotal . PHP_EOL;
-echo 'HTTP Requests total time: ' . $requestsTotalTime / 1000000 . PHP_EOL;
+echo 'Cleaner logs deleted: ' . $logsCleanerDeleted . PHP_EOL;
+echo 'Crawler logs deleted: ' . $logsCrawlerDeleted . PHP_EOL;
 
-echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;
+echo 'HTTP Requests total: ' . $httpRequestsTotal . PHP_EOL;
+echo 'HTTP Requests total size: ' . $httpRequestsSizeTotal . PHP_EOL;
+echo 'HTTP Download total size: ' . $httpDownloadSizeTotal . PHP_EOL;
+echo 'HTTP Requests total time: ' . $httpRequestsTimeTotal . PHP_EOL;
+
+echo 'Total time: ' . $executionTimeTotal . PHP_EOL . PHP_EOL;

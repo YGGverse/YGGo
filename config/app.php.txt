@@ -99,6 +99,18 @@ define('PROXY_CURLOPT_USERAGENT', 'YGGo Search Proxy ( https://github.com/YGGver
 // Crawl settings
 
 /*
+ * Save crawler debug to `logCrawler` table
+ *
+ */
+define('CRAWL_LOG_ENABLED', true);
+
+/*
+ * Auto clean `logCrawler` items older seconds offset
+ *
+ */
+define('CRAWL_LOG_SECONDS_OFFSET', 60*60*24*30);
+
+/*
  * Crawler / Bot User Agent name
  *
  * Shared to other hosts through CURL requests by crawler
@@ -310,6 +322,18 @@ define('CRAWL_MANIFEST_API_VERSION', 0.6);
 define('CRAWL_MANIFEST_DEFAULT_STATUS', true);
 
 // Cleaner settings
+
+/*
+ * Save cleaner debug to `logCleaner` table
+ *
+ */
+define('CLEAN_LOG_ENABLED', true);
+
+/*
+ * Auto clean `logCleaner` items older seconds offset
+ *
+ */
+define('CLEAN_LOG_SECONDS_OFFSET', 60*60*24*30);
 
 /*
  * Hosts limit per crontab execution step (https://github.com/YGGverse/YGGo#crontab)
