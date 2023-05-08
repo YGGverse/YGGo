@@ -345,9 +345,6 @@ if (!empty($q)) {
               // Get remote image data
               if (empty($hostImage->data)) {
 
-                // Define image variables
-                $hostImageTimeBanned = null;
-
                 // Init image request
                 $hostImageCurl = new Curl($hostImageURL, PROXY_CURLOPT_USERAGENT);
 
@@ -358,7 +355,7 @@ if (!empty($q)) {
 
                 if (200 != $hostImageHttpCode) {
 
-                  $hostImageTimeBanned = time();
+                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 
                   continue;
                 }
@@ -366,23 +363,31 @@ if (!empty($q)) {
                 // Skip image processing on MIME type not provided
                 if (!$hostImageContentType = $hostImageCurl->getContentType()) {
 
-                  $hostImageTimeBanned = time();
+                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 
                   continue;
                 }
 
                 // Skip image processing on MIME type not allowed in settings
-                if (false === strpos(CRAWL_IMAGE_MIME, $hostImageContentType)) {
+                $hostImageBanned = true;
+                foreach ((array) explode(',', CRAWL_IMAGE_MIME) as $mime) {
 
-                  $hostImageTimeBanned = time();
+                  if (false !== strpos($hostImageContentType, trim($mime))) {
 
-                  continue;
+                    $hostImageBanned = false;
+                    break;
+                  }
+                }
+
+                if ($hostImageBanned) {
+
+                  $hostImagesBanned += $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
                 }
 
                 // Skip image processing without returned content
                 if (!$hostImageContent = $hostImageCurl->getContent()) {
 
-                  $hostImageTimeBanned = time();
+                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 
                   continue;
                 }
@@ -390,14 +395,14 @@ if (!empty($q)) {
                 // Convert remote image data to base64 string to prevent direct URL call
                 if (!$hostImageExtension = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) {
 
-                  $hostImageTimeBanned = time();
+                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 
                   continue;
                 }
 
                 if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
 
-                  $hostImageTimeBanned = time();
+                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
 
                   continue;
                 }
@@ -408,8 +413,7 @@ if (!empty($q)) {
                 $db->updateHostImage($hostImage->hostImageId,
                                      Filter::mime($hostImageContentType),
                                      CRAWL_HOST_DEFAULT_META_ONLY ? null : $hostImageURLencoded,
-                                     time(),
-                                     $hostImageTimeBanned);
+                                     time());
 
               // Local image data exists
               } else {
