@@ -760,9 +760,9 @@ echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 echo 'Hosts pages banned: ' . $hostPagesBanned . PHP_EOL;
 echo 'Hosts images banned: ' . $hostImagesBanned . PHP_EOL;
 
-echo 'Requests total: ' . $requestsTotal . PHP_EOL;
-echo 'Requests total size: ' . $requestSizeTotal . PHP_EOL;
-echo 'Download total size: ' . $downloadSizeTotal . PHP_EOL;
-echo 'Requests total time: ' . $requestsTotalTime / 1000000 . PHP_EOL;
+echo 'HTTP Requests total: ' . $requestsTotal . PHP_EOL;
+echo 'HTTP Requests total size: ' . $requestSizeTotal . PHP_EOL;
+echo 'HTTP Download total size: ' . $downloadSizeTotal . PHP_EOL;
+echo 'HTTP Requests total time: ' . $requestsTotalTime / 1000000 . PHP_EOL;
 
 echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;
