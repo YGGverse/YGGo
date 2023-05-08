@@ -26,7 +26,7 @@ switch ($t) {
 
   case 'image':
 
-    $totalPages = $db->getTotalImages();
+    $totalPages = $sphinx->getHostImagesTotal();
 
     $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s image or enter the new one...'), $totalPages),
                                                 sprintf(_('Over %s images or enter the new one...'), $totalPages),
@@ -36,7 +36,7 @@ switch ($t) {
   break;
   default:
 
-    $totalPages = $db->getTotalPages();
+    $totalPages = $sphinx->getHostPagesTotal();
 
     $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'), $totalPages),
                                                 sprintf(_('Over %s pages or enter the new one...'), $totalPages),

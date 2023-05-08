@@ -49,6 +49,15 @@ class SphinxQL {
     return $query->fetchAll();
   }
 
+  public function getHostPagesTotal() {
+
+    $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostPage`');
+
+    $query->execute();
+
+    return $query->fetch()->total;
+  }
+
   public function searchHostPagesTotal(string $keyword) {
 
     $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE MATCH(?)');
@@ -63,6 +72,15 @@ class SphinxQL {
     $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostImage` WHERE MATCH(?)');
 
     $query->execute([$keyword]);
+
+    return $query->fetch()->total;
+  }
+
+  public function getHostImagesTotal() {
+
+    $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostImage`');
+
+    $query->execute();
 
     return $query->fetch()->total;
   }

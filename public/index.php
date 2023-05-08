@@ -3,12 +3,12 @@
 // Load system dependencies
 require_once('../config/app.php');
 require_once('../library/filter.php');
-require_once('../library/mysql.php');
+require_once('../library/sphinxql.php');
 
-// Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+// Connect Sphinx search server
+$sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 
-$totalPages = $db->getTotalPages();
+$totalPages = $sphinx->getHostPagesTotal();
 
 $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'), $totalPages),
                                             sprintf(_('Over %s pages or enter the new one...'), $totalPages),

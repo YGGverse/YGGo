@@ -121,15 +121,6 @@ class MySQL {
   }
 
   // Images
-  public function getTotalImages() {
-
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostImage`');
-
-    $query->execute();
-
-    return $query->fetch()->total;
-  }
-
   public function getTotalHostImages(int $hostId) {
 
     $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostImage` WHERE `hostId` = ?');
@@ -358,15 +349,6 @@ class MySQL {
       $query->execute([$httpCode]);
 
     }
-
-    return $query->fetch()->total;
-  }
-
-  public function getTotalPages() {
-
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPage`');
-
-    $query->execute();
 
     return $query->fetch()->total;
   }
