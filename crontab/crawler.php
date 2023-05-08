@@ -27,6 +27,11 @@ if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
 // Debug
 $timeStart = microtime(true);
 
+$requestsTotal       = 0;
+$requestSizeTotal    = 0;
+$downloadSizeTotal   = 0;
+$requestsTotalTime   = 0;
+
 $hostPagesProcessed  = 0;
 $hostImagesProcessed = 0;
 $manifestsProcessed  = 0;
@@ -50,6 +55,12 @@ try {
   foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFEST_SECONDS_OFFSET) as $queueManifest) {
 
     $curl = new Curl($queueManifest->url);
+
+    // Update curl stats
+    $requestsTotal++;
+    $requestSizeTotal  += $curl->getSizeRequest();
+    $downloadSizeTotal += $curl->getSizeDownload();
+    $requestsTotalTime += $curl->getTotalTime();
 
     // Update manifest index anyway, with the current time and http code
     $manifestsProcessed += $db->updateManifestCrawlQueue($queueManifest->manifestId, time(), $curl->getCode());
@@ -108,6 +119,12 @@ try {
     // Begin hosts collection
     $curl = new Curl($remoteManifest->result->api->hosts);
 
+    // Update curl stats
+    $requestsTotal++;
+    $requestSizeTotal  += $curl->getSizeRequest();
+    $downloadSizeTotal += $curl->getSizeDownload();
+    $requestsTotalTime += $curl->getTotalTime();
+
     // Skip processing non 200 code
     if (200 != $curl->getCode()) {
 
@@ -165,6 +182,12 @@ try {
 
           // Get robots.txt if exists
           $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+
+          // Update curl stats
+          $requestsTotal++;
+          $requestSizeTotal  += $curl->getSizeRequest();
+          $downloadSizeTotal += $curl->getSizeDownload();
+          $requestsTotalTime += $curl->getTotalTime();
 
           if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
             $hostRobots = $curl->getContent();
@@ -229,6 +252,12 @@ try {
 
     // Init image request
     $curl = new Curl($queueHostImageURL, CRAWL_CURLOPT_USERAGENT);
+
+    // Update curl stats
+    $requestsTotal++;
+    $requestSizeTotal  += $curl->getSizeRequest();
+    $downloadSizeTotal += $curl->getSizeDownload();
+    $requestsTotalTime += $curl->getTotalTime();
 
     // Update image index anyway, with the current time and http code
     $hostImagesProcessed += $db->updateHostImageCrawlQueue($queueHostImage->hostImageId, time(), $curl->getCode());
@@ -303,6 +332,12 @@ try {
 
     // Init page request
     $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT);
+
+    // Update curl stats
+    $requestsTotal++;
+    $requestSizeTotal  += $curl->getSizeRequest();
+    $downloadSizeTotal += $curl->getSizeDownload();
+    $requestsTotalTime += $curl->getTotalTime();
 
     // Update page index anyway, with the current time and http code
     $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
@@ -468,6 +503,12 @@ try {
             // Get robots.txt if exists
             $curl = new Curl($hostImageURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
+            // Update curl stats
+            $requestsTotal++;
+            $requestSizeTotal  += $curl->getSizeRequest();
+            $downloadSizeTotal += $curl->getSizeDownload();
+            $requestsTotalTime += $curl->getTotalTime();
+
             if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
               $hostRobots = $curl->getContent();
             } else {
@@ -624,6 +665,12 @@ try {
           // Get robots.txt if exists
           $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
+          // Update curl stats
+          $requestsTotal++;
+          $requestSizeTotal  += $curl->getSizeRequest();
+          $downloadSizeTotal += $curl->getSizeDownload();
+          $requestsTotalTime += $curl->getTotalTime();
+
           if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
             $hostRobots = $curl->getContent();
           } else {
@@ -701,12 +748,21 @@ try {
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
+
 echo 'Images processed: ' . $hostImagesProcessed . PHP_EOL;
 echo 'Images indexed: ' . $hostImagesIndexed . PHP_EOL;
 echo 'Images added: ' . $hostImagesAdded . PHP_EOL;
+
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
 echo 'Manifests indexed: ' . $manifestsIndexed . PHP_EOL;
+
 echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 echo 'Hosts pages banned: ' . $hostPagesBanned . PHP_EOL;
 echo 'Hosts images banned: ' . $hostImagesBanned . PHP_EOL;
+
+echo 'Requests total: ' . $requestsTotal . PHP_EOL;
+echo 'Requests total size: ' . $requestSizeTotal . PHP_EOL;
+echo 'Download total size: ' . $downloadSizeTotal . PHP_EOL;
+echo 'Requests total time: ' . $requestsTotalTime / 1000000 . PHP_EOL;
+
 echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;

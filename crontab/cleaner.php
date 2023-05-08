@@ -21,6 +21,11 @@ $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 // Debug
 $timeStart = microtime(true);
 
+$requestsTotal         = 0;
+$requestSizeTotal      = 0;
+$downloadSizeTotal     = 0;
+$requestsTotalTime     = 0;
+
 $hostsTotal            = $db->getTotalHosts();
 $manifestsTotal        = $db->getTotalManifests();
 $hostsUpdated          = 0;
@@ -43,6 +48,12 @@ try {
 
     // Get robots.txt if exists
     $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+
+    // Update curl stats
+    $requestsTotal++;
+    $requestSizeTotal  += $curl->getSizeRequest();
+    $downloadSizeTotal += $curl->getSizeDownload();
+    $requestsTotalTime += $curl->getTotalTime();
 
     if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
       $hostRobots = $curl->getContent();
@@ -131,6 +142,12 @@ try {
 
     $curl = new Curl($manifest->url);
 
+    // Update curl stats
+    $requestsTotal++;
+    $requestSizeTotal  += $curl->getSizeRequest();
+    $downloadSizeTotal += $curl->getSizeDownload();
+    $requestsTotalTime += $curl->getTotalTime();
+
     // Skip processing non 200 code
     if (200 != $curl->getCode()) {
 
@@ -195,8 +212,16 @@ echo 'Hosts total: ' . $hostsTotal . PHP_EOL;
 echo 'Hosts updated: ' . $hostsUpdated . PHP_EOL;
 echo 'Hosts pages deleted: ' . $hostsPagesDeleted . PHP_EOL;
 echo 'Hosts images deleted: ' . $hostsImagesDeleted . PHP_EOL;
+
 echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
 echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
+
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
 echo 'Host images bans removed: ' . $hostImagesBansRemoved . PHP_EOL;
-echo 'Execution time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;
+
+echo 'Requests total: ' . $requestsTotal . PHP_EOL;
+echo 'Requests total size: ' . $requestSizeTotal . PHP_EOL;
+echo 'Download total size: ' . $downloadSizeTotal . PHP_EOL;
+echo 'Requests total time: ' . $requestsTotalTime / 1000000 . PHP_EOL;
+
+echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;

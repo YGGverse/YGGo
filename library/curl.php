@@ -47,6 +47,21 @@ class Curl {
     return curl_getinfo($this->_connection, CURLINFO_CONTENT_TYPE);
   }
 
+  public function getSizeDownload() {
+
+    return curl_getinfo($this->_connection, CURLINFO_SIZE_DOWNLOAD);
+  }
+
+  public function getSizeRequest() {
+
+    return curl_getinfo($this->_connection, CURLINFO_REQUEST_SIZE);
+  }
+
+  public function getTotalTime() {
+
+    return curl_getinfo($this->_connection, CURLINFO_TOTAL_TIME_T);
+  }
+
   public function getContent() {
 
     return $this->_response;
