@@ -58,7 +58,7 @@ try {
 
     // Update curl stats
     $httpRequestsTotal++;
-    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpRequestsSizeTotal += $curl->getSizeRequest();
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -255,7 +255,7 @@ try {
 
     // Update curl stats
     $httpRequestsTotal++;
-    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpRequestsSizeTotal += $curl->getSizeRequest();
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -279,11 +279,19 @@ try {
     }
 
     // Skip image processing on MIME type not allowed in settings
-    if (false === strpos(CRAWL_IMAGE_MIME, $hostImageContentType)) {
+    $hostImageBanned = true;
+    foreach ((array) explode(',', CRAWL_IMAGE_MIME) as $mime) {
+
+      if (false !== strpos($hostImageContentType, trim($mime))) {
+
+        $hostImageBanned = false;
+        break;
+      }
+    }
+
+    if ($hostImageBanned) {
 
       $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-      continue;
     }
 
     // Convert remote image data to base64 string
@@ -335,7 +343,7 @@ try {
 
     // Update curl stats
     $httpRequestsTotal++;
-    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpRequestsSizeTotal += $curl->getSizeRequest();
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -359,11 +367,19 @@ try {
     }
 
     // Skip page processing on MIME type not allowed in settings
-    if (false === strpos(CRAWL_PAGE_MIME, $contentType)) {
+    $hostPageBanned = true;
+    foreach ((array) explode(',', CRAWL_PAGE_MIME) as $mime) {
+
+      if (false !== strpos($contentType, trim($mime))) {
+
+        $hostPageBanned = false;
+        break;
+      }
+    }
+
+    if ($hostPageBanned) {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
-
-      continue;
     }
 
     // Skip page processing without returned data
@@ -669,7 +685,7 @@ try {
 
           // Update curl stats
           $httpRequestsTotal++;
-          $httpRequestsSizeTotal  += $curl->getSizeRequest();
+          $httpRequestsSizeTotal += $curl->getSizeRequest();
           $httpDownloadSizeTotal += $curl->getSizeDownload();
           $httpRequestsTimeTotal += $curl->getTotalTime();
 
