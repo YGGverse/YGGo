@@ -293,7 +293,7 @@ try {
 
     if ($hostImageBanned) {
 
-      $db->updateHostImageMime($queueHostImage->hostImageId, $hostImageContentType, time());
+      $db->updateHostImageMime($queueHostImage->hostImageId, Filter::mime($hostImageContentType), time());
 
       $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
 
@@ -387,7 +387,7 @@ try {
 
     if ($hostPageBanned) {
 
-      $db->updateHostPageMime($queueHostPage->hostPageId, $contentType, time());
+      $db->updateHostPageMime($queueHostPage->hostPageId, Filter::mime($contentType), time());
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
@@ -456,14 +456,26 @@ try {
       continue;
     }
 
-    // Update queued page data
+    // Update queued page
     $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
-                                             Filter::pageTitle($title->item(0)->nodeValue),
-                                             Filter::pageDescription($metaDescription),
-                                             Filter::pageKeywords($metaKeywords),
                                              Filter::mime($contentType),
-                                             CRAWL_HOST_DEFAULT_META_ONLY ? null : Filter::pageData($content),
                                              time());
+
+    // Format page content
+    $content = Filter::pageData($content);
+
+    // Add queued page description if not exists
+    $crc32data = crc32($content);
+
+    if (!$db->getHostPageDescription($queueHostPage->hostPageId, $crc32data)) {
+         $db->addHostPageDescription($queueHostPage->hostPageId,
+                                     $crc32data,
+                                     Filter::pageTitle($title->item(0)->nodeValue),
+                                     Filter::pageDescription($metaDescription),
+                                     Filter::pageKeywords($metaKeywords),
+                                     CRAWL_HOST_DEFAULT_META_ONLY ? null : $content,
+                                     time());
+    }
 
     // Update manifest registry
     if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {

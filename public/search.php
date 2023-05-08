@@ -436,7 +436,9 @@ if (!empty($q)) {
               <?php foreach ((array) $db->getHostImageHostPages($result->id, WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT) as $hostPage) { ?>
                 <?php if ($hostPage = $db->getFoundHostPage($hostPage->hostPageId)) { ?>
                   <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
-                  <h3><?php echo $hostPage->metaTitle ?></h3>
+                  <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
+                    <h3><?php echo $hostPageDescription->metaTitle ?></h3>
+                  <?php } ?>
                   <?php if (!empty($hostImage->description)) { ?>
                     <span><?php echo $hostImage->description ?></span>
                   <?php } ?>
@@ -469,9 +471,11 @@ if (!empty($q)) {
 
               ?>
             <div>
-              <h2><?php echo $hostPage->metaTitle ?></h2>
-              <?php if (!empty($hostPage->metaDescription)) { ?>
-              <span><?php echo $hostPage->metaDescription ?></span>
+              <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
+                <h2><?php echo $hostPageDescription->metaTitle ?></h2>
+                <?php if (!empty($hostPageDescription->metaDescription)) { ?>
+                  <span><?php echo $hostPageDescription->metaDescription ?></span>
+                <?php } ?>
               <?php } ?>
               <a href="<?php echo $hostPageURL ?>">
                 <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />

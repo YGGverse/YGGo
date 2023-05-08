@@ -384,19 +384,34 @@ class MySQL {
 
   public function getHostPagesByLimit(int $hostId, int $limit) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? ORDER BY hostPageId DESC LIMIT ' . (int) $limit);
+    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? ORDER BY `hostPageId` DESC LIMIT ' . (int) $limit);
 
     $query->execute([$hostId]);
 
     return $query->fetchAll();
   }
 
+  public function getHostPageDescription(int $hostPageId, int $crc32data) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageDescription` WHERE `hostPageId` = ? AND `crc32data` = ? LIMIT 1');
+
+    $query->execute([$hostPageId, $crc32data]);
+
+    return $query->fetch();
+  }
+
+  public function getLastPageDescription(int $hostPageId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageDescription` WHERE `hostPageId` = ? ORDER BY `timeAdded` DESC LIMIT 1');
+
+    $query->execute([$hostPageId]);
+
+    return $query->fetch();
+  }
+
   public function getFoundHostPage(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT `hostPage`.`metaTitle`,
-                                         `hostPage`.`metaDescription`,
-                                         `hostPage`.`data`,
-                                         `hostPage`.`uri`,
+    $query = $this->_db->prepare('SELECT `hostPage`.`uri`,
                                          `hostPage`.`rank`,
                                          `host`.`scheme`,
                                          `host`.`name`,
@@ -449,11 +464,7 @@ class MySQL {
                               mixed $timeBanned = null,
                               mixed $httpCode = null,
                               mixed $mime = null,
-                              mixed $rank = null,
-                              mixed $metaTitle = null,
-                              mixed $metaDescription = null,
-                              mixed $metaKeywords = null,
-                              mixed $data = null) {
+                              mixed $rank = null) {
 
     $query = $this->_db->prepare('INSERT INTO `hostPage` (`hostId`,
                                                           `crc32uri`,
@@ -463,35 +474,18 @@ class MySQL {
                                                           `timeBanned`,
                                                           `httpCode`,
                                                           `mime`,
-                                                          `rank`,
-                                                          `metaTitle`,
-                                                          `metaDescription`,
-                                                          `metaKeywords`,
-                                                          `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                          `rank`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $timeBanned, $httpCode, $mime, $rank, $metaTitle, $metaDescription, $metaKeywords, $data]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $timeBanned, $httpCode, $mime, $rank]);
 
     return $this->_db->lastInsertId();
   }
 
-  public function updateHostPage( int $hostPageId,
-                                  mixed $metaTitle,
-                                  mixed $metaDescription,
-                                  mixed $metaKeywords,
-                                  string $mime,
-                                  mixed $data,
-                                  int $timeUpdated,
-                                  mixed $timeBanned = null) {
+  public function updateHostPage(int $hostPageId, string $mime, int $timeUpdated) {
 
-    $query = $this->_db->prepare('UPDATE `hostPage` SET `metaTitle`       = ?,
-                                                        `metaDescription` = ?,
-                                                        `metaKeywords`    = ?,
-                                                        `mime`            = ?,
-                                                        `data`            = ?,
-                                                        `timeUpdated`     = ?,
-                                                        `timeBanned`      = ? WHERE `hostPageId` = ? LIMIT 1');
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeUpdated` = ?, `mime` = ? WHERE `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$metaTitle, $metaDescription, $metaKeywords, $mime, $data, $timeUpdated, $timeBanned, $hostPageId]);
+    $query->execute([$timeUpdated, $mime, $hostPageId]);
 
     return $query->rowCount();
   }
@@ -548,11 +542,50 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function deleteHostPageDescriptions(int $hostPageId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPageDescription` WHERE `hostPageId` = ?');
+
+    $query->execute([$hostPageId]);
+
+    return $query->rowCount();
+  }
+
   public function deleteHostPageToHostImage(int $hostPageId) {
 
     $query = $this->_db->prepare('DELETE FROM `hostImageToHostPage` WHERE `hostPageId` = ?');
 
     $query->execute([$hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function addHostPageDescription(int $hostPageId,
+                                         int $crc32data,
+                                         mixed $metaTitle,
+                                         mixed $metaDescription,
+                                         mixed $metaKeywords,
+                                         mixed $data,
+                                         int $timeAdded) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostPageDescription` ( `hostPageId`,
+                                                                      `crc32data`,
+                                                                      `metaTitle`,
+                                                                      `metaDescription`,
+                                                                      `metaKeywords`,
+                                                                      `data`,
+                                                                      `timeAdded`
+                                                                      ) VALUES (?, ?, ?, ?, ?, ?, ?)');
+
+    $query->execute([
+      $hostPageId,
+      $crc32data,
+      $metaTitle,
+      $metaDescription,
+      $metaKeywords,
+      $data,
+      $timeAdded
+    ]);
 
     return $query->rowCount();
   }

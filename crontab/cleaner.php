@@ -94,6 +94,8 @@ try {
         $db->deleteHostPageToHostImage($hostPage->hostPageId);
 
         // Delete host page
+        $db->deleteHostPageDescriptions($hostPage->hostPageId);
+
         $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
       }
     }
@@ -122,6 +124,8 @@ try {
         $db->deleteHostPageToHostImage($hostPage->hostPageId);
 
         // Delete host page
+        $db->deleteHostPageDescriptions($hostPage->hostPageId);
+
         $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
       }
     }
