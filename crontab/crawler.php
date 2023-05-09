@@ -301,7 +301,7 @@ try {
     }
 
     // Convert remote image data to base64 string
-    if (!CRAWL_HOST_DEFAULT_META_ONLY) {
+    if (!$queueHostImage->crawlMetaOnly) {
 
       // Skip image processing without returned content
       if (!$hostImageContent = $curl->getContent()) {
@@ -327,14 +327,22 @@ try {
 
       $hostImageData = 'data:image/' . str_replace(['svg'], ['svg+xml'], $hostImageExtension) . ';base64,' . $hostImageBase64;
 
-    } else {
+      // Set host image description
+      // On link collection we knew meta but data,
+      // this step use latest description slice and insert the data received by curl request
+      if ($lastHostImageDescription = $db->getLastHostImageDescription($queueHostImage->hostImageId)) {
 
-      $hostImageData = null;
+        $db->setHostImageDescription($queueHostImage->hostImageId,
+                                     crc32($hostImageData),
+                                     $lastHostImageDescription->alt,
+                                     $lastHostImageDescription->title,
+                                     $hostImageData,
+                                     time());
+      }
     }
 
     $hostImagesIndexed += $db->updateHostImage($queueHostImage->hostImageId,
                                                Filter::mime($hostImageContentType),
-                                               $hostImageData,
                                                time());
   }
 
@@ -465,17 +473,13 @@ try {
     $content = Filter::pageData($content);
 
     // Add queued page description if not exists
-    $crc32data = crc32($content);
-
-    if (!$db->getHostPageDescription($queueHostPage->hostPageId, $crc32data)) {
-         $db->addHostPageDescription($queueHostPage->hostPageId,
-                                     $crc32data,
-                                     Filter::pageTitle($title->item(0)->nodeValue),
-                                     Filter::pageDescription($metaDescription),
-                                     Filter::pageKeywords($metaKeywords),
-                                     CRAWL_HOST_DEFAULT_META_ONLY ? null : $content,
-                                     time());
-    }
+    $db->setHostPageDescription($queueHostPage->hostPageId,
+                                crc32($content),
+                                Filter::pageTitle($title->item(0)->nodeValue),
+                                Filter::pageDescription($metaDescription),
+                                Filter::pageKeywords($metaKeywords),
+                                $queueHostPage->crawlMetaOnly ? null : $content,
+                                time());
 
     // Update manifest registry
     if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
@@ -547,7 +551,7 @@ try {
 
             // Update curl stats
             $httpRequestsTotal++;
-            $httpRequestsSizeTotal  += $curl->getSizeRequest();
+            $httpRequestsSizeTotal += $curl->getSizeRequest();
             $httpDownloadSizeTotal += $curl->getSizeDownload();
             $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -610,20 +614,16 @@ try {
             }
           }
 
-          // Host image exists or created new one
-          if ($hostImageId) {
+          // Add/update host image description
+          $db->setHostImageDescription($hostImageId,
+                                       null, // no data, download it in the crawler queue
+                                       Filter::imageAlt($imageAlt),
+                                       Filter::imageTitle($imageTitle),
+                                       null,
+                                       time());
 
-            // Add/update host image description
-            $db->setHostImageDescription($hostImageId,
-                                          crc32(md5((string) $imageAlt . (string) $imageTitle)),
-                                          Filter::imageAlt($imageAlt),
-                                          Filter::imageTitle($imageTitle),
-                                          time(),
-                                          time());
-
-            // Relate host image with host page was found
-            $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), time(), 1);
-          }
+          // Relate host image with host page was found
+          $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), 1);
 
           // Increase image rank when link does not match the current host
           if ($hostImageURL->scheme . '://' .

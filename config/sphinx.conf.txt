@@ -21,7 +21,7 @@ source hostPage : common
                                  hostPageDescription.metaKeywords) \
            FROM hostPageDescription \
            WHERE hostPageDescription.hostPageId = hostPage.hostPageId \
-           ORDER BY hostPageDescription.timeAdded DESC \
+           ORDER BY hostPageDescription.timeUpdated DESC, hostPageDescription.timeAdded DESC \
            LIMIT 1) AS pageDescription \
     FROM hostPage \
     JOIN host ON (host.hostId = hostPage.hostId) \
@@ -37,8 +37,8 @@ source hostImage : common
            (SELECT CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title) \
               FROM hostImageDescription \
               WHERE hostImageDescription.hostImageId = hostImage.hostImageId \
-              ORDER BY hostImageDescription.timeAdded \
-              DESC LIMIT 1) AS imageDescription \
+              ORDER BY hostImageDescription.timeUpdated DESC, hostImageDescription.timeAdded DESC \
+              LIMIT 1) AS imageDescription \
     FROM hostImage \
     JOIN host ON (host.hostId = hostImage.hostId) \
     WHERE host.status = '1' AND hostImage.httpCode = 200 AND hostImage.timeBanned IS NULL \

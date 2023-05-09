@@ -21,22 +21,24 @@ $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 // Debug
 $timeStart = microtime(true);
 
-$httpRequestsTotal     = 0;
-$httpRequestsSizeTotal = 0;
-$httpDownloadSizeTotal = 0;
-$httpRequestsTimeTotal = 0;
+$httpRequestsTotal            = 0;
+$httpRequestsSizeTotal        = 0;
+$httpDownloadSizeTotal        = 0;
+$httpRequestsTimeTotal        = 0;
 
-$hostsTotal            = $db->getTotalHosts();
-$manifestsTotal        = $db->getTotalManifests();
-$hostsUpdated          = 0;
-$hostPagesDeleted      = 0;
-$hostImagesDeleted     = 0;
-$manifestsDeleted      = 0;
-$hostPagesBansRemoved  = 0;
-$hostImagesBansRemoved = 0;
+$hostsTotal                   = $db->getTotalHosts();
+$manifestsTotal               = $db->getTotalManifests();
+$hostsUpdated                 = 0;
+$hostPagesDeleted             = 0;
+$hostPageDescriptionsDeleted  = 0;
+$hostImagesDeleted            = 0;
+$hostImageDescriptionsDeleted = 0;
+$manifestsDeleted             = 0;
+$hostPagesBansRemoved         = 0;
+$hostImagesBansRemoved        = 0;
 
-$logsCleanerDeleted    = 0;
-$logsCrawlerDeleted    = 0;
+$logsCleanerDeleted           = 0;
+$logsCrawlerDeleted           = 0;
 
 // Begin update
 $db->beginTransaction();
@@ -202,8 +204,14 @@ try {
   // Reset banned pages
   $hostPagesBansRemoved += $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
 
+  // Delete page description history
+  $hostPageDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
+
   // Reset banned images
   $hostImagesBansRemoved += $db->resetBannedHostImages(time() - CLEAN_IMAGE_BAN_SECONDS_OFFSET);
+
+  // Delete image description history
+  $hostImageDescriptionsDeleted += $db->deleteHostImageDescriptionsByTimeAdded(time() - CLEAN_IMAGE_DESCRIPTION_OFFSET);
 
   // Delete deprecated logs
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
@@ -228,8 +236,10 @@ if (CLEAN_LOG_ENABLED) {
                       $hostsTotal,
                       $hostsUpdated,
                       $hostPagesDeleted,
+                      $hostPageDescriptionsDeleted,
                       $hostPagesBansRemoved,
                       $hostImagesDeleted,
+                      $hostImageDescriptionsDeleted,
                       $hostImagesBansRemoved,
                       $manifestsTotal,
                       $manifestsDeleted,
@@ -252,7 +262,9 @@ echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
 echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
 
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
+echo 'Host page descriptions deleted: ' . $hostPageDescriptionsDeleted . PHP_EOL;
 echo 'Host images bans removed: ' . $hostImagesBansRemoved . PHP_EOL;
+echo 'Host image descriptions deleted: ' . $hostImageDescriptionsDeleted . PHP_EOL;
 
 echo 'Cleaner logs deleted: ' . $logsCleanerDeleted . PHP_EOL;
 echo 'Crawler logs deleted: ' . $logsCrawlerDeleted . PHP_EOL;

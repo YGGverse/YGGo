@@ -418,8 +418,20 @@ if (!empty($q)) {
                 // Save image content on data settings enabled
                 $db->updateHostImage($hostImage->hostImageId,
                                      Filter::mime($hostImageContentType),
-                                     CRAWL_HOST_DEFAULT_META_ONLY ? null : $hostImageURLencoded,
                                      time());
+
+                // Set host image description
+                // On link collection we knew meta but data,
+                // this step use latest description slice and insert the data received by curl request
+                if ($lastHostImageDescription = $db->getLastHostImageDescription($hostImage->hostImageId)) {
+
+                  $db->setHostImageDescription($hostImage->hostImageId,
+                                               crc32($hostImageData),
+                                               $lastHostImageDescription->alt,
+                                               $lastHostImageDescription->title,
+                                               $hostImage->crawlMetaOnly ? null : $hostImageData,
+                                               time());
+                }
 
               // Local image data exists
               } else {
@@ -439,8 +451,8 @@ if (!empty($q)) {
                   <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
                     <h3><?php echo $hostPageDescription->metaTitle ?></h3>
                   <?php } ?>
-                  <?php if (!empty($hostImage->description)) { ?>
-                    <span><?php echo $hostImage->description ?></span>
+                  <?php if ($lastHostImageDescription = $db->getLastHostImageDescription($result->id)) { ?>
+                    <span><?php echo $lastHostImageDescription->title ?> <?php echo $lastHostImageDescription->alt ?></span>
                   <?php } ?>
                   <a href="<?php echo $hostPageURL ?>">
                     <img src="<?php echo WEBSITE_DOMAIN ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />

@@ -255,7 +255,7 @@ define('CRAWL_HOST_DEFAULT_STATUS', true);
  * Index only meta tags to prevent disk overuse
  * or false to save meta tags + overall plain text page content
  *
- * Custom rule for specified host could be provided in the DB `host`.`crawlPageMetaOnly` field
+ * Custom rule for specified host could be provided in the DB `host`.`crawlMetaOnly` field
  *
  * This option able to change search results relevance
  * This option enables image data caching in base64
@@ -368,6 +368,12 @@ define('CLEAN_HOST_SECONDS_OFFSET', 60*60*24*30);
 define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
 
 /*
+ * Remove page description history after following time
+ *
+ */
+define('CLEAN_PAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
+
+/*
  * Remove image ban after following time
  *
  * This option used in crawler and search page
@@ -375,6 +381,12 @@ define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
  *
  */
 define('CLEAN_IMAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
+
+/*
+ * Remove image description history after following time
+ *
+ */
+define('CLEAN_IMAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
 
 // API settings
 
