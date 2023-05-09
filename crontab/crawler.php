@@ -475,7 +475,7 @@ try {
                                 Filter::pageTitle($title->item(0)->nodeValue),
                                 Filter::pageDescription($metaDescription),
                                 Filter::pageKeywords($metaKeywords),
-                                $queueHostPage->crawlMetaOnly ? null : $content,
+                                $queueHostPage->crawlMetaOnly ? null : Filter::string($content),
                                 time());
 
     // Update manifest registry

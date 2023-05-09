@@ -2,6 +2,11 @@
 
 class Filter {
 
+  static public function string(mixed $data) {
+
+    return (string) $data;
+  }
+
   static public function url(mixed $url) {
 
     $url = (string) $url;
