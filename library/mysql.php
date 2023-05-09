@@ -178,8 +178,7 @@ class MySQL {
                                mixed $timeBanned = null,
                                mixed $httpCode = null,
                                mixed $mime = null,
-                               mixed $rank = null,
-                               mixed $data = null) {
+                               mixed $rank = null) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImage` ( `hostId`,
                                                             `crc32uri`,
@@ -189,10 +188,9 @@ class MySQL {
                                                             `timeBanned`,
                                                             `httpCode`,
                                                             `mime`,
-                                                            `rank`,
-                                                            `data`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `rank`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $timeBanned, $httpCode, $mime, $rank, $data]);
+    $query->execute([$hostId, $crc32uri, $uri, $timeAdded, $timeUpdated, $timeBanned, $httpCode, $mime, $rank]);
 
     return $this->_db->lastInsertId();
   }
