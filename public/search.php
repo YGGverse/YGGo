@@ -441,6 +441,7 @@ if (!empty($q)) {
               <a href="<?php echo $hostImageURL ?>">
                 <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo htmlentities($hostImageURL) ?>" title="<?php echo htmlentities($hostImageURL) ?>" class="image" />
               </a>
+              <br />
               <?php $hostImageHostPagesTotal = $db->getHostImageHostPagesTotal($result->id) ?>
               <?php foreach ((array) $db->getHostImageHostPages($result->id, WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT) as $hostPage) { ?>
                 <?php if ($hostPage = $db->getFoundHostPage($hostPage->hostPageId)) { ?>
