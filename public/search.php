@@ -59,6 +59,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       if ($host = $db->getHost(crc32($hostURL->string))) {
 
         $hostStatus        = $host->status;
+        $hostNsfw          = $host->nsfw;
         $hostPageLimit     = $host->crawlPageLimit;
         $hostId            = $host->hostId;
         $hostRobots        = $host->robots;
@@ -82,6 +83,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
           $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
           $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
           $hostId        = $db->addHost($hostURL->scheme,
                                         $hostURL->name,
@@ -92,6 +94,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                                         $hostPageLimit,
                                         (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                         (string) $hostStatus,
+                                        (string) $hostNsfw,
                                         $hostRobots,
                                         $hostRobotsPostfix);
         }

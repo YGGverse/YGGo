@@ -1,7 +1,7 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.6);
+define('API_VERSION', 0.7);
 
 // Load system dependencies
 require_once('../config/app.php');
@@ -127,6 +127,7 @@ if (API_ENABLED) {
             'config' => [
               'websiteDomain'               => WEBSITE_DOMAIN,
               'crawlUrlRegexp'              => CRAWL_URL_REGEXP,
+              'crawlHostDefaultNsfw'        => CRAWL_HOST_DEFAULT_NSFW,
               'crawlHostDefaultPagesLimit'  => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
               'crawlHostDefaultImagesLimit' => CRAWL_HOST_DEFAULT_IMAGES_LIMIT,
               'crawlHostDefaultStatus'      => CRAWL_HOST_DEFAULT_STATUS,

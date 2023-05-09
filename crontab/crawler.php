@@ -171,6 +171,7 @@ try {
         if ($host = $db->getHost(crc32($hostURL))) {
 
           $hostStatus        = $host->status;
+          $hostNsfw          = $host->nsfw;
           $hostPageLimit     = $host->crawlPageLimit;
           $hostImageLimit    = $host->crawlImageLimit;
           $hostId            = $host->hostId;
@@ -198,6 +199,7 @@ try {
           $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
           $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
           $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
 
@@ -211,6 +213,7 @@ try {
                                         $hostImageLimit,
                                         (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                         (string) $hostStatus,
+                                        (string) $hostNsfw,
                                         $hostRobots,
                                         $hostRobotsPostfix);
 
@@ -534,6 +537,7 @@ try {
           if ($host = $db->getHost(crc32($hostImageURL->string))) {
 
             $hostStatus        = $host->status;
+            $hostNsfw          = $host->nsfw;
             $hostPageLimit     = $host->crawlPageLimit;
             $hostImageLimit    = $host->crawlImageLimit;
             $hostId            = $host->hostId;
@@ -561,6 +565,7 @@ try {
             $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
             $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+            $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
             $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
             $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
             $hostId        = $db->addHost($hostImageURL->scheme,
@@ -573,6 +578,7 @@ try {
                                           $hostImageLimit,
                                           (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                           (string) $hostStatus,
+                                          (string) $hostNsfw,
                                           $hostRobots,
                                           $hostRobotsPostfix);
 
@@ -692,6 +698,7 @@ try {
         if ($host = $db->getHost(crc32($hostURL->string))) {
 
           $hostStatus        = $host->status;
+          $hostNsfw          = $host->nsfw;
           $hostPageLimit     = $host->crawlPageLimit;
           $hostImageLimit    = $host->crawlImageLimit;
           $hostId            = $host->hostId;
@@ -719,6 +726,7 @@ try {
           $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
           $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
+          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
           $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
           $hostId        = $db->addHost($hostURL->scheme,
@@ -731,6 +739,7 @@ try {
                                         $hostImageLimit,
                                         (string) CRAWL_HOST_DEFAULT_META_ONLY,
                                         (string) $hostStatus,
+                                        (string) $hostNsfw,
                                         $hostRobots,
                                         $hostRobotsPostfix);
 
