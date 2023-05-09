@@ -469,9 +469,6 @@ try {
                                              Filter::mime($contentType),
                                              time());
 
-    // Format page content
-    $content = Filter::pageData($content);
-
     // Add queued page description if not exists
     $db->setHostPageDescription($queueHostPage->hostPageId,
                                 crc32($content),
