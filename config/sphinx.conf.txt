@@ -34,11 +34,9 @@ source hostImage : common
 {
   sql_query   = \
     SELECT hostImage.hostImageId, hostImage.rank, hostImage.uri, host.name, \
-           (SELECT CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title) \
+           (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title)) \
               FROM hostImageDescription \
-              WHERE hostImageDescription.hostImageId = hostImage.hostImageId \
-              ORDER BY hostImageDescription.timeUpdated DESC, hostImageDescription.timeAdded DESC \
-              LIMIT 1) AS imageDescription \
+              WHERE hostImageDescription.hostImageId = hostImage.hostImageId) AS imageDescription \
     FROM hostImage \
     JOIN host ON (host.hostId = hostImage.hostId) \
     WHERE host.status = '1' AND hostImage.httpCode = 200 AND hostImage.timeBanned IS NULL \
