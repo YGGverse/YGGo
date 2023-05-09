@@ -342,8 +342,13 @@ if (!empty($q)) {
                              ($hostImage->port ? ':' . $hostImage->port : false) .
                               $hostImage->uri;
 
-              // Get remote image data
-              if (empty($hostImage->data)) {
+              // Get local image data
+              if ($lastHostImageDescription = $db->getLastHostImageDescription($hostImage->hostImageId)) {
+
+                $hostImageURLencoded = $lastHostImageDescription->data;
+
+              // Get remote if local index not found or CRAWL_HOST_DEFAULT_META_ONLY enabled
+              } else {
 
                 // Init image request
                 $hostImageCurl = new Curl($hostImageURL, PROXY_CURLOPT_USERAGENT);
@@ -420,29 +425,15 @@ if (!empty($q)) {
                                      Filter::mime($hostImageContentType),
                                      time());
 
-                // Set host image description
-                // On link collection we knew meta but data,
-                // this step use latest description slice and insert the data received by curl request
-                if ($lastHostImageDescription = $db->getLastHostImageDescription($hostImage->hostImageId)) {
-
-                  $db->setHostImageDescription($hostImage->hostImageId,
-                                               crc32($hostImageData),
-                                               $lastHostImageDescription->alt,
-                                               $lastHostImageDescription->title,
-                                               $hostImage->crawlMetaOnly ? null : $hostImageData,
-                                               time());
-                }
-
-              // Local image data exists
-              } else {
-
-                $hostImageURLencoded = $hostImage->data;
+                $db->setHostImageDescriptionData($hostImage->hostImageId,
+                                                 crc32($hostImageURLencoded),
+                                                 $hostImage->crawlMetaOnly ? null : $hostImageURLencoded,
+                                                 time());
               }
-
             ?>
             <div>
               <a href="<?php echo $hostImageURL ?>">
-                <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo htmlentities($hostImage->description) ?>" title="<?php echo htmlentities($hostImageURL) ?>" class="image" />
+                <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo htmlentities($hostImageURL) ?>" title="<?php echo htmlentities($hostImageURL) ?>" class="image" />
               </a>
               <?php $hostImageHostPagesTotal = $db->getHostImageHostPagesTotal($result->id) ?>
               <?php foreach ((array) $db->getHostImageHostPages($result->id, WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT) as $hostPage) { ?>

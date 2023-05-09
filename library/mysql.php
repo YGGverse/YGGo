@@ -282,6 +282,23 @@ class MySQL {
     return $this->_db->lastInsertId();
   }
 
+  public function setHostImageDescriptionData(int $hostImageId,
+                                              mixed $crc32data,
+                                              mixed $data,
+                                              int $time) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
+                                                                      `crc32data`,
+                                                                      `data`,
+                                                                      `timeAdded`) VALUES (?, ?, ?, ?)
+
+                                                                      ON DUPLICATE KEY UPDATE `timeUpdated` = ?');
+
+    $query->execute([$hostImageId, $crc32data, $data, $time, $time]);
+
+    return $this->_db->lastInsertId();
+  }
+
   public function deleteHostImageDescription(int $hostImageId) {
 
     $query = $this->_db->prepare('DELETE FROM `hostImageDescription` WHERE `hostImageId` = ?');
@@ -446,7 +463,6 @@ class MySQL {
 
     $query = $this->_db->prepare('SELECT `hostImage`.`hostImageId`,
                                          `hostImage`.`uri`,
-                                         `hostImage`.`data`,
                                          `hostImage`.`rank`,
                                          `host`.`scheme`,
                                          `host`.`name`,
