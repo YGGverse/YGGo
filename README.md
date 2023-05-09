@@ -26,7 +26,6 @@ php-dom
 php-pdo
 php-curl
 php-gd
-php-mbstring
 php-mysql
 sphinxsearch
 ```
