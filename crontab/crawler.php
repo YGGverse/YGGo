@@ -336,7 +336,9 @@ try {
       if ($lastHostImageDescription = $db->getLastHostImageDescription($queueHostImage->hostImageId)) {
 
         $db->setHostImageDescription($queueHostImage->hostImageId,
-                                     crc32($hostImageData),
+                                     crc32($lastHostImageDescription->alt .
+                                           $lastHostImageDescription->title .
+                                           $hostImageData),
                                      $lastHostImageDescription->alt,
                                      $lastHostImageDescription->title,
                                      $hostImageData,
@@ -618,10 +620,13 @@ try {
           }
 
           // Add/update host image description
+          $imageAlt   = Filter::imageAlt($imageAlt);
+          $imageTitle = Filter::imageTitle($imageTitle);
+
           $db->setHostImageDescription($hostImageId,
-                                       null, // no data, download it in the crawler queue
-                                       Filter::imageAlt($imageAlt),
-                                       Filter::imageTitle($imageTitle),
+                                       crc32($imageAlt . $imageTitle),
+                                       $imageAlt,
+                                       $imageTitle,
                                        null,
                                        time());
 

@@ -346,7 +346,7 @@ if (!empty($q)) {
                               $hostImage->uri;
 
               // Get local image data
-              if ($lastHostImageDescription = $db->getLastHostImageDescription($hostImage->hostImageId)) {
+              if ($lastHostImageDescription = $db->getLastHostImageDescription($result->id)) {
 
                 $hostImageURLencoded = $lastHostImageDescription->data;
 
@@ -359,13 +359,13 @@ if (!empty($q)) {
                 // Skip item render on timeout
                 $hostImageHttpCode = $hostImageCurl->getCode();
 
-                $db->updateHostImageHttpCode($hostImage->hostImageId, (int) $hostImageHttpCode, time());
+                $db->updateHostImageHttpCode($result->id, (int) $hostImageHttpCode, time());
 
                 if (200 != $hostImageHttpCode) {
 
-                  $db->updateHostImageHttpCode($hostImage->hostImageId, $hostImageHttpCode, time());
+                  $db->updateHostImageHttpCode($result->id, $hostImageHttpCode, time());
 
-                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+                  $db->updateHostImageTimeBanned($result->id, time());
 
                   continue;
                 }
@@ -373,7 +373,7 @@ if (!empty($q)) {
                 // Skip image processing on MIME type not provided
                 if (!$hostImageContentType = $hostImageCurl->getContentType()) {
 
-                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+                  $db->updateHostImageTimeBanned($result->id, time());
 
                   continue;
                 }
@@ -391,9 +391,9 @@ if (!empty($q)) {
 
                 if ($hostImageBanned) {
 
-                  $db->updateHostImageMime($hostImage->hostImageId, $hostImageContentType, time());
+                  $db->updateHostImageMime($result->id, $hostImageContentType, time());
 
-                  $hostImagesBanned += $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+                  $hostImagesBanned += $db->updateHostImageTimeBanned($result->id, time());
 
                   continue;
                 }
@@ -401,7 +401,7 @@ if (!empty($q)) {
                 // Skip image processing without returned content
                 if (!$hostImageContent = $hostImageCurl->getContent()) {
 
-                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+                  $db->updateHostImageTimeBanned($result->id, time());
 
                   continue;
                 }
@@ -409,14 +409,14 @@ if (!empty($q)) {
                 // Convert remote image data to base64 string to prevent direct URL call
                 if (!$hostImageExtension = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) {
 
-                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+                  $db->updateHostImageTimeBanned($result->id, time());
 
                   continue;
                 }
 
                 if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
 
-                  $db->updateHostImageTimeBanned($hostImage->hostImageId, time());
+                  $db->updateHostImageTimeBanned($result->id, time());
 
                   continue;
                 }
@@ -424,11 +424,11 @@ if (!empty($q)) {
                 $hostImageURLencoded  = 'data:image/' . str_replace(['svg'], ['svg+xml'], $hostImageExtension) . ';base64,' . $hostImageBase64;
 
                 // Save image content on data settings enabled
-                $db->updateHostImage($hostImage->hostImageId,
+                $db->updateHostImage($result->id,
                                      Filter::mime($hostImageContentType),
                                      time());
 
-                $db->setHostImageDescriptionData($hostImage->hostImageId,
+                $db->setHostImageDescriptionData($result->id,
                                                  crc32($hostImageURLencoded),
                                                  $hostImage->crawlMetaOnly ? null : $hostImageURLencoded,
                                                  time());

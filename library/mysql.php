@@ -259,14 +259,14 @@ class MySQL {
   }
 
   public function setHostImageDescription(int $hostImageId,
-                                          mixed $crc32data,
+                                          int $crc32id,
                                           string $alt,
                                           string $title,
                                           mixed $data,
                                           int $time) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
-                                                                      `crc32data`,
+                                                                      `crc32id`,
                                                                       `alt`,
                                                                       `title`,
                                                                       `timeAdded`) VALUES (?, ?, ?, ?, ?)
@@ -275,24 +275,24 @@ class MySQL {
                                                                                               `title`       = ?,
                                                                                               `timeUpdated` = ?');
 
-    $query->execute([$hostImageId, $crc32data, $alt, $title, $time, $alt, $title, $time]);
+    $query->execute([$hostImageId, $crc32id, $alt, $title, $time, $alt, $title, $time]);
 
     return $this->_db->lastInsertId();
   }
 
   public function setHostImageDescriptionData(int $hostImageId,
-                                              mixed $crc32data,
+                                              int $crc32id,
                                               mixed $data,
                                               int $time) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
-                                                                      `crc32data`,
+                                                                      `crc32id`,
                                                                       `data`,
                                                                       `timeAdded`) VALUES (?, ?, ?, ?)
 
                                                                       ON DUPLICATE KEY UPDATE `timeUpdated` = ?');
 
-    $query->execute([$hostImageId, $crc32data, $data, $time, $time]);
+    $query->execute([$hostImageId, $crc32id, $data, $time, $time]);
 
     return $this->_db->lastInsertId();
   }
