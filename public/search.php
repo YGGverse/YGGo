@@ -456,6 +456,7 @@ if (!empty($q)) {
                     <img src="<?php echo WEBSITE_DOMAIN ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
                     <?php echo htmlentities(urldecode($hostPageURL)) ?>
                   </a>
+                  <br />
                 <?php } ?>
               <?php } ?>
               <?php if ($hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT > 0) { ?>
