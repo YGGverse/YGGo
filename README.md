@@ -180,6 +180,9 @@ GET m=SphinxQL
 * [x] MIME Content-type crawler settings
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
+* [x] History snaps
+  + [x] Pages
+  + [x] Images
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
@@ -193,6 +196,9 @@ GET m=SphinxQL
   + [x] Logs
     + [x] Crawler
     + [x] Cleaner
+* [x] Deprecated history snaps removing
+  + [x] Pages
+  + [x] Images
 * [x] Banned resources reset by timeout
   + [x] Pages
   + [x] Images
