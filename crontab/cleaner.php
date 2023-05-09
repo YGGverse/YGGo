@@ -149,7 +149,7 @@ try {
 
     $delete = false;
 
-    $curl = new Curl($manifest->url);
+    $curl = new Curl($manifest->url, CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;

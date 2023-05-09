@@ -54,7 +54,7 @@ try {
   // Process manifests crawl queue
   foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFEST_SECONDS_OFFSET) as $queueManifest) {
 
-    $curl = new Curl($queueManifest->url);
+    $curl = new Curl($queueManifest->url, CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;
@@ -117,7 +117,7 @@ try {
     }
 
     // Begin hosts collection
-    $curl = new Curl($remoteManifest->result->api->hosts);
+    $curl = new Curl($remoteManifest->result->api->hosts, CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;

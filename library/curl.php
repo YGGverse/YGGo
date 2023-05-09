@@ -11,6 +11,12 @@ class Curl {
 
     curl_setopt($this->_connection, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($this->_connection, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
+    curl_setopt($this->_connection, CURLOPT_NOPROGRESS, false);
+    curl_setopt($this->_connection, CURLOPT_PROGRESSFUNCTION, function(
+      $downloadSize, $downloaded, $uploadSize, $uploaded
+    ){
+        return ($downloaded > CRAWL_CURLOPT_PROGRESSFUNCTION_DOWNLOAD_SIZE_LIMIT) ? 1 : 0;
+    });
 
     if ($userAgent) {
       curl_setopt($this->_connection, CURLOPT_USERAGENT, (string) $userAgent);
