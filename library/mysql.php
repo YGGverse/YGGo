@@ -263,7 +263,8 @@ class MySQL {
                                           string $alt,
                                           string $title,
                                           mixed $data,
-                                          int $time) {
+                                          int $timeAdded,
+                                          mixed $timeUpdated) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
                                                                       `crc32id`,
@@ -275,7 +276,7 @@ class MySQL {
                                                                                               `title`       = ?,
                                                                                               `timeUpdated` = ?');
 
-    $query->execute([$hostImageId, $crc32id, $alt, $title, $time, $alt, $title, $time]);
+    $query->execute([$hostImageId, $crc32id, $alt, $title, $timeAdded, $alt, $title, $timeUpdated]);
 
     return $this->_db->lastInsertId();
   }
@@ -283,7 +284,8 @@ class MySQL {
   public function setHostImageDescriptionData(int $hostImageId,
                                               int $crc32id,
                                               mixed $data,
-                                              int $time) {
+                                              int $timeAdded,
+                                              mixed $timeUpdated) {
 
     $query = $this->_db->prepare('INSERT INTO `hostImageDescription` (`hostImageId`,
                                                                       `crc32id`,
@@ -292,7 +294,7 @@ class MySQL {
 
                                                                       ON DUPLICATE KEY UPDATE `timeUpdated` = ?');
 
-    $query->execute([$hostImageId, $crc32id, $data, $time, $time]);
+    $query->execute([$hostImageId, $crc32id, $data, $timeAdded, $timeUpdated]);
 
     return $this->_db->lastInsertId();
   }

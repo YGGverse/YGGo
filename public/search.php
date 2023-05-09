@@ -431,7 +431,8 @@ if (!empty($q)) {
                 $db->setHostImageDescriptionData($result->id,
                                                  crc32($hostImageURLencoded),
                                                  $hostImage->crawlMetaOnly ? null : $hostImageURLencoded,
-                                                 time());
+                                                 time(),
+                                                 null);
               }
             ?>
             <div>

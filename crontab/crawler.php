@@ -342,6 +342,7 @@ try {
                                      $lastHostImageDescription->alt,
                                      $lastHostImageDescription->title,
                                      $hostImageData,
+                                     time(),
                                      time());
       }
     }
@@ -628,7 +629,8 @@ try {
                                        $imageAlt,
                                        $imageTitle,
                                        null,
-                                       time());
+                                       time(),
+                                       null);
 
           // Relate host image with host page was found
           $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), 1);
