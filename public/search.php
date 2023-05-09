@@ -346,7 +346,9 @@ if (!empty($q)) {
                               $hostImage->uri;
 
               // Get local image data
-              if ($lastHostImageDescription = $db->getLastHostImageDescription($result->id)) {
+              $lastHostImageDescription = $db->getLastHostImageDescription($result->id);
+
+              if (!empty($lastHostImageDescription->data)) {
 
                 $hostImageURLencoded = $lastHostImageDescription->data;
 
@@ -446,7 +448,7 @@ if (!empty($q)) {
                   <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
                     <h3><?php echo $hostPageDescription->metaTitle ?></h3>
                   <?php } ?>
-                  <?php if ($lastHostImageDescription = $db->getLastHostImageDescription($result->id)) { ?>
+                  <?php if ($lastHostImageDescription) { ?>
                     <span><?php echo $lastHostImageDescription->title ?> <?php echo $lastHostImageDescription->alt ?></span>
                   <?php } ?>
                   <a href="<?php echo $hostPageURL ?>">
