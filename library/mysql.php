@@ -258,15 +258,6 @@ class MySQL {
     return $this->_db->lastInsertId();
   }
 
-  public function updateHostPage(int $hostPageId, string $mime, int $timeUpdated) {
-
-    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeUpdated` = ?, `mime` = ? WHERE `hostPageId` = ? LIMIT 1');
-
-    $query->execute([$timeUpdated, $mime, $hostPageId]);
-
-    return $query->rowCount();
-  }
-
   public function updateHostPageTimeBanned(int $hostPageId, int $timeBanned) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = ? WHERE `hostPageId` = ? LIMIT 1');

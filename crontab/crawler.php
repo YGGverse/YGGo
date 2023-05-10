@@ -243,6 +243,7 @@ try {
 
       $db->updateHostPageMime($queueHostPage->hostPageId, Filter::mime($contentType), time());
 
+    // Ban page if not available
     } else {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
@@ -250,30 +251,32 @@ try {
       continue;
     }
 
-    // Validate MIME
+    // Parse MIME
     $hostPageIsDom  = false;
-    $hostPageBanned = true;
+    $hostPageInMime = false;
+
     foreach ((array) explode(',', CRAWL_PAGE_MIME) as $mime) {
 
-      $mime = trim(strtolower($mime));
+      $mime = Filter::mime($mime);
 
       // Check for DOM
       if (false !== strpos('text/html', $mime)) {
 
         $hostPageIsDom  = true;
-        $hostPageBanned = false;
+        $hostPageInMime = true;
         break;
       }
 
       // Ban page on MIME type not allowed in settings
-      if (false !== strpos(strtolower($contentType), $mime)) {
+      if (false !== strpos(Filter::mime($contentType), $mime)) {
 
-        $hostPageBanned = false;
+        $hostPageInMime = true;
         break;
       }
     }
 
-    if ($hostPageBanned) {
+    // Ban page not in MIME list
+    if (!$hostPageInMime) {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
@@ -295,7 +298,7 @@ try {
     $robots       = null;
     $yggoManifest = null;
 
-    // Is DOM
+    // Is DOM content
     if ($hostPageIsDom) {
 
       // Parse content
@@ -332,7 +335,7 @@ try {
 
           $robots = @$meta->getAttribute('content');
 
-          // Append page with meta robots:noindex value to the robotsPostfix disallow list
+          // Ban page with meta robots:noindex value
           if (false !== stripos($robots, 'noindex')) {
 
             $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
@@ -340,31 +343,30 @@ try {
             continue;
           }
 
-          // Skip page links following by robots:nofollow attribute detected
+          // Skip page with meta robots:nofollow attribute
           if (false !== stripos($robots, 'nofollow')) {
 
             continue;
           }
         }
 
+        // Grab meta yggo:manifest link when available
         if (@$meta->getAttribute('name') == 'yggo:manifest') {
           $yggoManifest = Filter::url(@$meta->getAttribute('content'));
         }
       }
     }
 
-    // Update queued page
-    $hostPagesIndexed += $db->updateHostPage($queueHostPage->hostPageId,
-                                             Filter::mime($contentType),
-                                             time());
-
     // Add queued page description if not exists
-    $db->addHostPageDescription($queueHostPage->hostPageId,
-                                $title       ? Filter::pageTitle($title) : null,
-                                $description ? Filter::pageDescription($description) : null,
-                                $keywords    ? Filter::pageKeywords($keywords) : null,
-                                $content     ? ($queueHostPage->crawlMetaOnly ? null : base64_encode($content)) : null,
-                                time());
+    if ($title || $description || $keywords) {
+
+      $db->addHostPageDescription($queueHostPage->hostPageId,
+                                  $title       ? Filter::pageTitle($title) : null,
+                                  $description ? Filter::pageDescription($description) : null,
+                                  $keywords    ? Filter::pageKeywords($keywords) : null,
+                                  $content     ? ($queueHostPage->crawlMetaOnly ? null : base64_encode($content)) : null,
+                                  time());
+    }
 
     // Update manifest registry
     if (CRAWL_MANIFEST && !empty($yggoManifest) && filter_var($yggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $yggoManifest)) {
@@ -381,7 +383,7 @@ try {
       }
     }
 
-    // Init links registry
+    // Begin page links collection
     $links = [];
 
     // Collect image links
