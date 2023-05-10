@@ -39,11 +39,20 @@ class SphinxQL {
     return $query->fetch()->total;
   }
 
-  public function getHostPagesMime() {
+  public function searchHostPagesTotalByMime(string $keyword, string $mime) {
 
-    $query = $this->_sphinx->prepare('SELECT `mime` FROM `hostPage` GROUP BY `mime` ORDER BY `mime` ASC');
+    $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE MATCH(?) AND `mime` = ?');
 
-    $query->execute();
+    $query->execute([$keyword, $mime]);
+
+    return $query->fetch()->total;
+  }
+
+  public function searchHostPagesMime(string $keyword) {
+
+    $query = $this->_sphinx->prepare('SELECT `mime` FROM `hostPage` WHERE MATCH(?) GROUP BY `mime` ORDER BY `mime` ASC');
+
+    $query->execute([$keyword]);
 
     return $query->fetchAll();
   }
