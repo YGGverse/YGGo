@@ -16,7 +16,7 @@ $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
 // Filter request data
-$t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'html';
+$t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'text';
 $m = !empty($_GET['m']) ? Filter::url($_GET['m']) : 'default';
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;

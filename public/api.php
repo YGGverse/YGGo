@@ -30,7 +30,7 @@ if (API_ENABLED) {
 
 
         // Filter request data
-        $type  = !empty($_GET['type']) ? Filter::url($_GET['type']) : 'html';
+        $type  = !empty($_GET['type']) ? Filter::url($_GET['type']) : 'text';
         $mode  = !empty($_GET['mode']) ? Filter::url($_GET['mode']) : 'default';
         $query = !empty($_GET['query']) ? Filter::url($_GET['query']) : '';
         $page  = !empty($_GET['page']) ? (int) $_GET['page'] : 1;
