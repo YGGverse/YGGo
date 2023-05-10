@@ -16,9 +16,10 @@ source hostPage : common
            `hostPage`.`uri`, \
            `host`.`name`, \
            REGEXP_REPLACE(`hostPage`.`mime`, '^[A-z-]+/([A-z-]+).*', '$1') AS `mime`, \
-          (SELECT COUNT(*) FROM `hostPageToHostPage` \
-           WHERE `hostPageToHostPage`.`hostPageIdTarget`  = `hostPage`.`hostPageId` \
-           AND   `hostPageToHostPage`.`hostPageIdSource` <> `hostPage`.`hostPageId`) AS `rank`, \
+          (SELECT SUM(`quantity`) FROM `hostPageToHostPage` \
+           WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPage`.`hostPageId` \
+           AND   (SELECT `hostPageSource`.`hostId` FROM `hostPage` AS `hostPageSource` \
+                  WHERE  `hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`) <> `hostPage`.`hostId`) AS `rank`, \
           (SELECT GROUP_CONCAT(CONCAT_WS(' ', `hostPageDescription`.`title`, \
                                               `hostPageDescription`.`description`, \
                                               `hostPageDescription`.`keywords`)) \
@@ -26,7 +27,7 @@ source hostPage : common
            WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `pageDescription` \
     FROM  `hostPage` \
     JOIN  `host` ON (`host`.`hostId` = `hostPage`.`hostId`) \
-    WHERE `host`.`status` = '1' AND `hostPage`.`httpCode` = 200 AND `hostPage`.`timeBanned` IS NULL
+    WHERE `host`.`status` = '1' AND `hostPage`.`httpCode` = 200 AND `hostPage`.`timeBanned` IS NULL\
 
   sql_attr_uint   = rank
   sql_attr_string = mime
