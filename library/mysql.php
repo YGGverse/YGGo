@@ -276,15 +276,6 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function updateHostPageHttpCode(int $hostPageId, int $httpCode) {
-
-    $query = $this->_db->prepare('UPDATE `hostPage` SET `httpCode` = ? WHERE `hostPageId` = ? LIMIT 1');
-
-    $query->execute([$httpCode, $hostPageId]);
-
-    return $query->rowCount();
-  }
-
   public function updateHostPageMime(int $hostPageId, string $mime) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `mime` = ? WHERE `hostPageId` = ? LIMIT 1');

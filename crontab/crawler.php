@@ -233,15 +233,17 @@ try {
     // Skip page processing non 200 code
     if (200 != $curl->getCode()) {
 
-      $db->updateHostPageHttpCode($queueHostPage->hostPageId, $curl->getCode(), time());
-
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
       continue;
     }
 
-    // Skip page processing on MIME type not provided
-    if (!$contentType = $curl->getContentType()) {
+    // Validate MIME content type
+    if ($contentType = $curl->getContentType()) {
+
+      $db->updateHostPageMime($queueHostPage->hostPageId, Filter::mime($contentType), time());
+
+    } else {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
@@ -260,8 +262,6 @@ try {
     }
 
     if ($hostPageBanned) {
-
-      $db->updateHostPageMime($queueHostPage->hostPageId, Filter::mime($contentType), time());
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
