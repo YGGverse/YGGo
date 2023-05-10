@@ -16,34 +16,34 @@ $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
 // Filter request data
-$t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'page';
+$t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'html';
 $m = !empty($_GET['m']) ? Filter::url($_GET['m']) : 'default';
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
 
-// Define page basics
-switch ($t) {
+// Search request
+if (!empty($q)) {
 
-  case 'image':
+  $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m), $t);
+  $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
 
-    $totalPages = $sphinx->getHostImagesTotal();
+} else {
 
-    $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s image or enter the new one...'), $totalPages),
-                                                sprintf(_('Over %s images or enter the new one...'), $totalPages),
-                                                sprintf(_('Over %s images or enter the new one...'), $totalPages),
-                                                ]);
-
-  break;
-  default:
-
-    $totalPages = $sphinx->getHostPagesTotal();
-
-    $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'), $totalPages),
-                                                sprintf(_('Over %s pages or enter the new one...'), $totalPages),
-                                                sprintf(_('Over %s pages or enter the new one...'), $totalPages),
-                                                ]);
+  $resultsTotal = 0;
+  $results      = [];
 }
 
+// Mime list
+$hostPagesMime = $sphinx->getHostPagesMime();
+
+// Define page basics
+$totalPages = $sphinx->getHostPagesTotal();
+
+
+$placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'),  $totalPages),
+                                            sprintf(_('Over %s pages or enter the new one...'), $totalPages),
+                                            sprintf(_('Over %s pages or enter the new one...'), $totalPages),
+                                            ]);
 
 // Crawl request
 if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
@@ -61,6 +61,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
         $hostStatus        = $host->status;
         $hostNsfw          = $host->nsfw;
         $hostPageLimit     = $host->crawlPageLimit;
+        $hostMetaOnly      = $host->crawlMetaOnly;
         $hostId            = $host->hostId;
         $hostRobots        = $host->robots;
         $hostRobotsPostfix = $host->robotsPostfix;
@@ -82,21 +83,26 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 
           $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
-          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
-          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
+          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
+          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
+          $hostMetaOnly  = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-          $hostId        = $db->addHost($hostURL->scheme,
-                                        $hostURL->name,
-                                        $hostURL->port,
-                                        crc32($hostURL->string),
-                                        time(),
-                                        null,
-                                        $hostPageLimit,
-                                        (string) CRAWL_HOST_DEFAULT_META_ONLY,
-                                        (string) $hostStatus,
-                                        (string) $hostNsfw,
-                                        $hostRobots,
-                                        $hostRobotsPostfix);
+
+          $hostId = $db->addHost( $hostURL->scheme,
+                                  $hostURL->name,
+                                  $hostURL->port,
+                                  crc32($hostURL->string),
+                                  time(),
+                                  null,
+                                  $hostPageLimit,
+                                  (string) $hostMetaOnly,
+                                  (string) $hostStatus,
+                                  (string) $hostNsfw,
+                                  $hostRobots,
+                                  $hostRobotsPostfix);
+
+          // Add web root host page to make host visible in the crawl queue
+          $db->addHostPage($hostId, crc32('/'), '/', time());
         }
       }
 
@@ -120,28 +126,10 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 
   } catch(Exception $e){
 
+    var_dump($e);
+
     $db->rollBack();
   }
-}
-
-// Search request
-if (!empty($q)) {
-
-  if ($t == 'image') {
-
-    $resultsTotal = $sphinx->searchHostImagesTotal(Filter::searchQuery($q, $m));
-    $results      = $sphinx->searchHostImages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT, $resultsTotal);
-
-  } else {
-
-    $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m));
-    $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
-  }
-
-} else {
-
-  $resultsTotal = 0;
-  $results      = [];
 }
 
 ?>
@@ -151,7 +139,6 @@ if (!empty($q)) {
   <head>
   <title><?php echo (empty($q) ? _('Empty request - YGGo!') : ($p > 1 ? sprintf(_('%s - #%s - YGGo!'), htmlentities($q), $p) : sprintf(_('%s - YGGo!'), htmlentities($q)))) ?></title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="<?php echo _('Javascript-less Open Source Web Search Engine') ?>" />
     <meta name="keywords" content="<?php echo _('web, search, engine, crawler, php, pdo, mysql, sphinx, yggdrasil, js-less, open source') ?>" />
     <style>
@@ -322,8 +309,9 @@ if (!empty($q)) {
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
         <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="<?php echo htmlentities($q) ?>" />
-        <label><input type="radio" name="t" value="page" <?php echo ($t == 'page' ? 'checked="checked"' : false) ?>/> <?php echo _('Pages') ?></label>
-        <label><input type="radio" name="t" value="image" <?php echo ($t == 'image' ? 'checked="checked"' : false) ?>/> <?php echo _('Images') ?></label>
+        <?php foreach ($hostPagesMime as $hostPageMime) { ?>
+          <label><input type="radio" name="t" value="<?php echo $hostPageMime->mime ?>" <?php echo ($t == $hostPageMime->mime ? 'checked="checked"' : false) ?>/> <?php echo $hostPageMime->mime ?></label>
+        <?php } ?>
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
     </header>
@@ -336,156 +324,13 @@ if (!empty($q)) {
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
-          <?php if ($t == 'image' && $hostImage = $db->getFoundHostImage($result->id)) { ?>
-            <?php
-
-              // Built image url
-              $hostImageURL = $hostImage->scheme . '://' .
-                              $hostImage->name .
-                             ($hostImage->port ? ':' . $hostImage->port : false) .
-                              $hostImage->uri;
-
-              // Get local image data
-              $lastHostImageDescription = $db->getLastHostImageDescription($result->id);
-
-              if (!empty($lastHostImageDescription->data)) {
-
-                $hostImageURLencoded = $lastHostImageDescription->data;
-
-              // Get remote if local index not found or CRAWL_HOST_DEFAULT_META_ONLY enabled
-              } else {
-
-                // Init image request
-                $hostImageCurl = new Curl($hostImageURL, PROXY_CURLOPT_USERAGENT);
-
-                // Skip item render on timeout
-                $hostImageHttpCode = $hostImageCurl->getCode();
-
-                $db->updateHostImageHttpCode($result->id, (int) $hostImageHttpCode, time());
-
-                if (200 != $hostImageHttpCode) {
-
-                  $db->updateHostImageHttpCode($result->id, $hostImageHttpCode, time());
-
-                  $db->updateHostImageTimeBanned($result->id, time());
-
-                  continue;
-                }
-
-                // Skip image processing on MIME type not provided
-                if (!$hostImageContentType = $hostImageCurl->getContentType()) {
-
-                  $db->updateHostImageTimeBanned($result->id, time());
-
-                  continue;
-                }
-
-                // Skip image processing on MIME type not allowed in settings
-                $hostImageBanned = true;
-                foreach ((array) explode(',', CRAWL_IMAGE_MIME) as $mime) {
-
-                  if (false !== strpos($hostImageContentType, trim($mime))) {
-
-                    $hostImageBanned = false;
-                    break;
-                  }
-                }
-
-                if ($hostImageBanned) {
-
-                  $db->updateHostImageMime($result->id, $hostImageContentType, time());
-
-                  $hostImagesBanned += $db->updateHostImageTimeBanned($result->id, time());
-
-                  continue;
-                }
-
-                // Skip image processing without returned content
-                if (!$hostImageContent = $hostImageCurl->getContent()) {
-
-                  $db->updateHostImageTimeBanned($result->id, time());
-
-                  continue;
-                }
-
-                // Convert remote image data to base64 string to prevent direct URL call
-                if (!$hostImageExtension = @pathinfo($hostImageURL, PATHINFO_EXTENSION)) {
-
-                  $db->updateHostImageTimeBanned($result->id, time());
-
-                  continue;
-                }
-
-                if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
-
-                  $db->updateHostImageTimeBanned($result->id, time());
-
-                  continue;
-                }
-
-                $hostImageURLencoded  = 'data:image/' . str_replace(['svg'], ['svg+xml'], $hostImageExtension) . ';base64,' . $hostImageBase64;
-
-                // Save image content on data settings enabled
-                $db->updateHostImage($result->id,
-                                     Filter::mime($hostImageContentType),
-                                     time());
-
-                $db->setHostImageDescriptionData($result->id,
-                                                 crc32($hostImageURLencoded),
-                                                 $hostImage->crawlMetaOnly ? null : $hostImageURLencoded,
-                                                 time(),
-                                                 null);
-              }
-            ?>
-            <div>
-              <a href="<?php echo $hostImageURL ?>">
-                <img src="<?php echo $hostImageURLencoded ?>" alt="<?php echo htmlentities($hostImageURL) ?>" title="<?php echo htmlentities($hostImageURL) ?>" class="image" />
-              </a>
-              <br />
-              <?php $hostImageHostPagesTotal = $db->getHostImageHostPagesTotal($result->id) ?>
-              <?php foreach ((array) $db->getHostImageHostPages($result->id, WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT) as $hostPage) { ?>
-                <?php if ($hostPage = $db->getFoundHostPage($hostPage->hostPageId)) { ?>
-                  <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
-                  <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
-                    <h3><?php echo $hostPageDescription->metaTitle ?></h3>
-                  <?php } ?>
-                  <?php if ($lastHostImageDescription) { ?>
-                    <span><?php echo $lastHostImageDescription->title ?> <?php echo $lastHostImageDescription->alt ?></span>
-                  <?php } ?>
-                  <a href="<?php echo $hostPageURL ?>">
-                    <img src="<?php echo WEBSITE_DOMAIN ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
-                    <?php echo htmlentities(urldecode($hostPageURL)) ?>
-                  </a>
-                  <br />
-                <?php } ?>
-              <?php } ?>
-              <?php if ($hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT > 0) { ?>
-                <p>
-                  <small>
-                    <?php echo Filter::plural($hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT,
-                    [
-                      sprintf(_('+%s other page'),  $hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT),
-                      sprintf(_('+%s other pages'), $hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT),
-                      sprintf(_('+%s other pages'), $hostImageHostPagesTotal - WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT),
-                    ]); ?>
-                  </small>
-                </p>
-              <?php } ?>
-            </div>
-          <?php } else if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
-              <?php
-
-                $hostPageURL = $hostPage->scheme . '://' .
-                $hostPage->name .
-               ($hostPage->port ? ':' . $hostPage->port : false) .
-                $hostPage->uri;
-
-              ?>
+          <?php if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
+            <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
             <div>
               <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
-                <h2><?php echo $hostPageDescription->metaTitle ?></h2>
-                <?php if (!empty($hostPageDescription->metaDescription)) { ?>
-                  <span><?php echo $hostPageDescription->metaDescription ?></span>
+                <h2><?php echo $hostPageDescription->title ?></h2>
+                <?php if (!empty($hostPageDescription->description)) { ?>
+                  <span><?php echo $hostPageDescription->description ?></span>
                 <?php } ?>
               <?php } ?>
               <a href="<?php echo $hostPageURL ?>">
@@ -495,7 +340,7 @@ if (!empty($q)) {
             </div>
           <?php } ?>
         <?php } ?>
-        <?php if ($p * ($t == 'image' ? WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT : WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT) <= $resultsTotal) { ?>
+        <?php if ($p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT <= $resultsTotal) { ?>
           <div>
             <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&t=<?php echo $t ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
           </div>

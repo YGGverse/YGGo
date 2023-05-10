@@ -1,7 +1,7 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.7);
+define('API_VERSION', 0.8);
 
 // Load system dependencies
 require_once('../config/app.php');
@@ -30,48 +30,25 @@ if (API_ENABLED) {
 
 
         // Filter request data
-        $type  = !empty($_GET['type']) ? Filter::url($_GET['type']) : 'page';
+        $type  = !empty($_GET['type']) ? Filter::url($_GET['type']) : 'html';
         $mode  = !empty($_GET['mode']) ? Filter::url($_GET['mode']) : 'default';
         $query = !empty($_GET['query']) ? Filter::url($_GET['query']) : '';
         $page  = !empty($_GET['page']) ? (int) $_GET['page'] : 1;
 
-        // Make image search request
-        if (!empty($type) && $type == 'image') {
-
-          $sphinxResultsTotal = $sphinx->searchHostImagesTotal(Filter::searchQuery($query, $mode));
-          $sphinxResults      = $sphinx->searchHostImages(Filter::searchQuery($query, $mode), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
-
-        // Make default search request
-        } else {
-
-          $sphinxResultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($query, $mode));
-          $sphinxResults      = $sphinx->searchHostPages(Filter::searchQuery($query, $mode), $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
-        }
+        // Make search request
+        $sphinxResultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($query, $mode), $type);
+        $sphinxResults      = $sphinx->searchHostPages(Filter::searchQuery($query, $mode), $type, $page * API_SEARCH_PAGINATION_RESULTS_LIMIT - API_SEARCH_PAGINATION_RESULTS_LIMIT, API_SEARCH_PAGINATION_RESULTS_LIMIT, $sphinxResultsTotal);
 
         // Generate results
         $dbResults = [];
 
         foreach ($sphinxResults as $i => $sphinxResult) {
 
-          // Image
-          if (!empty($type) && $type == 'image') {
+          if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
 
-            if ($hostImage = $db->getFoundHostImage($sphinxResult->id)) {
+            $dbResults[$i] = $hostPage;
 
-              $dbResults[$i] = $hostImage;
-
-              $dbResults[$i]->weight = $sphinxResult->weight;
-            }
-
-          // Default
-          } else {
-
-            if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
-
-              $dbResults[$i] = $hostPage;
-
-              $dbResults[$i]->weight = $sphinxResult->weight;
-            }
+            $dbResults[$i]->weight = $sphinxResult->weight;
           }
         }
 
@@ -129,13 +106,10 @@ if (API_ENABLED) {
               'crawlUrlRegexp'              => CRAWL_URL_REGEXP,
               'crawlHostDefaultNsfw'        => CRAWL_HOST_DEFAULT_NSFW,
               'crawlHostDefaultPagesLimit'  => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
-              'crawlHostDefaultImagesLimit' => CRAWL_HOST_DEFAULT_IMAGES_LIMIT,
               'crawlHostDefaultStatus'      => CRAWL_HOST_DEFAULT_STATUS,
               'crawlHostDefaultMetaOnly'    => CRAWL_HOST_DEFAULT_META_ONLY,
               'crawlHostPageSecondsOffset'  => CRAWL_PAGE_SECONDS_OFFSET,
               'crawlHostPageMime'           => CRAWL_PAGE_MIME,
-              'crawlHostImageSecondsOffset' => CRAWL_IMAGE_SECONDS_OFFSET,
-              'crawlHostImageMime'          => CRAWL_IMAGE_MIME,
               'cleanHostSecondsOffset'      => CLEAN_HOST_SECONDS_OFFSET,
               'crawlRobotsDefaultRules'     => CRAWL_ROBOTS_DEFAULT_RULES,
               'crawlRobotsPostfixRules'     => CRAWL_ROBOTS_POSTFIX_RULES,

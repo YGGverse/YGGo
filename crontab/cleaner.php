@@ -31,11 +31,8 @@ $manifestsTotal               = $db->getTotalManifests();
 $hostsUpdated                 = 0;
 $hostPagesDeleted             = 0;
 $hostPageDescriptionsDeleted  = 0;
-$hostImagesDeleted            = 0;
-$hostImageDescriptionsDeleted = 0;
 $manifestsDeleted             = 0;
 $hostPagesBansRemoved         = 0;
-$hostImagesBansRemoved        = 0;
 
 $logsCleanerDeleted           = 0;
 $logsCrawlerDeleted           = 0;
@@ -56,7 +53,7 @@ try {
 
     // Update curl stats
     $httpRequestsTotal++;
-    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpRequestsSizeTotal += $curl->getSizeRequest();
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -69,22 +66,6 @@ try {
     // Update host data
     $hostsUpdated += $db->updateHostRobots($host->hostId, $hostRobots, time());
 
-    // Apply host images limits
-    $totalHostImages = $db->getTotalHostImages($host->hostId);
-
-    if ($totalHostImages > $host->crawlImageLimit) {
-
-      foreach ((array) $db->getHostImagesByLimit($host->hostId, $totalHostImages - $host->crawlImageLimit) as $hostImage) {
-
-        // Delete foreign key relations
-        $db->deleteHostImageDescription($hostImage->hostImageId);
-        $db->deleteHostImageToHostPage($hostImage->hostImageId);
-
-        // Delete host image
-        $hostImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
-      }
-    }
-
     // Apply host pages limits
     $totalHostPages = $db->getTotalHostPages($host->hostId);
 
@@ -92,55 +73,31 @@ try {
 
       foreach ((array) $db->getHostPagesByLimit($host->hostId, $totalHostPages - $host->crawlPageLimit) as $hostPage) {
 
-        // Delete foreign key relations
-        $db->deleteHostPageToHostImage($hostPage->hostPageId);
-
         // Delete host page
         $db->deleteHostPageDescriptions($hostPage->hostPageId);
+        $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
-        $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+        if ($hostPage->uri != '/') {
+            $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+        }
       }
     }
 
     // Apply new robots.txt rules
     $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
-    foreach ($db->getHostImages($host->hostId) as $hostImage) {
-
-      if (!$robots->uriAllowed($hostImage->uri)) {
-
-        // Delete foreign key relations
-        $db->deleteHostImageDescription($hostImage->hostImageId);
-        $db->deleteHostImageToHostPage($hostImage->hostImageId);
-
-        // Delete host image
-        $hostImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
-      }
-    }
-
     foreach ($db->getHostPages($host->hostId) as $hostPage) {
 
       if (!$robots->uriAllowed($hostPage->uri)) {
 
-        // Delete foreign key relations
-        $db->deleteHostPageToHostImage($hostPage->hostPageId);
-
         // Delete host page
         $db->deleteHostPageDescriptions($hostPage->hostPageId);
+        $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
-        $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+        if ($hostPage->uri != '/') {
+            $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+        }
       }
-    }
-
-    // Clean up host images unrelated to host pages
-    foreach ($db->getUnrelatedHostImages() as $hostImage) {
-
-      // Delete foreign key relations
-      $db->deleteHostImageDescription($hostImage->hostImageId);
-      $db->deleteHostImageToHostPage($hostImage->hostImageId);
-
-      // Delete host image
-      $hostImagesDeleted += $db->deleteHostImage($hostImage->hostImageId);
     }
   }
 
@@ -207,12 +164,6 @@ try {
   // Delete page description history
   $hostPageDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
 
-  // Reset banned images
-  $hostImagesBansRemoved += $db->resetBannedHostImages(time() - CLEAN_IMAGE_BAN_SECONDS_OFFSET);
-
-  // Delete image description history
-  $hostImageDescriptionsDeleted += $db->deleteHostImageDescriptionsByTimeAdded(time() - CLEAN_IMAGE_DESCRIPTION_OFFSET);
-
   // Delete deprecated logs
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
   $logsCrawlerDeleted += $db->deleteLogCrawler(time() - CRAWL_LOG_SECONDS_OFFSET);
@@ -238,9 +189,6 @@ if (CLEAN_LOG_ENABLED) {
                       $hostPagesDeleted,
                       $hostPageDescriptionsDeleted,
                       $hostPagesBansRemoved,
-                      $hostImagesDeleted,
-                      $hostImageDescriptionsDeleted,
-                      $hostImagesBansRemoved,
                       $manifestsTotal,
                       $manifestsDeleted,
                       $logsCleanerDeleted,
@@ -256,15 +204,12 @@ if (CLEAN_LOG_ENABLED) {
 echo 'Hosts total: ' . $hostsTotal . PHP_EOL;
 echo 'Hosts updated: ' . $hostsUpdated . PHP_EOL;
 echo 'Hosts pages deleted: ' . $hostPagesDeleted . PHP_EOL;
-echo 'Hosts images deleted: ' . $hostImagesDeleted . PHP_EOL;
 
 echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
 echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
 
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
 echo 'Host page descriptions deleted: ' . $hostPageDescriptionsDeleted . PHP_EOL;
-echo 'Host images bans removed: ' . $hostImagesBansRemoved . PHP_EOL;
-echo 'Host image descriptions deleted: ' . $hostImageDescriptionsDeleted . PHP_EOL;
 
 echo 'Cleaner logs deleted: ' . $logsCleanerDeleted . PHP_EOL;
 echo 'Crawler logs deleted: ' . $logsCrawlerDeleted . PHP_EOL;

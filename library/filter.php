@@ -54,24 +54,6 @@ class Filter {
     return $keywords;
   }
 
-  static public function imageAlt(mixed $alt) {
-
-    $alt = (string) $alt;
-
-    $alt = trim($alt);
-
-    return $alt;
-  }
-
-  static public function imageTitle(mixed $title) {
-
-    $title = (string) $title;
-
-    $title = trim($title);
-
-    return $title;
-  }
-
   static public function pageData(mixed $data) {
 
     $data = (string) $data;

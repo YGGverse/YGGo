@@ -33,16 +33,12 @@ $httpDownloadSizeTotal = 0;
 $httpRequestsTimeTotal = 0;
 
 $hostPagesProcessed    = 0;
-$hostImagesProcessed   = 0;
 $manifestsProcessed    = 0;
 $hostPagesIndexed      = 0;
-$hostImagesIndexed     = 0;
 $manifestsAdded        = 0;
 $hostPagesAdded        = 0;
-$hostImagesAdded       = 0;
 $hostsAdded            = 0;
 $hostPagesBanned       = 0;
-$hostImagesBanned      = 0;
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
@@ -121,7 +117,7 @@ try {
 
     // Update curl stats
     $httpRequestsTotal++;
-    $httpRequestsSizeTotal  += $curl->getSizeRequest();
+    $httpRequestsSizeTotal += $curl->getSizeRequest();
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -167,26 +163,15 @@ try {
       // Validate formatted link
       if (filter_var($hostURL, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $hostURL)) {
 
-        // Host exists
-        if ($host = $db->getHost(crc32($hostURL))) {
-
-          $hostStatus        = $host->status;
-          $hostNsfw          = $host->nsfw;
-          $hostPageLimit     = $host->crawlPageLimit;
-          $hostImageLimit    = $host->crawlImageLimit;
-          $hostId            = $host->hostId;
-          $hostRobots        = $host->robots;
-          $hostRobotsPostfix = $host->robotsPostfix;
-
-        // Register new host
-        } else {
+        // Host not exists
+        if (!$db->getHost(crc32($hostURL))) {
 
           // Get robots.txt if exists
           $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
           // Update curl stats
           $httpRequestsTotal++;
-          $httpRequestsSizeTotal  += $curl->getSizeRequest();
+          $httpRequestsSizeTotal += $curl->getSizeRequest();
           $httpDownloadSizeTotal += $curl->getSizeDownload();
           $httpRequestsTimeTotal += $curl->getTotalTime();
 
@@ -198,158 +183,33 @@ try {
 
           $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
 
-          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
-          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
+          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
+          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
+          $hostMetaOnly  = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
           $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-          $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
 
-          $hostId        = $db->addHost($remoteManifestHosts->result->scheme,
-                                        $remoteManifestHosts->result->name,
-                                        $remoteManifestHosts->result->port,
-                                        crc32($hostURL),
-                                        time(),
-                                        null,
-                                        $hostPageLimit,
-                                        $hostImageLimit,
-                                        (string) CRAWL_HOST_DEFAULT_META_ONLY,
-                                        (string) $hostStatus,
-                                        (string) $hostNsfw,
-                                        $hostRobots,
-                                        $hostRobotsPostfix);
+          $hostId = $db->addHost( $remoteManifestHosts->result->scheme,
+                                  $remoteManifestHosts->result->name,
+                                  $remoteManifestHosts->result->port,
+                                  crc32($hostURL),
+                                  time(),
+                                  null,
+                                  $hostPageLimit,
+                                  (string) $hostMetaOnly,
+                                  (string) $hostStatus,
+                                  (string) $hostNsfw,
+                                  $hostRobots,
+                                  $hostRobotsPostfix);
 
-          if ($hostId) {
+          // Add web root host page to make host visible in the crawl queue
+          $db->addHostPage($hostId, crc32('/'), '/', time());
 
-            $hostsAdded++;
-
-          } else {
-
-            continue;
-          }
-        }
-
-        // Init robots parser
-        $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
-
-        // Save home page info
-        // Until page API not implemented, save at least home page to have ability to crawl
-        // @TODO
-        if ($hostStatus && // host enabled
-            $robots->uriAllowed('/') && // page allowed by robots.txt rules
-            $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
-            !$db->getHostPage($hostId, crc32('/'))) {  // page not exists
-
-            if ($db->addHostPage($hostId, crc32('/'), '/', time())) {
-
-              $hostPagesAdded++;
-            }
+          // Increase counters
+          $hostPagesAdded++;
+          $hostsAdded++;
         }
       }
     }
-  }
-
-  // Process images crawl queue
-  foreach ($db->getHostImageCrawlQueue(CRAWL_IMAGE_LIMIT, time() - CRAWL_IMAGE_SECONDS_OFFSET) as $queueHostImage) {
-
-    // Build URL from the DB
-    $queueHostImageURL = $queueHostImage->scheme . '://' . $queueHostImage->name . ($queueHostImage->port ? ':' . $queueHostImage->port : false) . $queueHostImage->uri;
-
-    // Init image request
-    $curl = new Curl($queueHostImageURL, CRAWL_CURLOPT_USERAGENT);
-
-    // Update curl stats
-    $httpRequestsTotal++;
-    $httpRequestsSizeTotal += $curl->getSizeRequest();
-    $httpDownloadSizeTotal += $curl->getSizeDownload();
-    $httpRequestsTimeTotal += $curl->getTotalTime();
-
-    // Update image index anyway, with the current time and http code
-    $hostImagesProcessed += $db->updateHostImageCrawlQueue($queueHostImage->hostImageId, time(), $curl->getCode());
-
-    // Skip image processing non 200 code
-    if (200 != $curl->getCode()) {
-
-      $db->updateHostImageHttpCode($queueHostImage->hostImageId, $curl->getCode(), time());
-
-      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-      continue;
-    }
-
-    // Skip image processing on MIME type not provided
-    if (!$hostImageContentType = $curl->getContentType()) {
-
-      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-      continue;
-    }
-
-    // Skip image processing on MIME type not allowed in settings
-    $hostImageBanned = true;
-    foreach ((array) explode(',', CRAWL_IMAGE_MIME) as $mime) {
-
-      if (false !== strpos($hostImageContentType, trim($mime))) {
-
-        $hostImageBanned = false;
-        break;
-      }
-    }
-
-    if ($hostImageBanned) {
-
-      $db->updateHostImageMime($queueHostImage->hostImageId, Filter::mime($hostImageContentType), time());
-
-      $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-      continue;
-    }
-
-    // Convert remote image data to base64 string
-    if (!$queueHostImage->crawlMetaOnly) {
-
-      // Skip image processing without returned content
-      if (!$hostImageContent = $curl->getContent()) {
-
-        $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-        continue;
-      }
-
-      if (!$hostImageExtension = @pathinfo($queueHostImageURL, PATHINFO_EXTENSION)) {
-
-        $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-        continue;
-      }
-
-      if (!$hostImageBase64 = @base64_encode($hostImageContent)) {
-
-        $hostImagesBanned += $db->updateHostImageTimeBanned($queueHostImage->hostImageId, time());
-
-        continue;
-      }
-
-      $hostImageData = 'data:image/' . str_replace(['svg'], ['svg+xml'], $hostImageExtension) . ';base64,' . $hostImageBase64;
-
-      // Set host image description
-      // On link collection we knew meta but data,
-      // this step use latest description slice and insert the data received by curl request
-      if ($lastHostImageDescription = $db->getLastHostImageDescription($queueHostImage->hostImageId)) {
-
-        $db->setHostImageDescription($queueHostImage->hostImageId,
-                                     crc32($lastHostImageDescription->alt .
-                                           $lastHostImageDescription->title .
-                                           $hostImageData),
-                                     $lastHostImageDescription->alt,
-                                     $lastHostImageDescription->title,
-                                     $hostImageData,
-                                     time(),
-                                     time());
-      }
-    }
-
-    $hostImagesIndexed += $db->updateHostImage($queueHostImage->hostImageId,
-                                               Filter::mime($hostImageContentType),
-                                               time());
   }
 
   // Process pages crawl queue
@@ -476,12 +336,11 @@ try {
                                              time());
 
     // Add queued page description if not exists
-    $db->setHostPageDescription($queueHostPage->hostPageId,
-                                crc32($content),
+    $db->addHostPageDescription($queueHostPage->hostPageId,
                                 Filter::pageTitle($title->item(0)->nodeValue),
                                 Filter::pageDescription($metaDescription),
                                 Filter::pageKeywords($metaKeywords),
-                                $queueHostPage->crawlMetaOnly ? null : Filter::string($content),
+                                $queueHostPage->crawlMetaOnly ? null : base64_encode($content),
                                 time());
 
     // Update manifest registry
@@ -499,155 +358,42 @@ try {
       }
     }
 
-    // Collect page images
-    if (CRAWL_HOST_DEFAULT_IMAGES_LIMIT > 0) {
+    // Init links registry
+    $links = [];
 
-      foreach (@$dom->getElementsByTagName('img') as $img) {
+    // Collect image links
+    foreach (@$dom->getElementsByTagName('img') as $img) {
 
-        // Skip images without src attribute
-        if (!$imageSrc = @$img->getAttribute('src')) {
+      // Skip images without src attribute
+      if (!$src = @$img->getAttribute('src')) {
 
-          continue;
-        }
-
-        // Skip images without alt attribute
-        if (!$imageAlt = @$img->getAttribute('alt')) {
-
-          continue;
-        }
-
-        if (!$imageTitle = @$img->getAttribute('title')) {
-            $imageTitle = null;
-        }
-
-        // Add domain to the relative src links
-        if (!parse_url($imageSrc, PHP_URL_HOST)) {
-
-          $imageSrc = $queueHostPage->scheme . '://' .
-                      $queueHostPage->name .
-                     ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
-                      '/' . trim(ltrim(str_replace(['./', '../'], '', $imageSrc), '/'), '.');
-        }
-
-        // Validate formatted src link
-        if (filter_var($imageSrc, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $imageSrc)) {
-
-          // Parse formatted src link
-          $hostImageURL = Parser::hostURL($imageSrc);
-          $hostImageURI = Parser::uri($imageSrc);
-
-          // Host exists
-          if ($host = $db->getHost(crc32($hostImageURL->string))) {
-
-            $hostStatus        = $host->status;
-            $hostNsfw          = $host->nsfw;
-            $hostPageLimit     = $host->crawlPageLimit;
-            $hostImageLimit    = $host->crawlImageLimit;
-            $hostId            = $host->hostId;
-            $hostRobots        = $host->robots;
-            $hostRobotsPostfix = $host->robotsPostfix;
-
-          // Register new host
-          } else {
-
-            // Get robots.txt if exists
-            $curl = new Curl($hostImageURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-            // Update curl stats
-            $httpRequestsTotal++;
-            $httpRequestsSizeTotal += $curl->getSizeRequest();
-            $httpDownloadSizeTotal += $curl->getSizeDownload();
-            $httpRequestsTimeTotal += $curl->getTotalTime();
-
-            if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-              $hostRobots = $curl->getContent();
-            } else {
-              $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
-            }
-
-            $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-
-            $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
-            $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
-            $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-            $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
-            $hostId        = $db->addHost($hostImageURL->scheme,
-                                          $hostImageURL->name,
-                                          $hostImageURL->port,
-                                          crc32($hostURL->string),
-                                          time(),
-                                          null,
-                                          $hostPageLimit,
-                                          $hostImageLimit,
-                                          (string) CRAWL_HOST_DEFAULT_META_ONLY,
-                                          (string) $hostStatus,
-                                          (string) $hostNsfw,
-                                          $hostRobots,
-                                          $hostRobotsPostfix);
-
-            if ($hostId) {
-
-              $hostsAdded++;
-
-            } else {
-
-              continue;
-            }
-          }
-
-          // Init robots parser
-          $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
-
-          // Save new image info
-          $hostImageId = $db->getHostImageId($hostId, crc32($hostImageURI->string));
-
-          if (!$hostImageId && // image not exists
-               $hostStatus && // host enabled
-               $robots->uriAllowed($hostImageURI->string) && // src allowed by robots.txt rules
-               $hostImageLimit > $db->getTotalHostImages($hostId)) { // images quantity not reached host limit
-
-            // Add host image
-            if ($hostImageId = $db->addHostImage($hostId,
-                                                 crc32($hostImageURI->string),
-                                                 $hostImageURI->string,
-                                                 time())) {
-
-              $hostImagesAdded++;
-
-            } else {
-
-              continue;
-            }
-          }
-
-          // Add/update host image description
-          $imageAlt   = Filter::imageAlt($imageAlt);
-          $imageTitle = Filter::imageTitle($imageTitle);
-
-          $db->setHostImageDescription($hostImageId,
-                                       crc32($imageAlt . $imageTitle),
-                                       $imageAlt,
-                                       $imageTitle,
-                                       null,
-                                       time(),
-                                       null);
-
-          // Relate host image with host page was found
-          $db->setHostImageToHostPage($hostImageId, $queueHostPage->hostPageId, time(), 1);
-
-          // Increase image rank when link does not match the current host
-          if ($hostImageURL->scheme . '://' .
-              $hostImageURL->name .
-              ($hostImageURL->port ? ':' . $hostImageURL->port : '')
-              !=
-              $queueHostPage->scheme . '://' .
-              $queueHostPage->name .
-              ($queueHostPage->port ? ':' . $queueHostPage->port : '')) {
-
-              $db->updateHostImageRank($hostId, crc32($hostImageURI->string), 1);
-          }
-        }
+        continue;
       }
+
+      // Skip images without alt attribute
+      if (!$alt = @$img->getAttribute('alt')) {
+
+        continue;
+      }
+
+      if (!$title = @$img->getAttribute('title')) {
+           $title = null;
+      }
+
+      // Skip encoded content
+      if (false !== strpos($src, 'data:')) {
+
+        continue;
+      }
+
+      // Add link to queue
+      $links[] = [
+        'title'       => null,
+        'description' => null,
+        'keywords'    => Filter::pageKeywords($alt . ($title ? ',' . $title : '')),
+        'data'        => null,
+        'ref'         => $src,
+      ];
     }
 
     // Collect internal links from page content
@@ -657,6 +403,11 @@ try {
       if (!$href = @$a->getAttribute('href')) {
 
         continue;
+      }
+
+      // Get title attribute if available
+      if (!$title = @$a->getAttribute('title')) {
+           $title = null;
       }
 
       // Skip anchor links
@@ -683,23 +434,34 @@ try {
         continue;
       }
 
-      // @TODO skip other apps
+      // Add link to queue
+      $links[] = [
+        'title'       => null,
+        'description' => null,
+        'keywords'    => Filter::pageKeywords($title),
+        'data'        => null,
+        'ref'         => $href,
+      ];
+    }
 
-      // Add absolute URL prefixes to the relative links found
-      if (!parse_url($href, PHP_URL_HOST)) {
+    // Process links collected
+    foreach ($links as $link) {
 
-        $href = $queueHostPage->scheme . '://' .
-                $queueHostPage->name .
-              ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
-              '/' . trim(ltrim(str_replace(['./', '../'], '', $href), '/'), '.');
+      //Make relative links absolute
+      if (!parse_url($link['ref'], PHP_URL_HOST)) {
+
+        $link['ref'] = $queueHostPage->scheme . '://' .
+                       $queueHostPage->name .
+                      ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
+                      '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
       }
 
       // Validate formatted link
-      if (filter_var($href, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $href)) {
+      if (filter_var($link['ref'], FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link['ref'])) {
 
         // Parse formatted link
-        $hostURL     = Parser::hostURL($href);
-        $hostPageURI = Parser::uri($href);
+        $hostURL     = Parser::hostURL($link['ref']);
+        $hostPageURI = Parser::uri($link['ref']);
 
         // Host exists
         if ($host = $db->getHost(crc32($hostURL->string))) {
@@ -707,7 +469,7 @@ try {
           $hostStatus        = $host->status;
           $hostNsfw          = $host->nsfw;
           $hostPageLimit     = $host->crawlPageLimit;
-          $hostImageLimit    = $host->crawlImageLimit;
+          $hostMetaOnly      = $host->crawlMetaOnly;
           $hostId            = $host->hostId;
           $hostRobots        = $host->robots;
           $hostRobotsPostfix = $host->robotsPostfix;
@@ -731,30 +493,33 @@ try {
           }
 
           $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+          $hostStatus        = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
+          $hostNsfw          = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
+          $hostMetaOnly      = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
+          $hostPageLimit     = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
 
-          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS;
-          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW;
-          $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-          $hostImageLimit= CRAWL_HOST_DEFAULT_IMAGES_LIMIT;
-          $hostId        = $db->addHost($hostURL->scheme,
-                                        $hostURL->name,
-                                        $hostURL->port,
-                                        crc32($hostURL->string),
-                                        time(),
-                                        null,
-                                        $hostPageLimit,
-                                        $hostImageLimit,
-                                        (string) CRAWL_HOST_DEFAULT_META_ONLY,
-                                        (string) $hostStatus,
-                                        (string) $hostNsfw,
-                                        $hostRobots,
-                                        $hostRobotsPostfix);
+          $hostId = $db->addHost( $hostURL->scheme,
+                                  $hostURL->name,
+                                  $hostURL->port,
+                                  crc32($hostURL->string),
+                                  time(),
+                                  null,
+                                  $hostPageLimit,
+                                  (string) $hostMetaOnly,
+                                  (string) $hostStatus,
+                                  (string) $hostNsfw,
+                                  $hostRobots,
+                                  $hostRobotsPostfix);
 
-          if ($hostId) {
+          // Add web root host page to make host visible in the crawl queue
+          $db->addHostPage($hostId, crc32('/'), '/', time());
 
-            $hostsAdded++;
+          // Increase counters
+          $hostPagesAdded++;
+          $hostsAdded++;
 
-          } else {
+          // When page is root, skip next operations
+          if ($hostPageURI->string == '/') {
 
             continue;
           }
@@ -766,25 +531,27 @@ try {
         // Save page info
         if ($hostStatus && // host enabled
             $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
-            $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
-            !$db->getHostPage($hostId, crc32($hostPageURI->string))) {  // page not exists
+            $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
 
-            if ($db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time())) {
+            if ($hostPage = $db->getHostPage($hostId, crc32($hostPageURI->string))) {
+
+              $hostPageId = $hostPage->hostPageId;
+
+            } else {
+
+              $hostPageId = $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
+
+              $db->addHostPageDescription($hostPageId,
+                                          $link['title'],
+                                          $link['description'],
+                                          $link['keywords'],
+                                          $hostMetaOnly ? null : ($link['data'] ? base64_encode($link['data']) : null),
+                                          time());
 
               $hostPagesAdded++;
             }
-        }
 
-        // Increase page rank when link does not match the current host
-        if ($hostURL->scheme . '://' .
-            $hostURL->name .
-            ($hostURL->port ? ':' . $hostURL->port : '')
-            !=
-            $queueHostPage->scheme . '://' .
-            $queueHostPage->name .
-            ($queueHostPage->port ? ':' . $queueHostPage->port : '')) {
-
-            $db->updateHostPageRank($hostId, crc32($hostPageURI->string), 1);
+            $db->addHostPageToHostPage($queueHostPage->hostPageId, $hostPageId);
         }
       }
     }
@@ -811,10 +578,6 @@ if (CRAWL_LOG_ENABLED) {
                      $hostPagesIndexed,
                      $hostPagesAdded,
                      $hostPagesBanned,
-                     $hostImagesIndexed,
-                     $hostImagesProcessed,
-                     $hostImagesAdded,
-                     $hostImagesBanned,
                      $manifestsProcessed,
                      $manifestsAdded,
                      $httpRequestsTotal,
@@ -831,11 +594,6 @@ echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
 echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;
-
-echo 'Images processed: ' . $hostImagesProcessed . PHP_EOL;
-echo 'Images indexed: ' . $hostImagesIndexed . PHP_EOL;
-echo 'Images added: ' . $hostImagesAdded . PHP_EOL;
-echo 'Images banned: ' . $hostImagesBanned . PHP_EOL;
 
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
 echo 'Manifests added: ' . $manifestsAdded . PHP_EOL;

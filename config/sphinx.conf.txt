@@ -12,36 +12,24 @@ source common
 source hostPage : common
 {
   sql_query   = \
-    SELECT hostPage.hostPageId, \
-           hostPage.rank, \
-           hostPage.uri, \
-           host.name, \
-          (SELECT CONCAT_WS(' ', hostPageDescription.metaTitle, \
-                                 hostPageDescription.metaDescription, \
-                                 hostPageDescription.metaKeywords) \
-           FROM hostPageDescription \
-           WHERE hostPageDescription.hostPageId = hostPage.hostPageId \
-           ORDER BY hostPageDescription.timeUpdated DESC, hostPageDescription.timeAdded DESC \
-           LIMIT 1) AS pageDescription \
-    FROM hostPage \
-    JOIN host ON (host.hostId = hostPage.hostId) \
-    WHERE host.status = '1' AND hostPage.httpCode = 200 AND hostPage.timeBanned IS NULL
+    SELECT `hostPage`.`hostPageId`, \
+           `hostPage`.`uri`, \
+           `host`.`name`, \
+           REGEXP_REPLACE(`hostPage`.`mime`, '^[A-z-]+/([A-z-]+).*', '$1') AS `mime`, \
+          (SELECT COUNT(*) FROM `hostPageToHostPage` \
+           WHERE `hostPageToHostPage`.`hostPageIdTarget`  = `hostPage`.`hostPageId` \
+           AND   `hostPageToHostPage`.`hostPageIdSource` <> `hostPage`.`hostPageId`) AS `rank`, \
+          (SELECT GROUP_CONCAT(CONCAT_WS(' ', `hostPageDescription`.`title`, \
+                                              `hostPageDescription`.`description`, \
+                                              `hostPageDescription`.`keywords`)) \
+           FROM  `hostPageDescription` \
+           WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `pageDescription` \
+    FROM  `hostPage` \
+    JOIN  `host` ON (`host`.`hostId` = `hostPage`.`hostId`) \
+    WHERE `host`.`status` = '1' AND `hostPage`.`httpCode` = 200 AND `hostPage`.`timeBanned` IS NULL
 
-  sql_attr_uint = rank
-}
-
-source hostImage : common
-{
-  sql_query   = \
-    SELECT hostImage.hostImageId, hostImage.rank, hostImage.uri, host.name, \
-           (SELECT GROUP_CONCAT(CONCAT_WS(' ', hostImageDescription.alt, hostImageDescription.title)) \
-              FROM hostImageDescription \
-              WHERE hostImageDescription.hostImageId = hostImage.hostImageId) AS imageDescription \
-    FROM hostImage \
-    JOIN host ON (host.hostId = hostImage.hostId) \
-    WHERE host.status = '1' AND hostImage.httpCode = 200 AND hostImage.timeBanned IS NULL \
-
-  sql_attr_uint = rank
+  sql_attr_uint   = rank
+  sql_attr_string = mime
 }
 
 index hostPage
@@ -49,11 +37,4 @@ index hostPage
   source     = hostPage
   morphology = stem_enru, stem_cz, stem_ar
   path       = /var/lib/sphinxsearch/data/hostPage
-}
-
-index hostImage
-{
-  source     = hostImage
-  morphology = stem_enru, stem_cz, stem_ar
-  path       = /var/lib/sphinxsearch/data/hostImage
 }

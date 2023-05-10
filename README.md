@@ -62,7 +62,7 @@ Could be enabled or disabled by `API_SEARCH_ENABLED` option
 ```
 GET action=search  - required
 GET query={string} - optional, search request, empty if not provided
-GET type={string}  - optional, search type, image|default or empty
+GET type={string}  - optional, filter mime type of available or empty
 GET page={int}     - optional, search results page, 1 if not provided
 GET mode=SphinxQL  - optional, enable extended SphinxQL syntax
 ```
@@ -141,7 +141,7 @@ GET m=SphinxQL
 ##### Basic features
 
 * [x] Web pages full text ranking search
-* [x] Images search with safe proxy preview support
+* [x] MIME filtering search with safe proxy images preview
 * [x] Extended syntax support
 * [x] Flexible settings compatible with IPv4/IPv6 networks
 
@@ -159,18 +159,14 @@ GET m=SphinxQL
 * [ ] Index API
   + [x] Manifest
   + [x] Search
-    + [x] Pages
-    + [x] Images
   + [x] Hosts
-  + [ ] Pages
-  + [ ] Images
+  + [ ] MIME list
 * [ ] Context advertising API
 
 ##### Crawler
 
 * [x] Auto crawl links by regular expression rules
   + [x] Pages
-  + [x] Images
   + [x] Manifests
 * [x] Robots.txt / robots meta tags support (#2)
 * [x] Specific rules configuration for every host
@@ -181,8 +177,6 @@ GET m=SphinxQL
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
 * [x] History snaps
-  + [x] Pages
-  + [x] Images
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
@@ -191,17 +185,12 @@ GET m=SphinxQL
 ##### Cleaner
 * [x] Deprecated DB items auto deletion / host settings update
   + [x] Pages
-  + [x] Images
   + [x] Manifests
   + [x] Logs
     + [x] Crawler
     + [x] Cleaner
 * [x] Deprecated history snaps removing
-  + [x] Pages
-  + [x] Images
 * [x] Banned resources reset by timeout
-  + [x] Pages
-  + [x] Images
 * [x] Debug log
 
 ##### Other

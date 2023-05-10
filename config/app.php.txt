@@ -47,25 +47,13 @@ error_reporting(E_ALL);
  * Project domain, without slash on postfix
  *
  */
-define('WEBSITE_DOMAIN', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http') . '://' . (!empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ''));
+define('WEBSITE_DOMAIN', '');
 
 /*
  * Page search results before show the read more link
  *
  */
 define('WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT', 100);
-
-/*
- * Image search results before show the read more link
- *
- */
-define('WEBSITE_PAGINATION_SEARCH_IMAGE_RESULTS_LIMIT', 10);
-
-/*
- * Quantity of related pages for each image in the search results
- *
- */
-define('WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT', 5);
 
 /*
  * Save ident icons to the static webp cache (placed in storage/cache) to prevent CPU overload
@@ -76,7 +64,7 @@ define('WEBSITE_SEARCH_IMAGE_RELATED_PAGE_RESULTS_LIMIT', 5);
 define('WEBSITE_IDENTICON_IMAGE_CACHE', true);
 
 // Database
-define('DB_HOST', 'localhost');
+define('DB_HOST', '127.0.0.1');
 define('DB_PORT', 3306);
 define('DB_NAME', '');
 define('DB_USERNAME', '');
@@ -145,20 +133,6 @@ define('CRAWL_STOP_DISK_QUOTA_MB_LEFT', 500);
 define('CRAWL_PAGE_LIMIT', 20);
 
 /*
- * Images (URI) processing limit in the crawler.php queue
- *
- * This option related to CRAWL_IMAGE_SECONDS_OFFSET value
- * and the crontab task frequency (https://github.com/YGGverse/YGGo#crontab)
- *
- * Usually up to 20 pages per minute,
- * to prevent websites overload by sending GET crawling requests
- *
- * Set 0 to disable
- *
- */
-define('CRAWL_IMAGE_LIMIT', 10);
-
-/*
  * Manifest (URI) processing limit in the crawler.php queue
  *
  * Used to collect distributed data index
@@ -194,28 +168,7 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
  * comma separated
  *
  */
-define('CRAWL_PAGE_MIME', 'text/html');
-
-/*
- * Index images match MIME types
- *
- * comma separated
- *
- */
-define('CRAWL_IMAGE_MIME', 'image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml');
-
-/*
- * Renew image index by timing offset provided
- *
- * This option works with CRAWL_IMAGE_LIMIT step queue
- *
- * Pay attention, that CRAWL_IMAGE_LIMIT + CRAWL_IMAGE_SECONDS_OFFSET pair
- * must have enough value to crawl all images collected in the DB index
- *
- * or the crawler can stuck in queue
- *
- */
-define('CRAWL_IMAGE_SECONDS_OFFSET', 60*60*24*30*12);
+define('CRAWL_PAGE_MIME', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml');
 
 /*
  * Renew manifests index by timing offset provided
@@ -234,7 +187,7 @@ define('CRAWL_MANIFEST_SECONDS_OFFSET', 60*60*24*30);
  * Only URL addresses match this rule will be auto-crawled
  *
  */
-define('CRAWL_URL_REGEXP', '/^.*$/ui'); // ipv6 only '/^http:\/\/\[[\w:]+\].*$/ui'
+define('CRAWL_URL_REGEXP', '/^http:\/\/\[[\w:]+\].*$/ui');
 
 /*
  * Pages limit per new host by default
@@ -244,7 +197,7 @@ define('CRAWL_URL_REGEXP', '/^.*$/ui'); // ipv6 only '/^http:\/\/\[[\w:]+\].*$/u
  * Custom rule for specified host could be provided in the DB `host`.`crawlPageLimit` field
  *
  */
-define('CRAWL_HOST_DEFAULT_PAGES_LIMIT', 1000);
+define('CRAWL_HOST_DEFAULT_PAGES_LIMIT', 100000);
 
 /*
  * Set default auto-crawl status for new host added
@@ -264,7 +217,6 @@ define('CRAWL_HOST_DEFAULT_STATUS', true);
  * Custom rule for specified host could be provided in the DB `host`.`crawlMetaOnly` field
  *
  * This option able to change search results relevance
- * This option enables image data caching in base64
  *
  */
 define('CRAWL_HOST_DEFAULT_META_ONLY', false);
@@ -273,16 +225,6 @@ define('CRAWL_HOST_DEFAULT_META_ONLY', false);
  * Not suitable/safe for work status for new host by default
  *
  * Could be filtered in search results
- *
- * Custom rule for specified host could be provided in the DB `host`.`nsfw` field
- *
- */
-define('CRAWL_HOST_DEFAULT_NSFW', false);
-
-/*
- * Not suitable/safe for work status for new host by default
- *
- * Could be filtered in crawl conditions or search results
  *
  * Custom rule for specified host could be provided in the DB `host`.`nsfw` field
  *
@@ -324,7 +266,7 @@ define('CRAWL_MANIFEST', true);
  * Manifest API version compatibility
  *
  */
-define('CRAWL_MANIFEST_API_VERSION', 0.7);
+define('CRAWL_MANIFEST_API_VERSION', 0.8);
 
 /*
  * Set default auto-crawl status for new manifest added
@@ -389,20 +331,6 @@ define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
  */
 define('CLEAN_PAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
 
-/*
- * Remove image ban after following time
- *
- * This option used in crawler and search page
- * to prevent extra http requests to unavailable or not condition resources
- *
- */
-define('CLEAN_IMAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
-
-/*
- * Remove image description history after following time
- *
- */
-define('CLEAN_IMAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
 
 // API settings
 
@@ -445,14 +373,12 @@ define('API_HOSTS_FIELDS',
         `host`.`name`,
         `host`.`port`,
         `host`.`crawlPageLimit`,
-        `host`.`crawlImageLimit`,
         `host`.`robots`,
         `host`.`robotsPostfix`,
         `host`.`nsfw`,
         `host`.`timeAdded`,
         `host`.`timeUpdated`,
-        (SELECT COUNT(*) FROM `hostPage` WHERE `hostPage`.`hostId` = `host`.`hostId`) AS `hostPagesTotal`,
-        (SELECT COUNT(*) FROM `hostImage` WHERE `hostImage`.`hostId` = `host`.`hostId`) AS `hostImagesTotal`'); // string: *|field names comma separated
+        (SELECT COUNT(*) FROM `hostPage` WHERE `hostPage`.`hostId` = `host`.`hostId`) AS `hostPagesTotal`');
 
 /*
  * Manifest API
