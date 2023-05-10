@@ -141,7 +141,8 @@ GET m=SphinxQL
 ##### Basic features
 
 * [x] Web pages full text ranking search
-* [x] MIME filtering search with safe proxy images preview
+* [x] Unlimited content type groups
+* [x] Safe proxy images preview
 * [x] Extended syntax support
 * [x] Flexible settings compatible with IPv4/IPv6 networks
 
@@ -173,7 +174,7 @@ GET m=SphinxQL
 * [x] Auto stop crawling on disk quota reached
 * [x] Transactions support to prevent data loss on queue failures
 * [x] Distributed index crawling between YGGo nodes trough manifest API
-* [x] MIME Content-type crawler settings
+* [x] MIME Content-type settings
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
 * [x] History snaps
