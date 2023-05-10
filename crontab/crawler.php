@@ -250,11 +250,23 @@ try {
       continue;
     }
 
-    // Skip page processing on MIME type not allowed in settings
+    // Validate MIME
+    $hostPageIsDom  = false;
     $hostPageBanned = true;
     foreach ((array) explode(',', CRAWL_PAGE_MIME) as $mime) {
 
-      if (false !== strpos($contentType, trim($mime))) {
+      $mime = trim(strtolower($mime));
+
+      // Check for DOM
+      if (false !== strpos('text/html', $mime)) {
+
+        $hostPageIsDom  = true;
+        $hostPageBanned = false;
+        break;
+      }
+
+      // Ban page on MIME type not allowed in settings
+      if (false !== strpos(strtolower($contentType), $mime)) {
 
         $hostPageBanned = false;
         break;
@@ -276,58 +288,69 @@ try {
       continue;
     }
 
-    // Grab page content
-    $dom = new DomDocument();
+    // Define variables
+    $title        = null;
+    $description  = null;
+    $keywords     = null;
+    $robots       = null;
+    $yggoManifest = null;
 
-    @$dom->loadHTML($content);
+    // Is DOM
+    if ($hostPageIsDom) {
 
-    // Skip index page links without titles
-    $title = @$dom->getElementsByTagName('title');
+      // Parse content
+      $dom = new DomDocument();
 
-    if ($title->length == 0) {
+      @$dom->loadHTML($content);
 
-      $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+      // Skip index page links without titles
+      $title = @$dom->getElementsByTagName('title');
 
-      continue;
-    }
+      if ($title->length == 0) {
 
-    // Get optional page meta data
-    $metaDescription  = '';
-    $metaKeywords     = '';
-    $metaRobots       = '';
-    $metaYggoManifest = '';
+        $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
-    foreach (@$dom->getElementsByTagName('meta') as $meta) {
+        continue;
 
-      if (@$meta->getAttribute('name') == 'description') {
-        $metaDescription = @$meta->getAttribute('content');
+      } else {
+
+        $title = $title->item(0)->nodeValue;
       }
 
-      if (@$meta->getAttribute('name') == 'keywords') {
-        $metaKeywords = @$meta->getAttribute('content');
+      // Get optional page meta data
+      foreach (@$dom->getElementsByTagName('meta') as $meta) {
+
+        if (@$meta->getAttribute('name') == 'description') {
+          $description = @$meta->getAttribute('content');
+        }
+
+        if (@$meta->getAttribute('name') == 'keywords') {
+          $keywords = @$meta->getAttribute('content');
+        }
+
+        if (@$meta->getAttribute('name') == 'robots') {
+
+          $robots = @$meta->getAttribute('content');
+
+          // Append page with meta robots:noindex value to the robotsPostfix disallow list
+          if (false !== stripos($robots, 'noindex')) {
+
+            $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+            continue;
+          }
+
+          // Skip page links following by robots:nofollow attribute detected
+          if (false !== stripos($robots, 'nofollow')) {
+
+            continue;
+          }
+        }
+
+        if (@$meta->getAttribute('name') == 'yggo:manifest') {
+          $yggoManifest = Filter::url(@$meta->getAttribute('content'));
+        }
       }
-
-      if (@$meta->getAttribute('name') == 'robots') {
-        $metaRobots = @$meta->getAttribute('content');
-      }
-
-      if (@$meta->getAttribute('name') == 'yggo:manifest') {
-        $metaYggoManifest = Filter::url(@$meta->getAttribute('content'));
-      }
-    }
-
-    // Append page with meta robots:noindex value to the robotsPostfix disallow list
-    if (false !== stripos($metaRobots, 'noindex')) {
-
-      $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
-
-      continue;
-    }
-
-    // Skip page links following by robots:nofollow attribute detected
-    if (false !== stripos($metaRobots, 'nofollow')) {
-
-      continue;
     }
 
     // Update queued page
@@ -337,20 +360,20 @@ try {
 
     // Add queued page description if not exists
     $db->addHostPageDescription($queueHostPage->hostPageId,
-                                Filter::pageTitle($title->item(0)->nodeValue),
-                                Filter::pageDescription($metaDescription),
-                                Filter::pageKeywords($metaKeywords),
-                                $queueHostPage->crawlMetaOnly ? null : base64_encode($content),
+                                $title       ? Filter::pageTitle($title) : null,
+                                $description ? Filter::pageDescription($description) : null,
+                                $keywords    ? Filter::pageKeywords($keywords) : null,
+                                $content     ? ($queueHostPage->crawlMetaOnly ? null : base64_encode($content)) : null,
                                 time());
 
     // Update manifest registry
-    if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
+    if (CRAWL_MANIFEST && !empty($yggoManifest) && filter_var($yggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $yggoManifest)) {
 
-      $metaYggoManifestCRC32 = crc32($metaYggoManifest);
+      $yggoManifestCRC32 = crc32($yggoManifest);
 
-      if (!$db->getManifest($metaYggoManifestCRC32)) {
-           $db->addManifest($metaYggoManifestCRC32,
-                            $metaYggoManifest,
+      if (!$db->getManifest($yggoManifestCRC32)) {
+           $db->addManifest($yggoManifestCRC32,
+                            $yggoManifest,
                             (string) CRAWL_MANIFEST_DEFAULT_STATUS,
                             time());
 

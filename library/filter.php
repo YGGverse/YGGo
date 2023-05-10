@@ -18,7 +18,7 @@ class Filter {
 
     $mime = (string) $mime;
 
-    return trim($mime);
+    return trim(strtolower($mime));
   }
 
   static public function pageTitle(mixed $title) {
