@@ -193,14 +193,6 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
         color: #fff;
       }
 
-      h3 {
-        display: block;
-        font-size: 16px;
-        font-weight: normal;
-        margin: 12px 0;
-        color: #fff;
-      }
-
       form {
         display: block;
         max-width: 678px;
