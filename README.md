@@ -162,6 +162,7 @@ GET m=SphinxQL
   + [x] Search
   + [x] Hosts
   + [ ] MIME list
+* [ ] Remote content DB API
 * [ ] Context advertising API
 
 ##### Crawler
