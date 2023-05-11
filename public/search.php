@@ -328,9 +328,14 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
             <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
             <div>
               <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
-                <h2><?php echo $hostPageDescription->title ?></h2>
+                <?php if (!empty($hostPageDescription->title)) { ?>
+                  <h2><?php echo $hostPageDescription->title ?></h2>
+                <?php } ?>
                 <?php if (!empty($hostPageDescription->description)) { ?>
                   <span><?php echo $hostPageDescription->description ?></span>
+                <?php } ?>
+                <?php if (!empty($hostPageDescription->keywords)) { ?>
+                  <span><?php echo $hostPageDescription->keywords ?></span>
                 <?php } ?>
               <?php } ?>
               <a href="<?php echo $hostPageURL ?>">
