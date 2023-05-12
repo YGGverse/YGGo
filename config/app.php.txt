@@ -168,7 +168,7 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
  * comma separated
  *
  */
-define('CRAWL_PAGE_MIME', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml');
+define('CRAWL_PAGE_MIME', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml,video/mp4,video/ogg,/video/webm,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/aac,audio/aacp,audio/webm,audio/x-caf,audio/flac');
 
 /*
  * Renew manifests index by timing offset provided

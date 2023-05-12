@@ -417,6 +417,99 @@ try {
         'description' => null,
         'keywords'    => Filter::pageKeywords($alt . ($title ? ',' . $title : '')),
         'data'        => null,
+        'mime'        => null,
+        'ref'         => $src,
+      ];
+    }
+
+    // Collect media links
+    foreach (@$dom->getElementsByTagName('source') as $source) {
+
+      // Skip images without src attribute
+      if (!$src = @$source->getAttribute('src')) {
+
+        continue;
+      }
+
+      // Skip media without type attribute
+      if (!$type = @$source->getAttribute('type')) {
+
+        continue;
+      }
+
+      // Skip encoded content
+      if (false !== strpos($src, 'data:')) {
+
+        continue;
+      }
+
+      // Add link to queue
+      $links[] = [
+        'title'       => null,
+        'description' => null,
+        'keywords'    => null,
+        'data'        => null,
+        'mime'        => Filter::mime($type),
+        'ref'         => $src,
+      ];
+    }
+
+    foreach (@$dom->getElementsByTagName('video') as $video) {
+
+      // Skip images without src attribute
+      if (!$src = @$video->getAttribute('src')) {
+
+        continue;
+      }
+
+      // Skip media without type attribute
+      if (!$type = @$video->getAttribute('type')) {
+           $type = 'video/*';
+      }
+
+      // Skip encoded content
+      if (false !== strpos($src, 'data:')) {
+
+        continue;
+      }
+
+      // Add link to queue
+      $links[] = [
+        'title'       => null,
+        'description' => null,
+        'keywords'    => null,
+        'data'        => null,
+        'mime'        => Filter::mime($type),
+        'ref'         => $src,
+      ];
+    }
+
+    foreach (@$dom->getElementsByTagName('audio') as $audio) {
+
+      // Skip images without src attribute
+      if (!$src = @$audio->getAttribute('src')) {
+
+        continue;
+      }
+
+      // Skip media without type attribute
+      if (!$type = @$audio->getAttribute('type')) {
+           $type = 'audio/*';
+      }
+
+      // Skip encoded content
+      if (false !== strpos($src, 'data:')) {
+
+        continue;
+      }
+
+      // Add link to queue
+      $links[] = [
+        'title'       => null,
+        'description' => null,
+        'keywords'    => null,
+        'data'        => null,
+        'mime'        => Filter::mime($type),
         'ref'         => $src,
       ];
     }
@@ -465,6 +558,7 @@ try {
         'description' => null,
         'keywords'    => Filter::pageKeywords($title),
         'data'        => null,
+        'mime'        => null,
         'ref'         => $href,
       ];
     }
@@ -571,7 +665,11 @@ try {
                                           $link['description'],
                                           $link['keywords'],
                                           $hostMetaOnly ? null : ($link['data'] ? base64_encode($link['data']) : null),
-                                          time());
+                                          time(),
+                                          null,
+                                          null,
+                                          null,
+                                          $link['mime']);
 
               $hostPagesAdded++;
             }
