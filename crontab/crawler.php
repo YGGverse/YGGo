@@ -260,7 +260,7 @@ try {
       $mime = Filter::mime($mime);
 
       // Check for DOM
-      if (false !== strpos('text/html', $mime)) {
+      if (false !== stripos('text/html', $mime)) {
 
         $hostPageIsDom  = true;
         $hostPageInMime = true;
@@ -268,7 +268,7 @@ try {
       }
 
       // Ban page on MIME type not allowed in settings
-      if (false !== strpos(Filter::mime($contentType), $mime)) {
+      if (false !== stripos(Filter::mime($contentType), $mime)) {
 
         $hostPageInMime = true;
         break;
@@ -406,7 +406,7 @@ try {
       }
 
       // Skip encoded content
-      if (false !== strpos($src, 'data:')) {
+      if (false !== stripos($src, 'data:')) {
 
         continue;
       }
@@ -438,7 +438,7 @@ try {
       }
 
       // Skip encoded content
-      if (false !== strpos($src, 'data:')) {
+      if (false !== stripos($src, 'data:')) {
 
         continue;
       }
@@ -468,7 +468,7 @@ try {
       }
 
       // Skip encoded content
-      if (false !== strpos($src, 'data:')) {
+      if (false !== stripos($src, 'data:')) {
 
         continue;
       }
@@ -498,7 +498,7 @@ try {
       }
 
       // Skip encoded content
-      if (false !== strpos($src, 'data:')) {
+      if (false !== stripos($src, 'data:')) {
 
         continue;
       }
@@ -529,25 +529,25 @@ try {
       }
 
       // Skip anchor links
-      if (false !== strpos($href, '#')) {
+      if (false !== stripos($href, '#')) {
 
         continue;
       }
 
       // Skip javascript links
-      if (false !== strpos($href, 'javascript:')) {
+      if (false !== stripos($href, 'javascript:')) {
 
         continue;
       }
 
       // Skip mailto links
-      if (false !== strpos($href, 'mailto:')) {
+      if (false !== stripos($href, 'mailto:')) {
 
         continue;
       }
 
       // Skip x-raw-image links
-      if (false !== strpos($href, 'x-raw-image:')) {
+      if (false !== stripos($href, 'x-raw-image:')) {
 
         continue;
       }
