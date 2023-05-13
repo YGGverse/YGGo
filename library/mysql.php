@@ -323,7 +323,7 @@ class MySQL {
 
   public function addHostPageToHostPage(int $hostPageIdSource, int $hostPageIdTarget) {
 
-    $query = $this->_db->prepare('INSERT INTO `hostPageToHostPage` (`hostPageIdSource`, `hostPageIdTarget`, `quantity`) VALUES (?, ?, 0)
+    $query = $this->_db->prepare('INSERT INTO `hostPageToHostPage` (`hostPageIdSource`, `hostPageIdTarget`, `quantity`) VALUES (?, ?, 1)
 
                                           ON DUPLICATE KEY UPDATE `quantity` = `quantity` + 1');
 
@@ -338,6 +338,24 @@ class MySQL {
     $query->execute([$hostPageId, $hostPageId]);
 
     return $query->rowCount();
+  }
+
+  public function getTotalHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget) {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ?');
+
+    $query->execute([$hostPageIdTarget]);
+
+    return $query->fetch()->total;
+  }
+
+  public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit = 5) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ? ORDER BY `quantity` DESC LIMIT ' . (int) $limit);
+
+    $query->execute([$hostPageIdTarget]);
+
+    return $query->fetchAll();
   }
 
   // Cleaner tools

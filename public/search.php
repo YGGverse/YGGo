@@ -292,6 +292,11 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       p {
         margin: 16px 0;
         text-align: right;
+        font-size: 11px;
+      }
+
+      p > a {
+        font-size: 11px;
       }
 
     </style>
@@ -317,7 +322,6 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
         </div>
         <?php foreach ($results as $result) { ?>
           <?php if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
-            <?php $hostPageURL = $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>
             <div>
               <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
                 <?php if (!empty($hostPageDescription->title)) { ?>
@@ -330,10 +334,30 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                   <span><?php echo $hostPageDescription->keywords ?></span>
                 <?php } ?>
               <?php } ?>
-              <a href="<?php echo $hostPageURL ?>">
+              <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
                 <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
-                <?php echo htmlentities(urldecode($hostPageURL)) ?>
+                <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 48 ? '...' . mb_substr(urldecode($hostPage->uri), -48) : urldecode($hostPage->uri))) ?>
               </a>
+              <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPageIdSourcesByHostPageIdTarget($result->id)) { ?>
+                <p><?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
+                                                                       sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                       sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                      ]) ?></p>
+                <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($result->id) as $hostPageIdSource) { ?>
+                  <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
+                    <p>
+                      <?php echo Filter::plural($hostPageIdSource->quantity, [sprintf(_('%s ref'),  $hostPageIdSource->quantity),
+                                                                              sprintf(_('%s refs'), $hostPageIdSource->quantity),
+                                                                              sprintf(_('%s refs'), $hostPageIdSource->quantity),
+                                                                              ]) ?>
+                      <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
+                        <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
+                        <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 48 ? '...' . mb_substr(urldecode($hostPage->uri), -48) : urldecode($hostPage->uri))) ?>
+                      </a>
+                    </p>
+                  <?php } ?>
+                <?php } ?>
+              <?php } ?>
             </div>
           <?php } ?>
         <?php } ?>
