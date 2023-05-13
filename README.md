@@ -27,6 +27,7 @@ php-pdo
 php-curl
 php-gd
 php-mbstring
+php-zip
 php-mysql
 sphinxsearch
 ```
@@ -37,7 +38,7 @@ sphinxsearch
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples are placed at `/config` folder
-* Make sure `/storage` folder is writable
+* Make sure `/storage`, `/public/storage` folders writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API
@@ -147,7 +148,9 @@ GET m=SphinxQL
 * [x] Index explorer
 * [x] Safe images preview
 * [x] Extended search syntax support
-* [ ] Page history snaps
+* [ ] Page content snaps history
+  + [x] Local
+  + [ ] Remote
 
 ##### UI
 
@@ -180,7 +183,9 @@ GET m=SphinxQL
 * [x] MIME Content-type settings
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
-* [x] History snaps
+* [ ] Page content snaps generation
+  + [x] Local
+  + [ ] Remote
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter

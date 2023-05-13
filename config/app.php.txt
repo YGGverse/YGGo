@@ -168,7 +168,15 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
  * comma separated
  *
  */
-define('CRAWL_PAGE_MIME', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml,video/mp4,video/ogg,/video/webm,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/aac,audio/aacp,audio/webm,audio/x-caf,audio/flac');
+define('CRAWL_PAGE_MIME_INDEX', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml,video/mp4,video/ogg,/video/webm,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/aac,audio/aacp,audio/webm,audio/x-caf,audio/flac');
+
+/*
+ * Snap pages locally match MIME types
+ *
+ * comma separated | false to disable
+ *
+ */
+define('CRAWL_PAGE_MIME_SNAP_LOCAL', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml');
 
 /*
  * Renew manifests index by timing offset provided
@@ -266,7 +274,7 @@ define('CRAWL_MANIFEST', true);
  * Manifest API version compatibility
  *
  */
-define('CRAWL_MANIFEST_API_VERSION', 0.8);
+define('CRAWL_MANIFEST_API_VERSION', 0.9);
 
 /*
  * Set default auto-crawl status for new manifest added

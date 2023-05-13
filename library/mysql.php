@@ -360,6 +360,63 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function addHostPageSnapURL(int $hostPageId,
+                                     int $crc32data,
+                                     int $crc32host,
+                                     string $url,
+                                     int $timeAdded) {
+
+    $query = $this->_db->prepare('INSERT IGNORE INTO `hostPageSnapURL` (`hostPageId`,
+                                                                        `crc32data`,
+                                                                        `crc32host`,
+                                                                        `url`,
+                                                                        `timeAdded`) VALUES (?, ?, ?, ?, ?)');
+
+    $query->execute([$hostPageId,
+                     $crc32data,
+                     $crc32host,
+                     $url,
+                     $timeAdded]);
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostPageSnapURL(int $hostPageId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPageSnapURL` WHERE `hostPageId` = ?');
+
+    $query->execute([$hostPageId]);
+
+    return $query->rowCount();
+  }
+
+  public function getTotalHostPageSnapURLs(int $hostPageId) {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnapURL` WHERE `hostPageId` = ?');
+
+    $query->execute([$hostPageId]);
+
+    return $query->fetch()->total;
+  }
+
+  public function getHostPageSnapURLs(int $hostPageId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapURL` WHERE `hostPageId` = ? ORDER BY `timeAdded` DESC');
+
+    $query->execute([$hostPageId]);
+
+    return $query->fetchAll();
+  }
+
+  public function getHostPageSnapURL(int $hostPageId, int $crc32data, int $crc32host) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapURL` WHERE `hostPageId` = ? AND `hostPageId` = ? AND `crc32host` = ? LIMIT 1');
+
+    $query->execute([$hostPageId, $crc32data, $crc32host]);
+
+    return $query->fetch();
+  }
+
   // Cleaner tools
   public function getCleanerQueue(int $limit, int $timeFrom) {
 
@@ -398,7 +455,9 @@ class MySQL {
                                 int $hostsTotal,
                                 int $hostsUpdated,
                                 int $hostPagesDeleted,
-                                int $hostPageDescriptionsDeleted,
+                                int $hostPagesDescriptionsDeleted,
+                                int $hostPagesSnapUrlDeleted,
+                                int $hostPagesToHostPageDeleted,
                                 int $hostPagesBansRemoved,
                                 int $manifestsTotal,
                                 int $manifestsDeleted,
@@ -414,7 +473,9 @@ class MySQL {
                                                             `hostsTotal`,
                                                             `hostsUpdated`,
                                                             `hostPagesDeleted`,
-                                                            `hostPageDescriptionsDeleted`,
+                                                            `hostPagesDescriptionsDeleted`,
+                                                            `hostPagesSnapUrlDeleted`,
+                                                            `hostPagesToHostPageDeleted`,
                                                             `hostPagesBansRemoved`,
                                                             `manifestsTotal`,
                                                             `manifestsDeleted`,
@@ -424,14 +485,16 @@ class MySQL {
                                                             `httpRequestsSizeTotal`,
                                                             `httpDownloadSizeTotal`,
                                                             `httpRequestsTimeTotal`,
-                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
     $query->execute([
       $timeAdded,
       $hostsTotal,
       $hostsUpdated,
       $hostPagesDeleted,
-      $hostPageDescriptionsDeleted,
+      $hostPagesDescriptionsDeleted,
+      $hostPagesSnapUrlDeleted,
+      $hostPagesToHostPageDeleted,
       $hostPagesBansRemoved,
       $manifestsTotal,
       $manifestsDeleted,
@@ -523,6 +586,7 @@ class MySQL {
                                 int $hostPagesProcessed,
                                 int $hostPagesIndexed,
                                 int $hostPagesAdded,
+                                int $hostPagesSnapUrlAdded,
                                 int $hostPagesBanned,
                                 int $manifestsProcessed,
                                 int $manifestsAdded,
@@ -537,6 +601,7 @@ class MySQL {
                                                             `hostPagesProcessed`,
                                                             `hostPagesIndexed`,
                                                             `hostPagesAdded`,
+                                                            `hostPagesSnapUrlAdded`,
                                                             `hostPagesBanned`,
                                                             `manifestsProcessed`,
                                                             `manifestsAdded`,
@@ -544,7 +609,7 @@ class MySQL {
                                                             `httpRequestsSizeTotal`,
                                                             `httpDownloadSizeTotal`,
                                                             `httpRequestsTimeTotal`,
-                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
     $query->execute([
       $timeAdded,
@@ -552,6 +617,7 @@ class MySQL {
       $hostPagesProcessed,
       $hostPagesIndexed,
       $hostPagesAdded,
+      $hostPagesSnapUrlAdded,
       $hostPagesBanned,
       $manifestsProcessed,
       $manifestsAdded,

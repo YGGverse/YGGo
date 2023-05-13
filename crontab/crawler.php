@@ -39,6 +39,7 @@ $manifestsAdded        = 0;
 $hostPagesAdded        = 0;
 $hostsAdded            = 0;
 $hostPagesBanned       = 0;
+$hostPagesSnapUrlAdded = 0;
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
@@ -251,11 +252,11 @@ try {
       continue;
     }
 
-    // Parse MIME
+    // Parse index MIME
     $hostPageIsDom  = false;
     $hostPageInMime = false;
 
-    foreach ((array) explode(',', CRAWL_PAGE_MIME) as $mime) {
+    foreach ((array) explode(',', CRAWL_PAGE_MIME_INDEX) as $mime) {
 
       $mime = Filter::mime($mime);
 
@@ -380,6 +381,48 @@ try {
                             time());
 
            $manifestsAdded++;
+      }
+    }
+
+    // Save local snap
+    if (false !== CRAWL_PAGE_MIME_SNAP_LOCAL) {
+
+      foreach ((array) explode(',', CRAWL_PAGE_MIME_SNAP_LOCAL) as $mime) {
+
+        $mime = Filter::mime($mime);
+
+        // MIME type allowed in settings
+        if (false !== stripos(Filter::mime($contentType), $mime)) {
+
+          $crc32data = crc32($content);
+          $crc32host = crc32(''); // WEBSITE_DOMAIN, use empty for this host
+
+          // Create not duplicated data snaps only for each storage host
+          if (!$db->getHostPageSnapURL($queueHostPage->hostPageId, $crc32data, $crc32host)) {
+
+            $time = time();
+
+            @mkdir('../public/storage/snap/hp/' . $queueHostPage->hostPageId, 755, true);
+
+            $zip = new ZipArchive();
+
+            if (true === $zip->open('../public/storage/snap/hp/' . $queueHostPage->hostPageId . '/' . $time . '.zip', ZipArchive::CREATE)) {
+
+              if (true === $zip->addFromString($queueHostPage->hostPageId . '.' . $time . '.' . preg_replace('|^[A-z-]+/([A-z-]+).*|ui', '$1', Filter::mime($contentType)), $content)) {
+
+                $hostPagesSnapUrlAdded += $db->addHostPageSnapURL($queueHostPage->hostPageId,
+                                                                  $crc32data, // do not create duplicated content snaps
+                                                                  $crc32host, // multi host storage with same timestamp / crc32data
+                                                                  '/storage/snap/hp/' . $queueHostPage->hostPageId . '/' . $time . '.zip', // public url
+                                                                  $time);
+
+                $zip->close();
+
+                break;
+              }
+            }
+          }
+        }
       }
     }
 
@@ -700,6 +743,7 @@ if (CRAWL_LOG_ENABLED) {
                      $hostPagesProcessed,
                      $hostPagesIndexed,
                      $hostPagesAdded,
+                     $hostPagesSnapUrlAdded,
                      $hostPagesBanned,
                      $manifestsProcessed,
                      $manifestsAdded,
@@ -716,6 +760,7 @@ echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
+echo 'Pages snaps added: ' . $hostPagesSnapUrlAdded . PHP_EOL;
 echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;
 
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;

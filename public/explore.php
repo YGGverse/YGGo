@@ -234,13 +234,30 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <p><?php echo date('c', $hostPage->timeAdded) ?></p>
           <p><?php echo _('Time updated') ?></p>
           <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
-          <?php if ($totalHostPageIdSources = $db->getTotalHostPageIdSourcesByHostPageIdTarget($hp)) { ?>
-            <p>
-              <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
-                                                                  sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                  sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                  ]) ?>
-            </p>
+          <?php $totalHostPageSnapUrls = $db->getTotalHostPageSnapURLs($hp); ?>
+          <p>
+            <?php echo Filter::plural($totalHostPageSnapUrls, [sprintf(_('%s snap'),  $totalHostPageSnapUrls),
+                                                                sprintf(_('%s snaps'), $totalHostPageSnapUrls),
+                                                                sprintf(_('%s snaps'), $totalHostPageSnapUrls),
+                                                              ]) ?>
+          </p>
+          <?php if ($totalHostPageSnapUrls) { ?>
+            <?php foreach ($db->getHostPageSnapURLs($hp) as $hostPageSnapUrl) { ?>
+              <p>
+                <a href="<?php echo $hostPageSnapUrl->crc32host === 0 ? WEBSITE_DOMAIN . $hostPageSnapUrl->url : $hostPageSnapUrl->url ?>">
+                  <?php echo date('c', $hostPageSnapUrl->timeAdded) ?>
+                </a>
+              </p>
+            <?php } ?>
+          <?php } ?>
+          <?php $totalHostPageIdSources = $db->getTotalHostPageIdSourcesByHostPageIdTarget($hp); ?>
+          <p>
+            <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
+                                                                sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                ]) ?>
+          </p>
+          <?php if ($totalHostPageIdSources) { ?>
             <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
               <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                 <p>

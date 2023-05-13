@@ -30,7 +30,9 @@ $hostsTotal                   = $db->getTotalHosts();
 $manifestsTotal               = $db->getTotalManifests();
 $hostsUpdated                 = 0;
 $hostPagesDeleted             = 0;
-$hostPageDescriptionsDeleted  = 0;
+$hostPagesDescriptionsDeleted = 0;
+$hostPagesSnapUrlDeleted      = 0;
+$hostPagesToHostPageDeleted   = 0;
 $manifestsDeleted             = 0;
 $hostPagesBansRemoved         = 0;
 
@@ -74,8 +76,9 @@ try {
       foreach ((array) $db->getHostPagesByLimit($host->hostId, $totalHostPages - $host->crawlPageLimit) as $hostPage) {
 
         // Delete host page
-        $db->deleteHostPageDescriptions($hostPage->hostPageId);
-        $db->deleteHostPageToHostPage($hostPage->hostPageId);
+        $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
+        $hostPagesSnapUrlDeleted      += $db->deleteHostPageSnapURL($hostPage->hostPageId); // @TODO delete file
+        $hostPagesToHostPageDeleted   += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
         if ($hostPage->uri != '/') {
             $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
@@ -91,8 +94,9 @@ try {
       if (!$robots->uriAllowed($hostPage->uri)) {
 
         // Delete host page
-        $db->deleteHostPageDescriptions($hostPage->hostPageId);
-        $db->deleteHostPageToHostPage($hostPage->hostPageId);
+        $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
+        $hostPagesSnapUrlDeleted      += $db->deleteHostPageSnapURL($hostPage->hostPageId); // @TODO delete file
+        $hostPagesToHostPageDeleted   += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
         if ($hostPage->uri != '/') {
             $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
@@ -162,7 +166,7 @@ try {
   $hostPagesBansRemoved += $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
 
   // Delete page description history
-  $hostPageDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
+  $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
 
   // Delete deprecated logs
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
@@ -187,7 +191,9 @@ if (CLEAN_LOG_ENABLED) {
                       $hostsTotal,
                       $hostsUpdated,
                       $hostPagesDeleted,
-                      $hostPageDescriptionsDeleted,
+                      $hostPagesDescriptionsDeleted,
+                      $hostPagesSnapUrlDeleted,
+                      $hostPagesToHostPageDeleted,
                       $hostPagesBansRemoved,
                       $manifestsTotal,
                       $manifestsDeleted,
@@ -209,7 +215,9 @@ echo 'Manifests total: ' . $manifestsTotal . PHP_EOL;
 echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
 
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
-echo 'Host page descriptions deleted: ' . $hostPageDescriptionsDeleted . PHP_EOL;
+echo 'Host page descriptions deleted: ' . $hostPagesDescriptionsDeleted . PHP_EOL;
+echo 'Host page snaps deleted: ' . $hostPagesSnapUrlDeleted . PHP_EOL;
+echo 'Host page to host page deleted: ' . $hostPagesToHostPageDeleted . PHP_EOL;
 
 echo 'Cleaner logs deleted: ' . $logsCleanerDeleted . PHP_EOL;
 echo 'Crawler logs deleted: ' . $logsCrawlerDeleted . PHP_EOL;
