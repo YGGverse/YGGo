@@ -157,7 +157,7 @@ GET m=SphinxQL
 * [x] CSS only, JS-less interface
 * [x] Unique ident icons for sites without favicons
 * [x] Content genre tabs (#1)
-* [x] Page index exploring feature
+* [x] Page index explorer
   + [x] Meta
   + [x] Snaps
   + [x] Referrers
