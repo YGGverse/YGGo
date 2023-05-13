@@ -7,3 +7,4 @@ config/sphinx.conf
 database/yggo.mwb.bak
 
 storage
+public/snap
