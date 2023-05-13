@@ -38,7 +38,7 @@ sphinxsearch
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples are placed at `/config` folder
-* Make sure `/storage`, `/public/storage` folders writable
+* Make sure `/storage`, `/public/snap` folders writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API

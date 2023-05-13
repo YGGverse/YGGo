@@ -402,18 +402,23 @@ try {
 
             $time = time();
 
-            @mkdir('../public/storage/snap/hp/' . $queueHostPage->hostPageId, 755, true);
+            $dir = chunk_split($queueHostPage->hostPageId, 1, '/');
+
+            @mkdir('../public/snap/hp/' . $dir, 755, true);
 
             $zip = new ZipArchive();
 
-            if (true === $zip->open('../public/storage/snap/hp/' . $queueHostPage->hostPageId . '/' . $time . '.zip', ZipArchive::CREATE)) {
+            // Create new container
+            if (true === $zip->open('../public/snap/hp/' . $dir . $time . '.zip', ZipArchive::CREATE)) {
 
+              // Insert compressed snap data
               if (true === $zip->addFromString($queueHostPage->hostPageId . '.' . $time . '.' . preg_replace('|^[A-z-]+/([A-z-]+).*|ui', '$1', Filter::mime($contentType)), $content)) {
 
+                // Update DB registry
                 $hostPagesSnapUrlAdded += $db->addHostPageSnapURL($queueHostPage->hostPageId,
                                                                   $crc32data, // do not create duplicated content snaps
                                                                   $crc32host, // multi host storage with same timestamp / crc32data
-                                                                  '/storage/snap/hp/' . $queueHostPage->hostPageId . '/' . $time . '.zip', // public url
+                                                                  '/snap/hp/' . $dir . $time . '.zip', // public url
                                                                   $time);
 
                 $zip->close();
