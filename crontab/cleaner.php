@@ -31,7 +31,7 @@ $manifestsTotal               = $db->getTotalManifests();
 $hostsUpdated                 = 0;
 $hostPagesDeleted             = 0;
 $hostPagesDescriptionsDeleted = 0;
-$hostPagesSnapUrlDeleted      = 0;
+$hostPagesSnapDeleted         = 0;
 $hostPagesToHostPageDeleted   = 0;
 $manifestsDeleted             = 0;
 $hostPagesBansRemoved         = 0;
@@ -75,13 +75,23 @@ try {
 
       foreach ((array) $db->getHostPagesByLimit($host->hostId, $totalHostPages - $host->crawlPageLimit) as $hostPage) {
 
-        // Delete host page
-        $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
-        $hostPagesSnapUrlDeleted      += $db->deleteHostPageSnapURL($hostPage->hostPageId); // @TODO delete file
-        $hostPagesToHostPageDeleted   += $db->deleteHostPageToHostPage($hostPage->hostPageId);
-
         if ($hostPage->uri != '/') {
-            $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
+
+          // Delete host page descriptions
+          $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
+
+          // Delete host page refs data
+          $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
+
+          // Delete host page snaps
+          foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
+            if (true === unlink('../public/snap/hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip')) {
+              $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
+            }
+          }
+
+          // Delete host page
+          $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
         }
       }
     }
@@ -91,16 +101,23 @@ try {
 
     foreach ($db->getHostPages($host->hostId) as $hostPage) {
 
-      if (!$robots->uriAllowed($hostPage->uri)) {
+      if ($hostPage->uri != '/' && !$robots->uriAllowed($hostPage->uri)) {
+
+        // Delete host page descriptions
+        $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
+
+        // Delete host page refs data
+        $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
+
+        // Delete host page snaps
+        foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
+          if (true === unlink('../public/snap/hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip')) {
+            $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
+          }
+        }
 
         // Delete host page
-        $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
-        $hostPagesSnapUrlDeleted      += $db->deleteHostPageSnapURL($hostPage->hostPageId); // @TODO delete file
-        $hostPagesToHostPageDeleted   += $db->deleteHostPageToHostPage($hostPage->hostPageId);
-
-        if ($hostPage->uri != '/') {
-            $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
-        }
+        $hostPagesDeleted += $db->deleteHostPage($hostPage->hostPageId);
       }
     }
   }
@@ -192,7 +209,7 @@ if (CLEAN_LOG_ENABLED) {
                       $hostsUpdated,
                       $hostPagesDeleted,
                       $hostPagesDescriptionsDeleted,
-                      $hostPagesSnapUrlDeleted,
+                      $hostPagesSnapDeleted,
                       $hostPagesToHostPageDeleted,
                       $hostPagesBansRemoved,
                       $manifestsTotal,
@@ -216,7 +233,7 @@ echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
 
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
 echo 'Host page descriptions deleted: ' . $hostPagesDescriptionsDeleted . PHP_EOL;
-echo 'Host page snaps deleted: ' . $hostPagesSnapUrlDeleted . PHP_EOL;
+echo 'Host page snaps deleted: ' . $hostPagesSnapDeleted . PHP_EOL;
 echo 'Host page to host page deleted: ' . $hostPagesToHostPageDeleted . PHP_EOL;
 
 echo 'Cleaner logs deleted: ' . $logsCleanerDeleted . PHP_EOL;

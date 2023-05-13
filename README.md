@@ -148,7 +148,7 @@ GET m=SphinxQL
 * [x] Index explorer
 * [x] Safe images preview
 * [x] Extended search syntax support
-* [ ] Page content snaps history
+* [ ] Compressed page snaps history
   + [x] Local
   + [ ] Remote
 
@@ -157,6 +157,10 @@ GET m=SphinxQL
 * [x] CSS only, JS-less interface
 * [x] Unique ident icons for sites without favicons
 * [x] Content genre tabs (#1)
+* [x] Page index exploring feature
+  + [x] Meta
+  + [x] Snaps
+  + [x] Referrers
 * [ ] Results with found matches highlight
 * [ ] The time machine feature by content snaps history
 

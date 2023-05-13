@@ -360,59 +360,49 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function addHostPageSnapURL(int $hostPageId,
-                                     int $crc32data,
-                                     int $crc32host,
-                                     string $url,
-                                     int $timeAdded) {
+  public function addHostPageSnap(int $hostPageId, string $crc32data, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT IGNORE INTO `hostPageSnapURL` (`hostPageId`,
-                                                                        `crc32data`,
-                                                                        `crc32host`,
-                                                                        `url`,
-                                                                        `timeAdded`) VALUES (?, ?, ?, ?, ?)');
+    $query = $this->_db->prepare('INSERT IGNORE INTO `hostPageSnap` (`hostPageId`,
+                                                                     `crc32data`,
+                                                                     `timeAdded`) VALUES (?, ?, ?)');
 
-    $query->execute([$hostPageId,
-                     $crc32data,
-                     $crc32host,
-                     $url,
-                     $timeAdded]);
+    $query->execute([$hostPageId, $crc32data, $timeAdded]);
 
     return $query->rowCount();
   }
 
-  public function deleteHostPageSnapURL(int $hostPageId) {
+  public function deleteHostPageSnap(int $hostPageSnapId) {
 
-    $query = $this->_db->prepare('DELETE FROM `hostPageSnapURL` WHERE `hostPageId` = ?');
+    $query = $this->_db->prepare('DELETE FROM `hostPageSnap` WHERE `hostPageSnapId` = ? LIMIT 1');
 
-    $query->execute([$hostPageId]);
+    $query->execute([$hostPageSnapId]);
 
     return $query->rowCount();
   }
 
-  public function getTotalHostPageSnapURLs(int $hostPageId) {
+  public function getTotalHostPageSnaps(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnapURL` WHERE `hostPageId` = ?');
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnap` WHERE `hostPageId` = ?');
 
     $query->execute([$hostPageId]);
 
     return $query->fetch()->total;
   }
 
-  public function getHostPageSnapURLs(int $hostPageId) {
+  public function getHostPageSnaps(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapURL` WHERE `hostPageId` = ? ORDER BY `timeAdded` DESC');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? ORDER BY `timeAdded` DESC');
 
     $query->execute([$hostPageId]);
 
     return $query->fetchAll();
   }
 
-  public function getHostPageSnapURL(int $hostPageId, int $crc32data, int $crc32host) {
+  public function getHostPageSnap(int $hostPageId, int $crc32data) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapURL` WHERE `hostPageId` = ? AND `hostPageId` = ? AND `crc32host` = ? LIMIT 1');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$hostPageId, $crc32data, $crc32host]);
+    $query->execute([$hostPageId, $crc32data]);
 
     return $query->fetch();
   }
@@ -456,7 +446,7 @@ class MySQL {
                                 int $hostsUpdated,
                                 int $hostPagesDeleted,
                                 int $hostPagesDescriptionsDeleted,
-                                int $hostPagesSnapUrlDeleted,
+                                int $hostPagesSnapDeleted,
                                 int $hostPagesToHostPageDeleted,
                                 int $hostPagesBansRemoved,
                                 int $manifestsTotal,
@@ -474,7 +464,7 @@ class MySQL {
                                                             `hostsUpdated`,
                                                             `hostPagesDeleted`,
                                                             `hostPagesDescriptionsDeleted`,
-                                                            `hostPagesSnapUrlDeleted`,
+                                                            `hostPagesSnapDeleted`,
                                                             `hostPagesToHostPageDeleted`,
                                                             `hostPagesBansRemoved`,
                                                             `manifestsTotal`,
@@ -493,7 +483,7 @@ class MySQL {
       $hostsUpdated,
       $hostPagesDeleted,
       $hostPagesDescriptionsDeleted,
-      $hostPagesSnapUrlDeleted,
+      $hostPagesSnapDeleted,
       $hostPagesToHostPageDeleted,
       $hostPagesBansRemoved,
       $manifestsTotal,
@@ -586,7 +576,7 @@ class MySQL {
                                 int $hostPagesProcessed,
                                 int $hostPagesIndexed,
                                 int $hostPagesAdded,
-                                int $hostPagesSnapUrlAdded,
+                                int $hostPagesSnapAdded,
                                 int $hostPagesBanned,
                                 int $manifestsProcessed,
                                 int $manifestsAdded,
@@ -601,7 +591,7 @@ class MySQL {
                                                             `hostPagesProcessed`,
                                                             `hostPagesIndexed`,
                                                             `hostPagesAdded`,
-                                                            `hostPagesSnapUrlAdded`,
+                                                            `hostPagesSnapAdded`,
                                                             `hostPagesBanned`,
                                                             `manifestsProcessed`,
                                                             `manifestsAdded`,
@@ -617,7 +607,7 @@ class MySQL {
       $hostPagesProcessed,
       $hostPagesIndexed,
       $hostPagesAdded,
-      $hostPagesSnapUrlAdded,
+      $hostPagesSnapAdded,
       $hostPagesBanned,
       $manifestsProcessed,
       $manifestsAdded,

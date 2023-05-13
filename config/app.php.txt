@@ -219,15 +219,20 @@ define('CRAWL_HOST_DEFAULT_PAGES_LIMIT', 100000);
 define('CRAWL_HOST_DEFAULT_STATUS', true);
 
 /*
- * Index only meta tags to prevent disk overuse
- * or false to save meta tags + overall plain text page content
+ * Index only meta tags
+ * or false to save meta tags + base64 encoded page content in the `hostPage`.`data` field
  *
  * Custom rule for specified host could be provided in the DB `host`.`crawlMetaOnly` field
  *
- * This option able to change search results relevance
+ * Warning!
+ * this option disabled requires huge disk storage,
+ * it's experimental feature, oriented for index operations
+ *
+ * see CRAWL_PAGE_MIME_SNAP_LOCAL
+ * to create compressed data snaps
  *
  */
-define('CRAWL_HOST_DEFAULT_META_ONLY', false);
+define('CRAWL_HOST_DEFAULT_META_ONLY', true);
 
 /*
  * Not suitable/safe for work status for new host by default

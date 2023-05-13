@@ -234,18 +234,18 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <p><?php echo date('c', $hostPage->timeAdded) ?></p>
           <p><?php echo _('Time updated') ?></p>
           <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
-          <?php $totalHostPageSnapUrls = $db->getTotalHostPageSnapURLs($hp); ?>
+          <?php $totalHostPageSnaps = $db->getTotalHostPageSnaps($hp); ?>
           <p>
-            <?php echo Filter::plural($totalHostPageSnapUrls, [sprintf(_('%s snap'),  $totalHostPageSnapUrls),
-                                                                sprintf(_('%s snaps'), $totalHostPageSnapUrls),
-                                                                sprintf(_('%s snaps'), $totalHostPageSnapUrls),
-                                                              ]) ?>
+            <?php echo Filter::plural($totalHostPageSnaps, [sprintf(_('%s snap'),  $totalHostPageSnaps),
+                                                            sprintf(_('%s snaps'), $totalHostPageSnaps),
+                                                            sprintf(_('%s snaps'), $totalHostPageSnaps),
+                                                          ]) ?>
           </p>
-          <?php if ($totalHostPageSnapUrls) { ?>
-            <?php foreach ($db->getHostPageSnapURLs($hp) as $hostPageSnapUrl) { ?>
+          <?php if ($totalHostPageSnaps) { ?>
+            <?php foreach ($db->getHostPageSnaps($hp) as $hostPageSnap) { ?>
               <p>
-                <a href="<?php echo $hostPageSnapUrl->crc32host === 0 ? WEBSITE_DOMAIN . $hostPageSnapUrl->url : $hostPageSnapUrl->url ?>">
-                  <?php echo date('c', $hostPageSnapUrl->timeAdded) ?>
+                <a href="<?php echo WEBSITE_DOMAIN . '/snap/hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip' ?>">
+                  <?php echo date('c', $hostPageSnap->timeAdded) ?>
                 </a>
               </p>
             <?php } ?>

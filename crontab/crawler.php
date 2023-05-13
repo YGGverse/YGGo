@@ -39,7 +39,7 @@ $manifestsAdded        = 0;
 $hostPagesAdded        = 0;
 $hostsAdded            = 0;
 $hostPagesBanned       = 0;
-$hostPagesSnapUrlAdded = 0;
+$hostPagesSnapAdded    = 0;
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
@@ -395,31 +395,31 @@ try {
         if (false !== stripos(Filter::mime($contentType), $mime)) {
 
           $crc32data = crc32($content);
-          $crc32host = crc32(''); // WEBSITE_DOMAIN, use empty for this host
 
           // Create not duplicated data snaps only for each storage host
-          if (!$db->getHostPageSnapURL($queueHostPage->hostPageId, $crc32data, $crc32host)) {
+          if (!$db->getHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
 
             $time = time();
 
-            $dir = chunk_split($queueHostPage->hostPageId, 1, '/');
+            $directory = chunk_split($queueHostPage->hostPageId, 1, '/');
 
-            @mkdir('../public/snap/hp/' . $dir, 755, true);
+            @mkdir('../public/snap/hp/' . $directory, 755, true);
 
             $zip = new ZipArchive();
 
             // Create new container
-            if (true === $zip->open('../public/snap/hp/' . $dir . $time . '.zip', ZipArchive::CREATE)) {
+            if (true === $zip->open('../public/snap/hp/' . $directory . $time . '.zip', ZipArchive::CREATE)) {
 
               // Insert compressed snap data
-              if (true === $zip->addFromString($queueHostPage->hostPageId . '.' . $time . '.' . preg_replace('|^[A-z-]+/([A-z-]+).*|ui', '$1', Filter::mime($contentType)), $content)) {
+              if (true === $zip->addFromString('DATA', $content) &&
+                  true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $time) . PHP_EOL .
+                                                       sprintf('CRC32: %s',     $crc32data . PHP_EOL .
+                                                       sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
+                                                       sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/snap/hp/' . $directory . $time . '.zip')) . PHP_EOL .
+                                                       sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
 
                 // Update DB registry
-                $hostPagesSnapUrlAdded += $db->addHostPageSnapURL($queueHostPage->hostPageId,
-                                                                  $crc32data, // do not create duplicated content snaps
-                                                                  $crc32host, // multi host storage with same timestamp / crc32data
-                                                                  '/snap/hp/' . $dir . $time . '.zip', // public url
-                                                                  $time);
+                $hostPagesSnapAdded += $db->addHostPageSnap($queueHostPage->hostPageId, $crc32data, $time);
 
                 $zip->close();
 
@@ -748,7 +748,7 @@ if (CRAWL_LOG_ENABLED) {
                      $hostPagesProcessed,
                      $hostPagesIndexed,
                      $hostPagesAdded,
-                     $hostPagesSnapUrlAdded,
+                     $hostPagesSnapAdded,
                      $hostPagesBanned,
                      $manifestsProcessed,
                      $manifestsAdded,
@@ -765,7 +765,7 @@ echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
-echo 'Pages snaps added: ' . $hostPagesSnapUrlAdded . PHP_EOL;
+echo 'Pages snaps added: ' . $hostPagesSnapAdded . PHP_EOL;
 echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;
 
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
