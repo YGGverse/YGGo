@@ -156,10 +156,9 @@ GET m=SphinxQL
 
 * [x] CSS only, JS-less interface
 * [x] Unique ident icons for sites without favicons
+* [x] Content genre tabs (#1)
 * [ ] Results with found matches highlight
-* [ ] Content genre tabs (#1)
-* [ ] The time machine feature by content history cache preview
-* [ ] Link clicks counter
+* [ ] The time machine feature by content snaps history
 
 ##### API
 
