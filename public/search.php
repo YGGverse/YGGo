@@ -20,12 +20,13 @@ $t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'text';
 $m = !empty($_GET['m']) ? Filter::url($_GET['m']) : 'default';
 $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
+$i = !empty($_GET['i']) ? (int) $_GET['i'] : 0;
 
 // Search request
 if (!empty($q)) {
 
   $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m), $t);
-  $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
+  $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, ($i ? 1 : $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT), ($i ? 1 : WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT), ($i ? 1 : $resultsTotal));
 
 } else {
 
@@ -339,11 +340,15 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                 <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 48 ? '...' . mb_substr(urldecode($hostPage->uri), -48) : urldecode($hostPage->uri))) ?>
               </a>
               <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPageIdSourcesByHostPageIdTarget($result->id)) { ?>
-                <p><?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
-                                                                       sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                       sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                      ]) ?></p>
-                <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($result->id) as $hostPageIdSource) { ?>
+                <p>
+                  <a href="search.php?q=<?php echo urlencode($q) ?>&t=<?php echo $t ?>&m=<?php echo $m ?>&i=<?php echo $result->id ?>&p=<?php echo $p ?>">
+                  <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
+                                                                      sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                      sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                      ]) ?>
+                  </a>
+                </p>
+                <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($result->id, ($i ? 1000 : 5)) as $j => $hostPageIdSource) { ?>
                   <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                     <p>
                       <?php echo Filter::plural($hostPageIdSource->quantity, [sprintf(_('%s ref'),  $hostPageIdSource->quantity),
@@ -361,9 +366,9 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
             </div>
           <?php } ?>
         <?php } ?>
-        <?php if ($p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT <= $resultsTotal) { ?>
+        <?php if (!$i && $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT <= $resultsTotal) { ?>
           <div>
-            <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&t=<?php echo $t ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
+            <a href="<?php echo WEBSITE_DOMAIN; ?>/search.php?q=<?php echo urlencode(htmlentities($q)) ?>&t=<?php echo $t ?>&m=<?php echo $m ?>&p=<?php echo $p + 1 ?>"><?php echo _('Next page') ?></a>
           </div>
           <?php } ?>
       <?php } else { ?>

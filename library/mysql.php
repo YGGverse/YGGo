@@ -349,7 +349,7 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit = 5) {
+  public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ? ORDER BY `quantity` DESC LIMIT ' . (int) $limit);
 
