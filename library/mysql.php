@@ -629,4 +629,18 @@ class MySQL {
 
     return $query->rowCount();
   }
+
+  public function optimize() {
+
+    $this->_db->query('OPTIMIZE TABLE `host`');
+    $this->_db->query('OPTIMIZE TABLE `hostPage`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageDescription`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageSnap`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageToHostPage`');
+
+    $this->_db->query('OPTIMIZE TABLE `logCleaner`');
+    $this->_db->query('OPTIMIZE TABLE `logCrawler`');
+
+    $this->_db->query('OPTIMIZE TABLE `manifest`');
+  }
 }

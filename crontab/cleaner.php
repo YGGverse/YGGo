@@ -189,9 +189,13 @@ try {
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
   $logsCrawlerDeleted += $db->deleteLogCrawler(time() - CRAWL_LOG_SECONDS_OFFSET);
 
+  // Commit results
   $db->commit();
 
-} catch(Exception $e){
+  // Optimize tables
+  $db->optimize();
+
+} catch(Exception $e) {
 
   var_dump($e);
 
