@@ -327,9 +327,7 @@ class MySQL {
 
   public function addHostPageToHostPage(int $hostPageIdSource, int $hostPageIdTarget) {
 
-    $query = $this->_db->prepare('INSERT INTO `hostPageToHostPage` (`hostPageIdSource`, `hostPageIdTarget`, `quantity`) VALUES (?, ?, 1)
-
-                                          ON DUPLICATE KEY UPDATE `quantity` = `quantity` + 1');
+    $query = $this->_db->prepare('INSERT IGNORE `hostPageToHostPage` (`hostPageIdSource`, `hostPageIdTarget`) VALUES (?, ?)');
 
     $query->execute([$hostPageIdSource, $hostPageIdTarget]);
 
@@ -355,7 +353,7 @@ class MySQL {
 
   public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit = 1000) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ? ORDER BY `quantity` DESC LIMIT ' . (int) $limit);
+    $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ? LIMIT ' . (int) $limit);
 
     $query->execute([$hostPageIdTarget]);
 

@@ -354,10 +354,6 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                   <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                     <?php $i++ ?>
                     <p>
-                      <?php echo Filter::plural($hostPageIdSource->quantity, [sprintf(_('%s ref'),  $hostPageIdSource->quantity),
-                                                                              sprintf(_('%s refs'), $hostPageIdSource->quantity),
-                                                                              sprintf(_('%s refs'), $hostPageIdSource->quantity),
-                                                                              ]) ?>
                       <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
                         <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
                         <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 36 ? '...' . mb_substr(urldecode($hostPage->uri), -36) : urldecode($hostPage->uri))) ?>

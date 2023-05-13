@@ -16,7 +16,7 @@ source hostPage : common
            `hostPage`.`uri`, \
            `host`.`name`, \
            REGEXP_REPLACE(`hostPage`.`mime`, '^([A-z-]+)/[A-z-]+.*', '$1') AS `mime`, \
-          (SELECT SUM(`quantity`) FROM `hostPageToHostPage` \
+          (SELECT COUNT(*) FROM `hostPageToHostPage` \
            WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPage`.`hostPageId` \
            AND   (SELECT `hostPageSource`.`hostId` FROM `hostPage` AS `hostPageSource` \
                   WHERE  `hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`) <> `hostPage`.`hostId`) AS `rank`, \
