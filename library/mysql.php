@@ -218,7 +218,11 @@ class MySQL {
 
   public function getFoundHostPage(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT `hostPage`.`uri`,
+    $query = $this->_db->prepare('SELECT `hostPage`.`hostPageId`,
+                                         `hostPage`.`uri`,
+                                         `hostPage`.`timeAdded`,
+                                         `hostPage`.`timeUpdated`,
+                                         `hostPage`.`mime`,
                                          `host`.`scheme`,
                                          `host`.`name`,
                                          `host`.`port`
@@ -349,7 +353,7 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit) {
+  public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit = 1000) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ? ORDER BY `quantity` DESC LIMIT ' . (int) $limit);
 

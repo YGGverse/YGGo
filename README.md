@@ -143,9 +143,11 @@ GET m=SphinxQL
 
 * [x] Web pages full text ranking search
 * [x] Unlimited content type groups
-* [x] Safe proxy images preview
-* [x] Extended syntax support
 * [x] Flexible settings compatible with IPv4/IPv6 networks
+* [x] Index explorer
+* [x] Safe images preview
+* [x] Extended search syntax support
+* [ ] Page history snaps
 
 ##### UI
 
@@ -163,7 +165,6 @@ GET m=SphinxQL
   + [x] Search
   + [x] Hosts
   + [ ] MIME list
-* [ ] Remote content DB API
 * [ ] Context advertising API
 
 ##### Crawler

@@ -39,6 +39,15 @@ class SphinxQL {
     return $query->fetch()->total;
   }
 
+  public function getHostPagesMime() {
+
+    $query = $this->_sphinx->prepare('SELECT `mime` FROM `hostPage` GROUP BY `mime` ORDER BY `mime` ASC');
+
+    $query->execute();
+
+    return $query->fetchAll();
+  }
+
   public function searchHostPagesTotalByMime(string $keyword, string $mime) {
 
     $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE MATCH(?) AND `mime` = ?');
