@@ -142,23 +142,22 @@ GET m=SphinxQL
 
 ##### Basic features
 
-* [x] Web pages full text ranking search
-* [x] Unlimited content type groups
+* [x] Web pages full text ranking search based on Sphinx engine
+* [x] Unlimited content MIME crawling
 * [x] Flexible settings compatible with IPv4/IPv6 networks
-* [x] Index explorer
-* [x] Safe images preview
 * [x] Extended search syntax support
-* [x] Compressed, configurable page history snaps with multi-provider storage
+* [x] Compressed page history snaps with multi-provider storage sync
   + [x] Local
   + [x] Remote
     + [x] MEGAcmd/FTP
-    + [ ] Yggdrasil
+    + [ ] Yggdrasil over NAT
 
 ##### UI
 
 * [x] CSS only, JS-less interface
 * [x] Unique ident icons for sites without favicons
 * [x] Content genre tabs (#1)
+* [x] Safe images preview
 * [x] Page index explorer
   + [x] Meta
   + [x] Snaps history
