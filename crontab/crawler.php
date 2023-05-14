@@ -403,7 +403,7 @@ try {
 
             $directory = chunk_split($queueHostPage->hostPageId, 1, '/');
 
-            @mkdir('../public/snap/hp/' . $directory, 755, true);
+            @mkdir('../public/snap/hp/' . $directory, 0755, true);
 
             $zip = new ZipArchive();
 
