@@ -420,13 +420,13 @@ try {
 
                 // Update DB registry
                 $hostPagesSnapAdded += $db->addHostPageSnap($queueHostPage->hostPageId, $crc32data, $time);
-
-                $zip->close();
-
-                break;
               }
             }
+
+            $zip->close();
           }
+
+          break;
         }
       }
     }
