@@ -224,7 +224,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <?php } ?>
           <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
             <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
-            <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 48 ? '...' . mb_substr(urldecode($hostPage->uri), -48) : urldecode($hostPage->uri))) ?>
+            <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
           </a>
         </div>
         <div>
@@ -263,7 +263,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                 <p>
                   <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
                     <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
-                    <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 48 ? '...' . mb_substr(urldecode($hostPage->uri), -48) : urldecode($hostPage->uri))) ?>
+                    <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
                   </a>
                   |
                   <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $hostPage->hostPageId ?>">
