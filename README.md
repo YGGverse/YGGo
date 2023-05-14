@@ -38,7 +38,7 @@ sphinxsearch
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples are placed at `/config` folder
-* Make sure `/storage`, `/public/snap` folders writable
+* Make sure `/storage/cache`, `/storage/tmp`, `/public/snap` folders writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API
@@ -148,9 +148,11 @@ GET m=SphinxQL
 * [x] Index explorer
 * [x] Safe images preview
 * [x] Extended search syntax support
-* [ ] Compressed page snaps history
+* [x] Compressed, configurable page history snaps with multi-provider storage
   + [x] Local
-  + [ ] Remote
+  + [x] Remote
+    + [x] MEGAcmd/FTP
+    + [ ] Yggdrasil
 
 ##### UI
 
@@ -159,7 +161,7 @@ GET m=SphinxQL
 * [x] Content genre tabs (#1)
 * [x] Page index explorer
   + [x] Meta
-  + [x] Snaps
+  + [x] Snaps history
   + [x] Referrers
 * [ ] Results with found matches highlight
 * [ ] The time machine feature by content snaps history
@@ -170,6 +172,7 @@ GET m=SphinxQL
   + [x] Manifest
   + [x] Search
   + [x] Hosts
+  + [ ] Snaps
   + [ ] MIME list
 * [ ] Context advertising API
 
@@ -186,9 +189,6 @@ GET m=SphinxQL
 * [x] MIME Content-type settings
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
-* [ ] Page content snaps generation
-  + [x] Local
-  + [ ] Remote
 * [ ] Indexing new sites homepage in higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter

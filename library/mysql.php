@@ -362,11 +362,29 @@ class MySQL {
 
   public function addHostPageSnap(int $hostPageId, string $crc32data, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT IGNORE INTO `hostPageSnap` (`hostPageId`,
-                                                                     `crc32data`,
-                                                                     `timeAdded`) VALUES (?, ?, ?)');
+    $query = $this->_db->prepare('INSERT INTO `hostPageSnap` (`hostPageId`,
+                                                              `crc32data`,
+                                                              `timeAdded`) VALUES (?, ?, ?)');
 
     $query->execute([$hostPageId, $crc32data, $timeAdded]);
+
+    return $this->_db->lastInsertId();
+  }
+
+  public function updateHostPageSnapStorageLocal(int $hostPageSnapId, mixed $value) {
+
+    $query = $this->_db->prepare('UPDATE `hostPageSnap` SET `storageLocal` = ? WHERE `hostPageSnapId` = ? LIMIT 1');
+
+    $query->execute([$value, $hostPageSnapId]);
+
+    return $query->rowCount();
+  }
+
+  public function updateHostPageSnapStorageMega(int $hostPageSnapId, mixed $value) {
+
+    $query = $this->_db->prepare('UPDATE `hostPageSnap` SET `storageMega` = ? WHERE `hostPageSnapId` = ? LIMIT 1');
+
+    $query->execute([$value, $hostPageSnapId]);
 
     return $query->rowCount();
   }

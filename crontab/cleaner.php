@@ -84,8 +84,35 @@ try {
           $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
           // Delete host page snaps
+          $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
+
           foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
-            if (true === unlink('../public/snap/hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip')) {
+
+            $snapFileLocalExists = (bool) $hostPageSnap->storageLocal;
+            $snapFileMegaExists  = (bool) $hostPageSnap->storageMega;
+
+            if ($snapFileLocalExists) {
+
+              if (unlink('../public/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
+
+                $snapFileLocalExists = false;
+              }
+            }
+
+            if ($snapFileMegaExists) {
+
+              $ftp = new Ftp();
+
+              if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+
+                if ($ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
+
+                  $snapFileMegaExists = false;
+                }
+              }
+            }
+
+            if (!$snapFileLocalExists && !$snapFileMegaExists) {
               $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
             }
           }
@@ -110,8 +137,35 @@ try {
         $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
         // Delete host page snaps
+        $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
+
         foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
-          if (true === unlink('../public/snap/hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip')) {
+
+          $snapFileLocalExists = (bool) $hostPageSnap->storageLocal;
+          $snapFileMegaExists  = (bool) $hostPageSnap->storageMega;
+
+          if ($snapFileLocalExists) {
+
+            if (unlink('../public/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
+
+              $snapFileLocalExists = false;
+            }
+          }
+
+          if ($snapFileMegaExists) {
+
+            $ftp = new Ftp();
+
+            if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+
+              if ($ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
+
+                $snapFileMegaExists = false;
+              }
+            }
+          }
+
+          if (!$snapFileLocalExists && !$snapFileMegaExists) {
             $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
           }
         }

@@ -11,6 +11,7 @@ if (false === sem_acquire($semaphore, true)) {
 
 // Load system dependencies
 require_once('../config/app.php');
+require_once('../library/ftp.php');
 require_once('../library/curl.php');
 require_once('../library/robots.php');
 require_once('../library/filter.php');
@@ -384,7 +385,11 @@ try {
       }
     }
 
-    // Save local snap
+    // Begin snaps
+    $snapLocal = false;
+    $snapMega  = false;
+
+    // Snap local enabled and MIME in white list
     if (false !== CRAWL_PAGE_MIME_SNAP_LOCAL) {
 
       foreach ((array) explode(',', CRAWL_PAGE_MIME_SNAP_LOCAL) as $mime) {
@@ -394,40 +399,103 @@ try {
         // MIME type allowed in settings
         if (false !== stripos(Filter::mime($contentType), $mime)) {
 
-          $crc32data = crc32($content);
-
-          // Create not duplicated data snaps only for each storage host
-          if (!$db->getHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
-
-            $time = time();
-
-            $directory = chunk_split($queueHostPage->hostPageId, 1, '/');
-
-            @mkdir('../public/snap/hp/' . $directory, 0755, true);
-
-            $zip = new ZipArchive();
-
-            // Create new container
-            if (true === $zip->open('../public/snap/hp/' . $directory . $time . '.zip', ZipArchive::CREATE)) {
-
-              // Insert compressed snap data
-              if (true === $zip->addFromString('DATA', $content) &&
-                  true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $time) . PHP_EOL .
-                                                       sprintf('CRC32: %s',     $crc32data . PHP_EOL .
-                                                       sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
-                                                       sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/snap/hp/' . $directory . $time . '.zip')) . PHP_EOL .
-                                                       sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
-
-                // Update DB registry
-                $hostPagesSnapAdded += $db->addHostPageSnap($queueHostPage->hostPageId, $crc32data, $time);
-              }
-            }
-
-            $zip->close();
-          }
-
+          $snapLocal = true;
           break;
         }
+      }
+    }
+
+    // Snap MEGA enabled and MIME in white list
+    if (false !== CRAWL_PAGE_MIME_SNAP_MEGA) {
+
+      foreach ((array) explode(',', CRAWL_PAGE_MIME_SNAP_MEGA) as $mime) {
+
+        $mime = Filter::mime($mime);
+
+        // MIME type allowed in settings
+        if (false !== stripos(Filter::mime($contentType), $mime)) {
+
+          $snapMega = true;
+          break;
+        }
+      }
+    }
+
+    // At least one snap storage match settings condition
+    if ($snapLocal || $snapMega) {
+
+      $crc32data = crc32($content);
+
+      // Create not duplicated data snaps only, even new time
+      if (!$db->getHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
+
+        $snapTime = time();
+        $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
+
+        $snapTmp  = '../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
+             @mkdir('../storage/tmp/snap/hp/' . $snapPath, 0755, true);
+
+        // Create new ZIP container
+        $zip = new ZipArchive();
+
+        if (true === $zip->open($snapTmp, ZipArchive::CREATE)) {
+
+          // Insert compressed snap data into the tmp storage
+          if (true === $zip->addFromString('DATA', $content) &&
+              true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $snapTime) . PHP_EOL .
+                                                   sprintf('CRC32: %s',     $crc32data . PHP_EOL .
+                                                   sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
+                                                   sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
+                                                   sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
+
+            // Done
+            $zip->close();
+
+            // Temporarily snap file exists
+            if (file_exists($snapTmp)) {
+
+              // Register snap in DB
+              if ($hostPageSnapId = $db->addHostPageSnap($queueHostPage->hostPageId, $crc32data, $snapTime)) {
+
+                $hostPagesSnapAdded++;
+
+                // Copy tmp snap to the permanent local storage
+                if ($snapLocal) {
+
+                  @mkdir('../public/snap/hp/' . $snapPath, 0755, true);
+
+                  if (copy($snapTmp, '../public/snap/hp/' . $snapPath . $snapTime . '.zip')) {
+
+                    // Update snap location info
+                    $db->updateHostPageSnapStorageLocal($hostPageSnapId, true);
+                  }
+                }
+
+                // Copy tmp snap to the permanent MEGA storage
+                if ($snapMega) {
+
+                  $ftp = new Ftp();
+
+                  if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+
+                    $ftp->mkdir('hp/' . $snapPath, true);
+
+                    if ($ftp->copy($snapTmp, 'hp/' . $snapPath . $snapTime . '.zip')) {
+
+                      // Update snap location info
+                      $db->updateHostPageSnapStorageMega($hostPageSnapId, true);
+                    }
+
+                    $ftp->close();
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Remove tmp
+        @unlink($snapTmp);
       }
     }
 

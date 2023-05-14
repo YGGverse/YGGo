@@ -74,6 +74,20 @@ define('DB_PASSWORD', '');
 define('SPHINX_HOST', '127.0.0.1');
 define('SPHINX_PORT', 9306);
 
+// Third-party connections (optional)
+
+/*
+ * Mega.nz remote storage
+ *
+ * FTP storage integration through MEGAcmd (https://mega.io/cmd)
+ *
+ * Connect mega-ftp instance on CRAWL_PAGE_MIME_SNAP_MEGA enabled
+ *
+ */
+define('MEGA_FTP_HOST', '127.0.0.1');
+define('MEGA_FTP_PORT', 4990);
+define('MEGA_FTP_DIRECTORY', '');
+
 // Proxy settings
 
 /*
@@ -176,7 +190,21 @@ define('CRAWL_PAGE_MIME_INDEX', 'text/html,application/xhtml+xml,text/plain,imag
  * comma separated | false to disable
  *
  */
-define('CRAWL_PAGE_MIME_SNAP_LOCAL', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml');
+define('CRAWL_PAGE_MIME_SNAP_LOCAL', 'text/html');
+
+/*
+ * Snap pages to mega.nz match MIME types
+ *
+ * comma separated | false to disable
+ *
+ * Requires connection:
+ *
+ * MEGA_FTP_HOST
+ * MEGA_FTP_PORT
+ * MEGA_FTP_DIRECTORY
+ *
+ */
+define('CRAWL_PAGE_MIME_SNAP_MEGA', 'text/html,application/xhtml+xml,text/plain,image/webp,image/png,image/gif,image/jpeg,image/ico');
 
 /*
  * Renew manifests index by timing offset provided
