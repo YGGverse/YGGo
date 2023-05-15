@@ -211,6 +211,10 @@ GET m=SphinxQL
 
 * [ ] Administrative panel for useful index moderation
 * [ ] Deployment tools
+* [ ] Testing
+* [ ] Release documentation
+  + [ ] Code
+  + [ ] Wiki
 
 #### Contributions
 
