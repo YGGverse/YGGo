@@ -223,7 +223,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
             <?php } ?>
           <?php } ?>
           <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
-            <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
+            <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
             <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . urldecode($hostPage->uri)) ?>
           </a>
         </div>
@@ -244,7 +244,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <?php if ($totalHostPageSnaps) { ?>
             <?php foreach ($db->getHostPageSnaps($hp) as $hostPageSnap) { ?>
               <p>
-                <a href="<?php echo WEBSITE_DOMAIN . '/snap/hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip' ?>">
+                <a href="<?php echo WEBSITE_DOMAIN . '/file.php?type=snap&hps=' . $hostPageSnap->hostPageSnapId ?>">
                   <?php echo date('c', $hostPageSnap->timeAdded) ?>
                 </a>
               </p>
@@ -262,7 +262,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
               <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                 <p>
                   <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
-                    <img src="<?php echo WEBSITE_DOMAIN; ?>/image.php?q=<?php echo urlencode($hostPage->name) ?>" alt="favicon" width="16" height="16" class="icon" />
+                    <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
                     <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
                   </a>
                   |

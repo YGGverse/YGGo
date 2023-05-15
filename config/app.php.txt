@@ -63,6 +63,18 @@ define('WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT', 100);
  */
 define('WEBSITE_IDENTICON_IMAGE_CACHE', true);
 
+/*
+ * Total snap files size allowed to download in bytes in WEBSITE_QUOTA_IP_SNAP_DOWNLOAD_TOTAL_SIZE_TIME_OFFSET period
+ *
+ */
+define('WEBSITE_QUOTA_IP_SNAP_DOWNLOAD_TOTAL_SIZE', 10485760);
+
+/*
+ * Time offset quota when WEBSITE_QUOTA_IP_SNAP_DOWNLOAD_TOTAL_SIZE reached
+ *
+ */
+define('WEBSITE_QUOTA_IP_SNAP_DOWNLOAD_TOTAL_SIZE_TIME_OFFSET', 60*60);
+
 // Database
 define('DB_HOST', '127.0.0.1');
 define('DB_PORT', 3306);

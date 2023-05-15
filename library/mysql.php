@@ -416,13 +416,73 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function getHostPageSnap(int $hostPageId, int $crc32data) {
+  public function getHostPageSnap(int $hostPageSnapId) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND `hostPageId` = ? LIMIT 1');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageSnapId` = ? LIMIT 1');
+
+    $query->execute([$hostPageSnapId]);
+
+    return $query->fetch();
+  }
+
+  public function findHostPageSnap(int $hostPageId, int $crc32data) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND `crc32data` = ? LIMIT 1');
 
     $query->execute([$hostPageId, $crc32data]);
 
     return $query->fetch();
+  }
+
+  /* not in use
+  public function getHostPageSnapDownloads(int $hostPageSnapId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapDownload` WHERE `hostPageSnapId` = ? LIMIT 1');
+
+    $query->execute([$hostPageSnapId]);
+
+    return $query->fetchAll();
+  }
+  */
+
+  public function addHostPageSnapDownload(int $hostPageSnapId, string $crc32ip, int $timeAdded) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostPageSnapDownload` (`hostPageSnapId`,
+                                                                      `crc32ip`,
+                                                                      `timeAdded`) VALUES (?, ?, ?)');
+
+    $query->execute([$hostPageSnapId, $crc32ip, $timeAdded]);
+
+    return $this->_db->lastInsertId();
+  }
+
+  public function updateHostPageSnapDownload(int $hostPageSnapDownloadId, string $storage, int $size) {
+
+    $query = $this->_db->prepare('UPDATE `hostPageSnapDownload` SET `storage` = ?, `size` = ? WHERE `hostPageSnapDownloadId` = ? LIMIT 1');
+
+    $query->execute([$storage, $size, $hostPageSnapDownloadId]);
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostPageSnapDownloads(int $hostPageSnapId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPageSnapDownload` WHERE `hostPageSnapId` = ? LIMIT 1');
+
+    $query->execute([$hostPageSnapId]);
+
+    return $query->rowCount();
+  }
+
+  public function findHostPageSnapDownloadsTotalSize(int $crc32ip, int $timeOffset) {
+
+    $query = $this->_db->prepare('SELECT SUM(`size`) AS `size` FROM `hostPageSnapDownload`
+
+                                                               WHERE `crc32ip` = ? AND `timeAdded` < ?');
+
+    $query->execute([$crc32ip, $timeOffset]);
+
+    return $query->fetch()->size;
   }
 
   // Cleaner tools
@@ -654,6 +714,7 @@ class MySQL {
     $this->_db->query('OPTIMIZE TABLE `hostPage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDescription`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnap`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageSnapDownload`');
     $this->_db->query('OPTIMIZE TABLE `hostPageToHostPage`');
 
     $this->_db->query('OPTIMIZE TABLE `logCleaner`');

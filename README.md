@@ -38,7 +38,7 @@ sphinxsearch
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples are placed at `/config` folder
-* Make sure `/storage/cache`, `/storage/tmp`, `/public/snap` folders writable
+* Make sure `/storage/cache`, `/storage/tmp`, `/storage/snap` folders writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API
@@ -142,7 +142,8 @@ GET m=SphinxQL
 
 ##### Basic features
 
-* [x] Web pages full text ranking search based on Sphinx engine
+* [x] Web pages full text ranking search
+  + [x] Sphinx
 * [x] Unlimited content MIME crawling
 * [x] Flexible settings compatible with IPv4/IPv6 networks
 * [x] Extended search syntax support
@@ -151,6 +152,7 @@ GET m=SphinxQL
   + [x] Remote
     + [x] MEGAcmd/FTP
     + [ ] Yggdrasil over NAT
+  + [x] Privacy-oriented downloads counting, traffic controls
 
 ##### UI
 
@@ -196,6 +198,9 @@ GET m=SphinxQL
 ##### Cleaner
 * [x] Deprecated DB items auto deletion / host settings update
   + [x] Pages
+  + [x] Snaps
+    + [x] Snap downloads
+    + [ ] Not related snap files
   + [x] Manifests
   + [x] Logs
     + [x] Crawler

@@ -50,7 +50,7 @@ class Ftp {
 
   public function get(string $source, string $target) {
 
-    return ftp_get($this->_connection, $source, $target);
+    return ftp_get($this->_connection, $target, $source);
   }
 
   public function mkdir(string $name, bool $recursive = false) {

@@ -93,7 +93,7 @@ try {
 
             if ($snapFileLocalExists) {
 
-              if (unlink('../public/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
+              if (unlink('../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
 
                 $snapFileLocalExists = false;
               }
@@ -113,6 +113,9 @@ try {
             }
 
             if (!$snapFileLocalExists && !$snapFileMegaExists) {
+
+              $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
+
               $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
             }
           }
@@ -146,7 +149,7 @@ try {
 
           if ($snapFileLocalExists) {
 
-            if (unlink('../public/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
+            if (unlink('../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip')) {
 
               $snapFileLocalExists = false;
             }
@@ -166,6 +169,9 @@ try {
           }
 
           if (!$snapFileLocalExists && !$snapFileMegaExists) {
+
+            $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
+
             $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
           }
         }

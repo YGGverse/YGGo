@@ -427,7 +427,7 @@ try {
       $crc32data = crc32($content);
 
       // Create not duplicated data snaps only, even new time
-      if (!$db->getHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
+      if (!$db->findHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
 
         $snapTime = time();
         $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
@@ -462,9 +462,9 @@ try {
                 // Copy tmp snap to the permanent local storage
                 if ($snapLocal) {
 
-                  @mkdir('../public/snap/hp/' . $snapPath, 0755, true);
+                  @mkdir('../storage/snap/hp/' . $snapPath, 0755, true);
 
-                  if (copy($snapTmp, '../public/snap/hp/' . $snapPath . $snapTime . '.zip')) {
+                  if (copy($snapTmp, '../storage/snap/hp/' . $snapPath . $snapTime . '.zip')) {
 
                     // Update snap location info
                     $db->updateHostPageSnapStorageLocal($hostPageSnapId, true);
