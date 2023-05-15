@@ -37,8 +37,8 @@ sphinxsearch
 * The web root dir is `/public`
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
-* Configuration examples are placed at `/config` folder
-* Make sure `/storage/cache`, `/storage/tmp`, `/storage/snap` folders writable
+* Configuration examples presented at `/config` folder
+* Make sure `/storage/cache`, `/storage/tmp`, `/storage/snap` folders are writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API
@@ -71,7 +71,7 @@ GET mode=SphinxQL  - optional, enable extended SphinxQL syntax
 
 ##### Hosts distribution
 
-Returns node hosts collected with fields provided in `API_HOSTS_FIELDS` option.
+Returns hosts collected with fields provided in `API_HOSTS_FIELDS` option.
 
 Could be enabled or disabled by `API_HOSTS_ENABLED` option
 
@@ -83,7 +83,7 @@ GET action=hosts - required
 
 ##### Application manifest
 
-Returns node information.
+Returns node information for other nodes that have same `CRAWL_MANIFEST_API_VERSION` and `CRAWL_URL_REGEXP` conditions.
 
 Could be enabled or disabled by `API_MANIFEST_ENABLED` option
 
@@ -157,13 +157,13 @@ GET m=SphinxQL
 ##### UI
 
 * [x] CSS only, JS-less interface
-* [x] Unique ident icons for sites without favicons
+* [x] Unique host ident icons
 * [x] Content genre tabs (#1)
-* [x] Safe images preview
 * [x] Page index explorer
   + [x] Meta
   + [x] Snaps history
   + [x] Referrers
+* [ ] Safe media preview
 * [ ] Results with found matches highlight
 * [ ] The time machine feature by content snaps history
 
@@ -174,7 +174,6 @@ GET m=SphinxQL
   + [x] Search
   + [x] Hosts
   + [ ] Snaps
-  + [ ] MIME list
 * [ ] Context advertising API
 
 ##### Crawler
