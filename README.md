@@ -200,7 +200,7 @@ GET m=SphinxQL
   + [x] Pages
   + [x] Snaps
     + [x] Snap downloads
-    + [ ] Not related snap files
+    + [ ] Deprecated snap files
   + [x] Manifests
   + [x] Logs
     + [x] Crawler
