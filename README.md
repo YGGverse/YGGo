@@ -200,12 +200,11 @@ GET m=SphinxQL
   + [x] Pages
   + [x] Snaps
     + [x] Snap downloads
-    + [ ] Deprecated snap files
+    + [ ] Missed snap file relations
   + [x] Manifests
   + [x] Logs
     + [x] Crawler
     + [x] Cleaner
-* [x] Deprecated history snaps removing
 * [x] Banned resources reset by timeout
 * [x] Debug log
 
