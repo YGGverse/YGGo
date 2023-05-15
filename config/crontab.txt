@@ -1,6 +1,19 @@
 @reboot searchd
 @reboot indexer --all --rotate
 
+# Required only with MEGAcmd/FTP storage enabled
+#
+# config/app.php.txt
+#
+# CRAWL_PAGE_MIME_SNAP_MEGA
+#
+# MEGA_FTP_HOST
+# MEGA_FTP_PORT
+# MEGA_FTP_DIRECTORY
+#
+# @reboot /usr/bin/mega-cmd-server
+# @reboot /usr/bin/mega-ftp /REMOTE_PATH_TO/yggo/storage/snap
+
 0 * * * * indexer --all --rotate
 
 0 0 * * * cd /YGGo/crontab && php cleaner.php > /dev/null 2>&1
