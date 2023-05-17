@@ -36,7 +36,7 @@ sphinxsearch
 
 * The web root dir is `/public`
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
-* Install [Sphinx Search Server](https://sphinxsearch.com)
+* Install [Sphinx Search Server](https://sphinxsearch.com), [MEGAcmd](https://mega.nz/cmd) (on remote snaps enabled)
 * Configuration examples presented at `/config` folder
 * Make sure `/storage/cache`, `/storage/tmp`, `/storage/snap` folders are writable
 * Set up the `/crontab` scripts by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
