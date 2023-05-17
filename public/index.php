@@ -108,6 +108,12 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         color: #fff;
       }
 
+      footer > a,
+      footer > a:visited,
+      footer > a:active {
+        text-decoration: none;
+      }
+
       /*
        * CSS animation
        * by https://codepen.io/alvarotrigo/pen/GRvYNax
