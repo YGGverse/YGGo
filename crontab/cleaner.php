@@ -253,7 +253,10 @@ try {
   $db->commit();
 
   // Optimize tables
-  $db->optimize();
+  if (CLEAN_DB_TABLES_OPTIMIZATION) {
+
+    $db->optimize();
+  }
 
 } catch(Exception $e) {
 
