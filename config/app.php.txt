@@ -385,9 +385,12 @@ define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
 define('CLEAN_PAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
 
 /*
- * Run database tables optimization
+ * Database tables optimization
  *
- * When enabled - may reduce disk space usage but requires enough of RAM
+ * Reorganizes the physical storage of table data and associated index data,
+ * to reduce storage space and improve I/O efficiency when accessing the tables.
+ *
+ * When enabled - requires enough of RAM
  *
  */
 define('CLEAN_DB_TABLES_OPTIMIZATION', true);
