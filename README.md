@@ -205,6 +205,7 @@ GET m=SphinxQL
     + [x] Crawler
     + [x] Cleaner
 * [x] Banned resources reset by timeout
+* [x] DB tables optimization
 * [x] Debug log
 
 ##### Other
