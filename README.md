@@ -237,4 +237,8 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 
 Please, feel free to share your ideas and bug reports [here](https://github.com/YGGverse/YGGo/issues) or use sources for your own implementations.
 
-Have a good time.
+Have a good time!
+
+#### See also
+
+* [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
