@@ -233,12 +233,12 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 * Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
 * Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 
+#### See also
+
+* [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
+
 #### Feedback
 
 Please, feel free to share your ideas and bug reports [here](https://github.com/YGGverse/YGGo/issues) or use sources for your own implementations.
 
 Have a good time!
-
-#### See also
-
-* [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
