@@ -808,8 +808,9 @@ try {
   // Debug std
   var_dump($e);
 
-  // Ban page that throws the error and stuck the crawl queue
-  if (!empty($queueHostPage->hostPageId)) {
+  // Ban page that throws the data type error and stuck the crawl queue
+  if (!empty($queueHostPage->hostPageId) &&
+      !empty($e->getCode()) && in_array($e->getCode(), [1366])) { // @TODO
 
     $hostPagesBanned = $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
