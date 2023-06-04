@@ -27,7 +27,7 @@ source hostPage : common
            WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `pageDescription` \
     FROM  `hostPage` \
     JOIN  `host` ON (`host`.`hostId` = `hostPage`.`hostId`) \
-    WHERE `host`.`status` = '1' AND `hostPage`.`httpCode` = 200 AND `hostPage`.`timeBanned` IS NULL\
+    WHERE `host`.`status` = '1' AND `hostPage`.`httpCode` = 200 AND `hostPage`.`timeBanned` IS NULL AND `hostPage`.`mime` IS NOT NULL \
 
   sql_attr_uint   = rank
   sql_attr_string = mime
