@@ -189,7 +189,7 @@ GET m=SphinxQL
 * [x] MIME Content-type settings
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
-* [x] Index homepages and shorter URL with higher priority
+* [x] Index homepages and shorter URI with higher priority
 * [ ] Redirect codes extended processing
 * [ ] Palette image index / filter
 * [ ] Crawl queue balancer, that depends of CPU available
