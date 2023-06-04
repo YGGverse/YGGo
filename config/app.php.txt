@@ -135,6 +135,8 @@ define('CRAWL_CURLOPT_USERAGENT', 'YGGo Search Crawler / Bot ( https://github.co
 /*
  * Skip curl download on response data size reached
  *
+ * See also: CURLOPT_TIMEOUT (library/curl.php)
+ *
  */
 define('CRAWL_CURLOPT_PROGRESSFUNCTION_DOWNLOAD_SIZE_LIMIT', 10485760);
 

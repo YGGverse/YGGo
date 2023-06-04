@@ -239,7 +239,7 @@ try {
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
       // Try to receive target page location on page redirect available
-      $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT, 3, true, true);
+      $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT, 10, true, true);
 
       // Update curl stats
       $httpRequestsTotal++;
