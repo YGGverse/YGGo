@@ -607,7 +607,7 @@ class MySQL {
                                           WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
                                                                                                                     AND `hostPage`.`timeBanned` IS NULL
 
-                                          ORDER BY RAND()
+                                          ORDER BY LENGTH(`hostPage`.`uri`) ASC, RAND()
 
                                           LIMIT ' . (int) $limit);
 
