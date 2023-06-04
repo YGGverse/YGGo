@@ -14,6 +14,7 @@ require_once('../config/app.php');
 require_once('../library/curl.php');
 require_once('../library/robots.php');
 require_once('../library/mysql.php');
+require_once('../library/ftp.php');
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
