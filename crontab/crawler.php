@@ -796,13 +796,32 @@ try {
     }
   }
 
+  // Apply changes
   $db->commit();
 
+// Process update errors
 } catch(Exception $e) {
 
+  // Decline DB changes
+  $db->rollBack();
+
+  // Debug std
   var_dump($e);
 
-  $db->rollBack();
+  // Ban page that throws the error and stuck the crawl queue
+  if (!empty($queueHostPage->hostPageId)) {
+
+    $hostPagesBanned = $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+    // Reset counters
+    $hostPagesProcessed    = $hostPagesBanned;
+    $manifestsProcessed    = 0;
+    $hostPagesIndexed      = 0;
+    $manifestsAdded        = 0;
+    $hostPagesAdded        = 0;
+    $hostsAdded            = 0;
+    $hostPagesSnapAdded    = 0;
+  }
 }
 
 // Debug
