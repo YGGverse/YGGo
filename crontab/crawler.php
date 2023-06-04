@@ -424,7 +424,9 @@ try {
     // Skip page processing without returned data
     if (!$content = $curl->getContent()) {
 
-      $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+      // Prevent page ban when it MIME in the whitelist, skip steps below only
+      // This case possible for multimedia/streaming resources index
+      // $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
       continue;
     }
