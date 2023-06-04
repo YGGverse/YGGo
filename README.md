@@ -190,7 +190,7 @@ GET m=SphinxQL
 * [x] Ban non-condition links to prevent extra requests
 * [x] Debug log
 * [x] Index homepages and shorter URI with higher priority
-* [ ] Redirect codes extended processing
+* [x] Collect target location links on page redirect available
 * [ ] Palette image index / filter
 * [ ] Crawl queue balancer, that depends of CPU available
 

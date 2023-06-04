@@ -232,11 +232,147 @@ try {
     // Update page index anyway, with the current time and http code
     $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
 
-    // Skip page processing non 200 code
+    // This page has on 200 code
     if (200 != $curl->getCode()) {
 
+      // Ban this page
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
+      // Try to receive target page location on page redirect available
+      $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT, 3, true, true);
+
+      // Update curl stats
+      $httpRequestsTotal++;
+      $httpRequestsSizeTotal += $curl->getSizeRequest();
+      $httpDownloadSizeTotal += $curl->getSizeDownload();
+      $httpRequestsTimeTotal += $curl->getTotalTime();
+
+      if (200 == $curl->getCode()) {
+
+        if (preg_match('~Location: (.*)~i', $curl->getContent(), $match)) {
+
+          if (empty($match[1])) {
+
+            continue;
+          }
+
+          $url = trim($match[1]);
+
+          //Make relative links absolute
+          if (!parse_url($url, PHP_URL_HOST)) { // @TODO probably, case not in use
+
+            $url = $queueHostPage->scheme . '://' .
+                   $queueHostPage->name .
+                  ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
+                  '/' . trim(ltrim(str_replace(['./', '../'], '', $url), '/'), '.');
+          }
+
+          // Validate formatted link
+          if (filter_var($url, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $url)) {
+
+            // Parse formatted link
+            $hostURL     = Parser::hostURL($url);
+            $hostPageURI = Parser::uri($url);
+
+            // Host exists
+            if ($host = $db->getHost(crc32($hostURL->string))) {
+
+              $hostStatus        = $host->status;
+              $hostNsfw          = $host->nsfw;
+              $hostPageLimit     = $host->crawlPageLimit;
+              $hostMetaOnly      = $host->crawlMetaOnly;
+              $hostId            = $host->hostId;
+              $hostRobots        = $host->robots;
+              $hostRobotsPostfix = $host->robotsPostfix;
+
+            // Register new host
+            } else {
+
+              // Get robots.txt if exists
+              $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+
+              // Update curl stats
+              $httpRequestsTotal++;
+              $httpRequestsSizeTotal += $curl->getSizeRequest();
+              $httpDownloadSizeTotal += $curl->getSizeDownload();
+              $httpRequestsTimeTotal += $curl->getTotalTime();
+
+              if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+                $hostRobots = $curl->getContent();
+              } else {
+                $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
+              }
+
+              $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+              $hostStatus        = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
+              $hostNsfw          = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
+              $hostMetaOnly      = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
+              $hostPageLimit     = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+
+              $hostId = $db->addHost( $hostURL->scheme,
+                                      $hostURL->name,
+                                      $hostURL->port,
+                                      crc32($hostURL->string),
+                                      time(),
+                                      null,
+                                      $hostPageLimit,
+                                      (string) $hostMetaOnly,
+                                      (string) $hostStatus,
+                                      (string) $hostNsfw,
+                                      $hostRobots,
+                                      $hostRobotsPostfix);
+
+              // Add web root host page to make host visible in the crawl queue
+              $db->addHostPage($hostId, crc32('/'), '/', time());
+
+              // Increase counters
+              $hostPagesAdded++;
+              $hostsAdded++;
+
+              // When page is root, skip next operations
+              if ($hostPageURI->string == '/') {
+
+                continue;
+              }
+            }
+
+            // Init robots parser
+            $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+
+            // Save page info
+            if ($hostStatus && // host enabled
+                $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
+                $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
+
+                if ($hostPage = $db->getHostPage($hostId, crc32($hostPageURI->string))) {
+
+                  $hostPageId = $hostPage->hostPageId;
+
+                } else {
+
+                  $hostPageId = $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
+
+                  // Apply referer meta description to the target page before indexing it
+                  if ($lastHostPageDescription = $db->getLastPageDescription($queueHostPage->hostPageId)) {
+
+                      $db->addHostPageDescription($hostPageId,
+                                                  $lastHostPageDescription->title,
+                                                  $lastHostPageDescription->description,
+                                                  $lastHostPageDescription->keywords,
+                                                  $hostMetaOnly ? null : ($lastHostPageDescription->data ? base64_encode($lastHostPageDescription->data) : null),
+                                                  time());
+                  }
+
+                  $hostPagesAdded++;
+                }
+
+                $db->addHostPageToHostPage($queueHostPage->hostPageId, $hostPageId);
+            }
+          }
+        }
+      }
+
+      // Skip other this page actions
       continue;
     }
 
@@ -781,11 +917,7 @@ try {
                                           $link['description'],
                                           $link['keywords'],
                                           $hostMetaOnly ? null : ($link['data'] ? base64_encode($link['data']) : null),
-                                          time(),
-                                          null,
-                                          null,
-                                          null,
-                                          $link['mime']);
+                                          time());
 
               $hostPagesAdded++;
             }

@@ -5,9 +5,23 @@ class Curl {
   private $_connection;
   private $_response;
 
-  public function __construct(string $url, mixed $userAgent = false, int $connectTimeout = 3) {
+  public function __construct(string $url,
+                              mixed $userAgent = false,
+                              int $connectTimeout = 3,
+                              bool $header = false,
+                              bool $followLocation = false,
+                              int $maxRedirects = 3) {
 
     $this->_connection = curl_init($url);
+
+    if ($header) {
+      curl_setopt($this->_connection, CURLOPT_HEADER, true);
+    }
+
+    if ($followLocation) {
+      curl_setopt($this->_connection, CURLOPT_FOLLOWLOCATION, true);
+      curl_setopt($this->_connection, CURLOPT_MAXREDIRS, $maxRedirects);
+    }
 
     curl_setopt($this->_connection, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($this->_connection, CURLOPT_CONNECTTIMEOUT, $connectTimeout);
