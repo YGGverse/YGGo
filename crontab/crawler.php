@@ -35,7 +35,6 @@ $httpRequestsTimeTotal = 0;
 
 $hostPagesProcessed    = 0;
 $manifestsProcessed    = 0;
-$hostPagesIndexed      = 0;
 $manifestsAdded        = 0;
 $hostPagesAdded        = 0;
 $hostsAdded            = 0;
@@ -1031,7 +1030,6 @@ if (CRAWL_LOG_ENABLED) {
   $db->addCrawlerLog(time(),
                      $hostsAdded,
                      $hostPagesProcessed,
-                     $hostPagesIndexed,
                      $hostPagesAdded,
                      $hostPagesSnapAdded,
                      $hostPagesBanned,
@@ -1048,7 +1046,6 @@ if (CRAWL_LOG_ENABLED) {
 echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
-echo 'Pages indexed: ' . $hostPagesIndexed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
 echo 'Pages snaps added: ' . $hostPagesSnapAdded . PHP_EOL;
 echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;

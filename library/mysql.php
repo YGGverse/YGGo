@@ -652,7 +652,6 @@ class MySQL {
   public function addCrawlerLog(int $timeAdded,
                                 int $hostsAdded,
                                 int $hostPagesProcessed,
-                                int $hostPagesIndexed,
                                 int $hostPagesAdded,
                                 int $hostPagesSnapAdded,
                                 int $hostPagesBanned,
@@ -667,7 +666,6 @@ class MySQL {
     $query = $this->_db->prepare('INSERT INTO `logCrawler` (`timeAdded`,
                                                             `hostsAdded`,
                                                             `hostPagesProcessed`,
-                                                            `hostPagesIndexed`,
                                                             `hostPagesAdded`,
                                                             `hostPagesSnapAdded`,
                                                             `hostPagesBanned`,
@@ -677,13 +675,12 @@ class MySQL {
                                                             `httpRequestsSizeTotal`,
                                                             `httpDownloadSizeTotal`,
                                                             `httpRequestsTimeTotal`,
-                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
     $query->execute([
       $timeAdded,
       $hostsAdded,
       $hostPagesProcessed,
-      $hostPagesIndexed,
       $hostPagesAdded,
       $hostPagesSnapAdded,
       $hostPagesBanned,
