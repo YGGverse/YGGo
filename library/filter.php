@@ -80,7 +80,14 @@ class Filter {
   static public function searchQuery(string $query, string $mode = 'default') {
 
     if ($mode == 'default') {
+
+        // Remove SphinxQL special chars
         $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
+
+        // Replace query separators to the MAYBE operator
+        $query = str_replace(['.', ',', ':', ';'], ' ', $query);
+        $query = preg_replace('/[\s]+/', ' ', $query);
+        $query = str_replace(' ', ' MAYBE ', $query);
     }
 
     $query = trim($query);
