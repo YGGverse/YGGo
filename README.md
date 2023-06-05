@@ -98,6 +98,10 @@ GET action=manifest - required
 ##### Default constructions
 
 ```
+search by word prefix (min 2 chars):
+
+yg*
+
 operator OR:
 
 hello | world
