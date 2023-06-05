@@ -35,7 +35,14 @@ source hostPage : common
 
 index hostPage
 {
-  source     = hostPage
-  morphology = stem_enru, stem_cz, stem_ar
-  path       = /var/lib/sphinxsearch/data/hostPage
+  source            = hostPage
+  morphology        = stem_enru, stem_cz, stem_ar
+  path              = /var/lib/sphinxsearch/data/hostPage
+
+  min_word_len      = 2
+  min_prefix_len    = 2
+
+  html_strip        = 1
+
+  index_exact_words = 1
 }
