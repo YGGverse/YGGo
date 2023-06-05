@@ -36,7 +36,7 @@ source hostPage : common
 index hostPage
 {
   source            = hostPage
-  morphology        = stem_enru, stem_cz, stem_ar, lemmatize_de_all # lemmatize_ru_all, lemmatize_en_all
+  morphology        = stem_cz, stem_ar, lemmatize_de_all, lemmatize_ru_all, lemmatize_en_all # stem_enru
   path              = /var/lib/sphinxsearch/data/hostPage
 
   min_word_len      = 2
