@@ -36,7 +36,7 @@ source hostPage : common
 index hostPage
 {
   source            = hostPage
-  morphology        = stem_enru, stem_cz, stem_ar
+  morphology        = stem_enru, stem_cz, stem_ar, lemmatize_de_all # lemmatize_ru_all, lemmatize_en_all
   path              = /var/lib/sphinxsearch/data/hostPage
 
   min_word_len      = 2
@@ -45,4 +45,14 @@ index hostPage
   html_strip        = 1
 
   index_exact_words = 1
+}
+
+indexer
+{
+  mem_limit         = 128M
+  lemmatizer_cache  = 128M
+}
+
+common {
+  lemmatizer_base   = /var/lib/sphinxsearch/dicts # http://sphinxsearch.com/downloads/dicts
 }
