@@ -43,14 +43,24 @@ $hostPagesBanned       = 0;
 $hostPagesSnapAdded    = 0;
 
 // Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
-
-$db->beginTransaction();
-
 try {
 
-  // Process manifests crawl queue
-  foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFEST_SECONDS_OFFSET) as $queueManifest) {
+  $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+} catch(Exception $e) {
+
+  // Debug std
+  var_dump($e);
+
+  exit;
+}
+
+// Process manifests crawl queue
+foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFEST_SECONDS_OFFSET) as $queueManifest) {
+
+  $db->beginTransaction();
+
+  try {
 
     $curl = new Curl($queueManifest->url, CRAWL_CURLOPT_USERAGENT);
 
@@ -66,17 +76,23 @@ try {
     // Skip processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $db->commit();
+
       continue;
     }
 
     // Skip processing without returned data
     if (!$remoteManifest = $curl->getContent()) {
 
+      $db->commit();
+
       continue;
     }
 
     // Skip processing on json encoding error
     if (!$remoteManifest = @json_decode($remoteManifest)) {
+
+      $db->commit();
 
       continue;
     }
@@ -87,11 +103,15 @@ try {
         empty($remoteManifest->result->api->version) ||
         empty($remoteManifest->result->api->hosts)) {
 
-      continue;
+        $db->commit();
+
+        continue;
     }
 
     // Skip processing on API version not compatible
     if ($remoteManifest->result->api->version !== CRAWL_MANIFEST_API_VERSION) {
+
+      $db->commit();
 
       continue;
     }
@@ -99,17 +119,23 @@ try {
     // Skip processing on host API not available
     if (!$remoteManifest->result->api->hosts) {
 
+      $db->commit();
+
       continue;
     }
 
     // Skip processing on crawlUrlRegexp does not match CRAWL_URL_REGEXP condition
     if ($remoteManifest->result->config->crawlUrlRegexp !== CRAWL_URL_REGEXP) {
 
+      $db->commit();
+
       continue;
     }
 
     // Skip processing on host link does not match condition
     if (false === preg_match(CRAWL_URL_REGEXP, $remoteManifest->result->api->hosts)) {
+
+      $db->commit();
 
       continue;
     }
@@ -126,11 +152,15 @@ try {
     // Skip processing non 200 code
     if (200 != $curl->getCode()) {
 
+      $db->commit();
+
       continue;
     }
 
     // Skip processing without returned data
     if (!$remoteManifestHosts = $curl->getContent()) {
+
+      $db->commit();
 
       continue;
     }
@@ -138,12 +168,16 @@ try {
     // Skip processing on json encoding error
     if (!$remoteManifestHosts = @json_decode($remoteManifestHosts)) {
 
+      $db->commit();
+
       continue;
     }
 
     // Skip processing on required fields missed
     if (empty($remoteManifestHosts->status) ||
         empty($remoteManifestHosts->result)) {
+
+      $db->commit();
 
       continue;
     }
@@ -159,7 +193,7 @@ try {
       }
 
       $hostURL = $remoteManifestHost->scheme . '://' .
-                 $remoteManifestHost->name .
+                  $remoteManifestHost->name .
                 (!empty($remoteManifestHost->port) ? ':' . $remoteManifestHost->port : false);
 
       // Validate formatted link
@@ -212,10 +246,29 @@ try {
         }
       }
     }
-  }
 
-  // Process pages crawl queue
-  foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
+    // Apply changes
+    $db->commit();
+
+  // Process update errors
+  } catch (Exception $e) {
+
+    // Debug std
+    var_dump($e);
+
+    // Skip item
+    $db->rollBack();
+
+    continue;
+  }
+}
+
+// Process pages crawl queue
+foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
+
+  $db->beginTransaction();
+
+  try {
 
     // Build URL from the DB
     $queueHostPageURL = $queueHostPage->scheme . '://' . $queueHostPage->name . ($queueHostPage->port ? ':' . $queueHostPage->port : false) . $queueHostPage->uri;
@@ -253,6 +306,8 @@ try {
 
           if (empty($match[1])) {
 
+            $db->commit();
+
             continue;
           }
 
@@ -262,7 +317,7 @@ try {
           if (!parse_url($url, PHP_URL_HOST)) { // @TODO probably, case not in use
 
             $url = $queueHostPage->scheme . '://' .
-                   $queueHostPage->name .
+                  $queueHostPage->name .
                   ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
                   '/' . trim(ltrim(str_replace(['./', '../'], '', $url), '/'), '.');
           }
@@ -332,6 +387,8 @@ try {
               // When page is root, skip next operations
               if ($hostPageURI->string == '/') {
 
+                $db->commit();
+
                 continue;
               }
             }
@@ -373,6 +430,8 @@ try {
       }
 
       // Skip other this page actions
+      $db->commit();
+
       continue;
     }
 
@@ -385,6 +444,8 @@ try {
     } else {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+      $db->commit();
 
       continue;
     }
@@ -418,6 +479,8 @@ try {
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
+      $db->commit();
+
       continue;
     }
 
@@ -427,6 +490,8 @@ try {
       // Prevent page ban when it MIME in the whitelist, skip steps below only
       // This case possible for multimedia/streaming resources index
       // $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+      $db->commit();
 
       continue;
     }
@@ -452,6 +517,8 @@ try {
       if ($title->length == 0) {
 
         $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+        $db->commit();
 
         continue;
 
@@ -514,12 +581,12 @@ try {
       $yggoManifestCRC32 = crc32($yggoManifest);
 
       if (!$db->getManifest($yggoManifestCRC32)) {
-           $db->addManifest($yggoManifestCRC32,
+          $db->addManifest($yggoManifestCRC32,
                             $yggoManifest,
                             (string) CRAWL_MANIFEST_DEFAULT_STATUS,
                             time());
 
-           $manifestsAdded++;
+          $manifestsAdded++;
       }
     }
 
@@ -571,7 +638,7 @@ try {
         $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
 
         $snapTmp  = '../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
-             @mkdir('../storage/tmp/snap/hp/' . $snapPath, 0755, true);
+            @mkdir('../storage/tmp/snap/hp/' . $snapPath, 0755, true);
 
         // Create new ZIP container
         $zip = new ZipArchive();
@@ -581,10 +648,10 @@ try {
           // Insert compressed snap data into the tmp storage
           if (true === $zip->addFromString('DATA', $content) &&
               true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $snapTime) . PHP_EOL .
-                                                   sprintf('CRC32: %s',     $crc32data . PHP_EOL .
-                                                   sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
-                                                   sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
-                                                   sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
+                                                  sprintf('CRC32: %s',     $crc32data . PHP_EOL .
+                                                  sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
+                                                  sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
+                                                  sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
 
             // Done
             $zip->close();
@@ -656,7 +723,7 @@ try {
       }
 
       if (!$title = @$img->getAttribute('title')) {
-           $title = null;
+          $title = null;
       }
 
       // Skip encoded content
@@ -718,7 +785,7 @@ try {
 
       // Skip media without type attribute
       if (!$type = @$video->getAttribute('type')) {
-           $type = 'video/*';
+          $type = 'video/*';
       }
 
       // Skip encoded content
@@ -748,7 +815,7 @@ try {
 
       // Skip media without type attribute
       if (!$type = @$audio->getAttribute('type')) {
-           $type = 'audio/*';
+          $type = 'audio/*';
       }
 
       // Skip encoded content
@@ -779,7 +846,7 @@ try {
 
       // Get title attribute if available
       if (!$title = @$a->getAttribute('title')) {
-           $title = null;
+          $title = null;
       }
 
       // Skip anchor links
@@ -824,7 +891,7 @@ try {
       if (!parse_url($link['ref'], PHP_URL_HOST)) {
 
         $link['ref'] = $queueHostPage->scheme . '://' .
-                       $queueHostPage->name .
+                      $queueHostPage->name .
                       ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
                       '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
       }
@@ -928,35 +995,30 @@ try {
         }
       }
     }
-  }
 
-  // Apply changes
-  $db->commit();
+    // Apply changes
+    $db->commit();
 
-// Process update errors
-} catch(Exception $e) {
+  // Process update errors
+  } catch (Exception $e) {
 
-  // Decline DB changes
-  $db->rollBack();
+    // Debug std
+    var_dump($e);
 
-  // Debug std
-  var_dump($e);
+    // Ban page that throws the data type error and stuck the crawl queue
+    if (!empty($queueHostPage->hostPageId) &&
+        !empty($e->errorInfo[0]) && in_array($e->errorInfo[0], ['HY000']) &&
+        !empty($e->errorInfo[1]) && in_array($e->errorInfo[1], [1366])) { // @TODO
 
-  // Ban page that throws the data type error and stuck the crawl queue
-  if (!empty($queueHostPage->hostPageId) &&
-      !empty($e->errorInfo[0]) && in_array($e->errorInfo[0], ['HY000']) &&
-      !empty($e->errorInfo[1]) && in_array($e->errorInfo[1], [1366])) { // @TODO
+      $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
-    $hostPagesBanned = $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+      $hostPagesProcessed++;
+    }
 
-    // Reset counters
-    $hostPagesProcessed    = $hostPagesBanned;
-    $manifestsProcessed    = 0;
-    $hostPagesIndexed      = 0;
-    $manifestsAdded        = 0;
-    $hostPagesAdded        = 0;
-    $hostsAdded            = 0;
-    $hostPagesSnapAdded    = 0;
+    // Skip item
+    $db->rollBack();
+
+    continue;
   }
 }
 
