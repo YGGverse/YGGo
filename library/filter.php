@@ -85,9 +85,10 @@ class Filter {
         $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
 
         // Replace query separators to the MAYBE operator
-        $query = str_replace(['.', ',', ':', ';'], ' ', $query);
-        $query = preg_replace('/[\s]+/', ' ', $query);
-        $query = str_replace(' ', ' MAYBE ', $query);
+        $query = str_ireplace(['MAYBE'], ['__MAYBE__'], $query);
+        $query = preg_replace('/[\W\s]+/ui', '__SEPARATOR__', $query);
+        $query = trim($query, '__SEPARATOR__');
+        $query = str_ireplace(['__SEPARATOR__', '__MAYBE__'], [' MAYBE ', ' \MAYBE '], $query);
     }
 
     $query = trim($query);
