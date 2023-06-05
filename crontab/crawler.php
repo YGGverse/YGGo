@@ -944,7 +944,8 @@ try {
 
   // Ban page that throws the data type error and stuck the crawl queue
   if (!empty($queueHostPage->hostPageId) &&
-      !empty($e->getCode()) && in_array($e->getCode(), [1366])) { // @TODO
+      !empty($e->errorInfo[0]) && in_array($e->errorInfo[0], ['HY000']) &&
+      !empty($e->errorInfo[1]) && in_array($e->errorInfo[1], [1366])) { // @TODO
 
     $hostPagesBanned = $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
