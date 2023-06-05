@@ -114,6 +114,14 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         text-decoration: none;
       }
 
+      footer > span:first-child {
+        color: #ff0;
+      }
+
+      footer > span:last-child {
+        color: #3394fb;
+      }
+
       /*
        * CSS animation
        * by https://codepen.io/alvarotrigo/pen/GRvYNax
@@ -267,7 +275,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
            please, make a small donation to the project contributors:
            https://github.com/YGGverse/YGGo#donate-to-contributors
       -->
-      <a href="https://github.com/YGGverse/YGGo/issues"><?php echo _('meow') ?></a>
+      <span>^</span><a href="https://github.com/YGGverse/YGGo/issues"><?php echo _('meow') ?></a><span>^</span>
     </footer>
   </body>
 </html>
