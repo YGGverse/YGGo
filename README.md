@@ -98,7 +98,7 @@ GET action=manifest - required
 ##### Default constructions
 
 ```
-search by word prefix (min 2 chars):
+word prefix (min 2 chars):
 
 yg*
 
