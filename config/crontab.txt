@@ -14,7 +14,7 @@
 # @reboot /usr/bin/mega-cmd-server
 # @reboot /usr/bin/mega-ftp /REMOTE_PATH_TO/yggo/storage/snap
 
-0 * * * * indexer --all --rotate
+5 0 * * * indexer --all --rotate
 
-0 0 * * * cd /YGGo/crontab && php cleaner.php > /dev/null 2>&1
-* * * * * cd /YGGo/crontab && php crawler.php > /dev/null 2>&1
+0 1 * * * cd /YGGo/crontab && php cleaner.php > /dev/null 2>&1
+* 2-23 * * * cd /YGGo/crontab && php crawler.php > /dev/null 2>&1
