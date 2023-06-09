@@ -247,5 +247,3 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 Please, feel free to share your ideas and bug reports [here](https://github.com/YGGverse/YGGo/issues) or use sources for your own implementations.
 
 Have a good time!
-
-https://www.youtube.com/watch?v=owmGwDsOzm8
