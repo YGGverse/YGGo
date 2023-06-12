@@ -456,11 +456,11 @@ class MySQL {
     return $this->_db->lastInsertId();
   }
 
-  public function updateHostPageSnapDownload(int $hostPageSnapDownloadId, string $storage, int $size) {
+  public function updateHostPageSnapDownload(int $hostPageSnapDownloadId, string $storage, int $size, mixed $httpCode = NULL) {
 
-    $query = $this->_db->prepare('UPDATE `hostPageSnapDownload` SET `storage` = ?, `size` = ? WHERE `hostPageSnapDownloadId` = ? LIMIT 1');
+    $query = $this->_db->prepare('UPDATE `hostPageSnapDownload` SET `storage` = ?, `size` = ?, `httpCode` = ? WHERE `hostPageSnapDownloadId` = ? LIMIT 1');
 
-    $query->execute([$storage, $size, $hostPageSnapDownloadId]);
+    $query->execute([$storage, $size, $httpCode, $hostPageSnapDownloadId]);
 
     return $query->rowCount();
   }

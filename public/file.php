@@ -78,7 +78,7 @@ switch ($type) {
 
         $snapSize = (int) @filesize('../storage/snap/' . $snapFile);
 
-        $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'local', $snapSize);
+        $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'local', $snapSize, 200);
 
         header('Content-Type: application/zip');
         header(sprintf('Content-Length: %s', $snapSize));
@@ -96,7 +96,7 @@ switch ($type) {
 
           if ($snapSize = $ftp->size($snapFile)) {
 
-            $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize);
+            $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize, 200);
 
             header('Content-Type: application/zip');
             header(sprintf('Content-Length: %s', $snapSize));
@@ -108,7 +108,7 @@ switch ($type) {
 
           } else {
 
-            $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize);
+            $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize, 404);
 
             header('HTTP/1.0 404 Not Found');
 
@@ -117,7 +117,7 @@ switch ($type) {
 
         } else {
 
-          $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize);
+          $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize, 404);
 
           header('HTTP/1.0 404 Not Found');
 
@@ -127,7 +127,7 @@ switch ($type) {
       // Return 404 when file not found
       } else {
 
-        $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'other', $snapSize);
+        $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'other', $snapSize, 404);
 
         header('HTTP/1.0 404 Not Found');
 
