@@ -496,7 +496,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       // Parse content
       $dom = new DomDocument();
 
-      @$dom->loadHTML($content);
+      @$dom->loadHTML(sprintf('<?xml encoding="%s" ?>', mb_detect_encoding($content)) . $content);
 
       // Skip index page links without titles
       $title = @$dom->getElementsByTagName('title');
