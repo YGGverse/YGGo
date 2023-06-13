@@ -59,7 +59,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       }
 
       main {
-        margin-top: 110px;
+        margin-top: 80px;
         margin-bottom: 76px;
         padding: 0 20px;
       }
@@ -202,9 +202,6 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
         <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="" />
-        <?php foreach ($sphinx->getHostPagesMime() as $mime) { ?>
-          <label><input type="radio" name="t" value="<?php echo $mime->mime ?>" /><?php echo $mime->mime ?></label>
-        <?php } ?>
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
     </header>
