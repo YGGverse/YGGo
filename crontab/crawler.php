@@ -449,24 +449,20 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       continue;
     }
 
-    // Parse index MIME
-    $hostPageIsDom  = false;
+    // Parse MIME
+    $hostPageIsHtml = false;
     $hostPageInMime = false;
 
     foreach ((array) explode(',', CRAWL_PAGE_MIME_INDEX) as $mime) {
 
-      $mime = Filter::mime($mime);
-
-      // Check for DOM
-      if (false !== stripos('text/html', $mime)) {
-
-        $hostPageIsDom  = true;
-        $hostPageInMime = true;
-        break;
-      }
-
       // Ban page on MIME type not allowed in settings
-      if (false !== stripos(Filter::mime($contentType), $mime)) {
+      if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
+
+        // Check for HTML page
+        if (false !== stripos(Filter::mime($contentType), 'text/html')) {
+
+          $hostPageIsHtml  = true;
+        }
 
         $hostPageInMime = true;
         break;
@@ -503,7 +499,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $yggoManifest = null;
 
     // Is DOM content
-    if ($hostPageIsDom) {
+    if ($hostPageIsHtml) {
 
       // Parse content
       $dom = new DomDocument();
@@ -598,10 +594,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
       foreach ((array) explode(',', CRAWL_PAGE_MIME_SNAP_LOCAL) as $mime) {
 
-        $mime = Filter::mime($mime);
-
         // MIME type allowed in settings
-        if (false !== stripos(Filter::mime($contentType), $mime)) {
+        if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
 
           $snapLocal = true;
           break;
@@ -614,10 +608,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
       foreach ((array) explode(',', CRAWL_PAGE_MIME_SNAP_MEGA) as $mime) {
 
-        $mime = Filter::mime($mime);
-
         // MIME type allowed in settings
-        if (false !== stripos(Filter::mime($contentType), $mime)) {
+        if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
 
           $snapMega = true;
           break;
@@ -647,10 +639,10 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           // Insert compressed snap data into the tmp storage
           if (true === $zip->addFromString('DATA', $content) &&
               true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $snapTime) . PHP_EOL .
-                                                  sprintf('CRC32: %s',     $crc32data . PHP_EOL .
-                                                  sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
-                                                  sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
-                                                  sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
+                                                   sprintf('CRC32: %s',     $crc32data . PHP_EOL .
+                                                   sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
+                                                   sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
+                                                   sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
 
             // Done
             $zip->close();
