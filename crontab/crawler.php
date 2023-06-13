@@ -449,20 +449,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       continue;
     }
 
-    // Parse MIME
-    $hostPageIsHtml = false;
+    // Check for MIME
     $hostPageInMime = false;
-
     foreach ((array) explode(',', CRAWL_PAGE_MIME_INDEX) as $mime) {
 
       // Ban page on MIME type not allowed in settings
       if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
-
-        // Check for HTML page
-        if (false !== stripos(Filter::mime($contentType), 'text/html')) {
-
-          $hostPageIsHtml  = true;
-        }
 
         $hostPageInMime = true;
         break;
@@ -498,8 +490,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $robots       = null;
     $yggoManifest = null;
 
-    // Is DOM content
-    if ($hostPageIsHtml) {
+    // Is HTML document
+    if (false !== stripos(Filter::mime($contentType), 'text/html')) {
 
       // Parse content
       $dom = new DomDocument();
@@ -557,6 +549,306 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           $yggoManifest = Filter::url(@$meta->getAttribute('content'));
         }
       }
+
+      // Begin page links collection
+      $links = [];
+
+      // Collect image links
+      foreach (@$dom->getElementsByTagName('img') as $img) {
+
+        // Skip images without src attribute
+        if (!$src = @$img->getAttribute('src')) {
+
+          continue;
+        }
+
+        // Skip images without alt attribute
+        if (!$alt = @$img->getAttribute('alt')) {
+
+          continue;
+        }
+
+        if (!$title = @$img->getAttribute('title')) {
+            $title = null;
+        }
+
+        // Skip encoded content
+        if (false !== stripos($src, 'data:')) {
+
+          continue;
+        }
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => Filter::pageKeywords($alt . ($title ? ',' . $title : '')),
+          'data'        => null,
+          'mime'        => null,
+          'ref'         => $src,
+        ];
+      }
+
+      // Collect media links
+      foreach (@$dom->getElementsByTagName('source') as $source) {
+
+        // Skip images without src attribute
+        if (!$src = @$source->getAttribute('src')) {
+
+          continue;
+        }
+
+        // Skip media without type attribute
+        if (!$type = @$source->getAttribute('type')) {
+
+          continue;
+        }
+
+        // Skip encoded content
+        if (false !== stripos($src, 'data:')) {
+
+          continue;
+        }
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => null,
+          'data'        => null,
+          'mime'        => Filter::mime($type),
+          'ref'         => $src,
+        ];
+      }
+
+      foreach (@$dom->getElementsByTagName('video') as $video) {
+
+        // Skip images without src attribute
+        if (!$src = @$video->getAttribute('src')) {
+
+          continue;
+        }
+
+        // Skip media without type attribute
+        if (!$type = @$video->getAttribute('type')) {
+            $type = 'video/*';
+        }
+
+        // Skip encoded content
+        if (false !== stripos($src, 'data:')) {
+
+          continue;
+        }
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => null,
+          'data'        => null,
+          'mime'        => Filter::mime($type),
+          'ref'         => $src,
+        ];
+      }
+
+      foreach (@$dom->getElementsByTagName('audio') as $audio) {
+
+        // Skip images without src attribute
+        if (!$src = @$audio->getAttribute('src')) {
+
+          continue;
+        }
+
+        // Skip media without type attribute
+        if (!$type = @$audio->getAttribute('type')) {
+            $type = 'audio/*';
+        }
+
+        // Skip encoded content
+        if (false !== stripos($src, 'data:')) {
+
+          continue;
+        }
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => null,
+          'data'        => null,
+          'mime'        => Filter::mime($type),
+          'ref'         => $src,
+        ];
+      }
+
+      // Collect internal links from page content
+      foreach(@$dom->getElementsByTagName('a') as $a) {
+
+        // Skip links without required attribute
+        if (!$href = @$a->getAttribute('href')) {
+
+          continue;
+        }
+
+        // Get title attribute if available
+        if (!$title = @$a->getAttribute('title')) {
+            $title = null;
+        }
+
+        // Skip anchor links
+        if (false !== stripos($href, '#')) {
+
+          continue;
+        }
+
+        // Skip javascript links
+        if (false !== stripos($href, 'javascript:')) {
+
+          continue;
+        }
+
+        // Skip mailto links
+        if (false !== stripos($href, 'mailto:')) {
+
+          continue;
+        }
+
+        // Skip magnet links
+        if (false !== stripos($href, 'magnet:')) {
+
+          continue;
+        }
+
+        // Skip x-raw-image links
+        /*
+        if (false !== stripos($href, 'x-raw-image:')) {
+
+          continue;
+        }
+        */
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => Filter::pageKeywords($title),
+          'data'        => null,
+          'mime'        => null,
+          'ref'         => $href,
+        ];
+      }
+
+      // Process links collected
+      foreach ($links as $link) {
+
+        //Make relative links absolute
+        if (!parse_url($link['ref'], PHP_URL_HOST)) {
+
+          $link['ref'] = $queueHostPage->scheme . '://' .
+                         $queueHostPage->name .
+                        ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
+                        '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
+        }
+
+        // Validate formatted link
+        if (filter_var($link['ref'], FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link['ref'])) {
+
+          // Parse formatted link
+          $hostURL     = Parser::hostURL($link['ref']);
+          $hostPageURI = Parser::uri($link['ref']);
+
+          // Host exists
+          if ($host = $db->getHost(crc32($hostURL->string))) {
+
+            $hostStatus        = $host->status;
+            $hostNsfw          = $host->nsfw;
+            $hostPageLimit     = $host->crawlPageLimit;
+            $hostMetaOnly      = $host->crawlMetaOnly;
+            $hostId            = $host->hostId;
+            $hostRobots        = $host->robots;
+            $hostRobotsPostfix = $host->robotsPostfix;
+
+          // Register new host
+          } else {
+
+            // Get robots.txt if exists
+            $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+
+            // Update curl stats
+            $httpRequestsTotal++;
+            $httpRequestsSizeTotal += $curl->getSizeRequest();
+            $httpDownloadSizeTotal += $curl->getSizeDownload();
+            $httpRequestsTimeTotal += $curl->getTotalTime();
+
+            if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+              $hostRobots = $curl->getContent();
+            } else {
+              $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
+            }
+
+            $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+            $hostStatus        = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
+            $hostNsfw          = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
+            $hostMetaOnly      = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
+            $hostPageLimit     = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+
+            $hostId = $db->addHost( $hostURL->scheme,
+                                    $hostURL->name,
+                                    $hostURL->port,
+                                    crc32($hostURL->string),
+                                    time(),
+                                    null,
+                                    $hostPageLimit,
+                                    (string) $hostMetaOnly,
+                                    (string) $hostStatus,
+                                    (string) $hostNsfw,
+                                    $hostRobots,
+                                    $hostRobotsPostfix);
+
+            // Add web root host page to make host visible in the crawl queue
+            $db->addHostPage($hostId, crc32('/'), '/', time());
+
+            // Increase counters
+            $hostPagesAdded++;
+            $hostsAdded++;
+
+            // When page is root, skip next operations
+            if ($hostPageURI->string == '/') {
+
+              continue;
+            }
+          }
+
+          // Init robots parser
+          $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+
+          // Save page info
+          if ($hostStatus && // host enabled
+              $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
+              $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
+
+              if ($hostPage = $db->getHostPage($hostId, crc32($hostPageURI->string))) {
+
+                $hostPageId = $hostPage->hostPageId;
+
+              } else {
+
+                $hostPageId = $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
+
+                $db->addHostPageDescription($hostPageId,
+                                            $link['title'],
+                                            $link['description'],
+                                            $link['keywords'],
+                                            $hostMetaOnly ? null : ($link['data'] ? base64_encode($link['data']) : null),
+                                            time());
+
+                $hostPagesAdded++;
+              }
+
+              $db->addHostPageToHostPage($queueHostPage->hostPageId, $hostPageId);
+          }
+        }
+      }
     }
 
     // Add queued page description if not exists
@@ -576,7 +868,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       $yggoManifestCRC32 = crc32($yggoManifest);
 
       if (!$db->getManifest($yggoManifestCRC32)) {
-          $db->addManifest($yggoManifestCRC32,
+           $db->addManifest($yggoManifestCRC32,
                             $yggoManifest,
                             (string) CRAWL_MANIFEST_DEFAULT_STATUS,
                             time());
@@ -692,306 +984,6 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
         // Remove tmp
         @unlink($snapTmp);
-      }
-    }
-
-    // Begin page links collection
-    $links = [];
-
-    // Collect image links
-    foreach (@$dom->getElementsByTagName('img') as $img) {
-
-      // Skip images without src attribute
-      if (!$src = @$img->getAttribute('src')) {
-
-        continue;
-      }
-
-      // Skip images without alt attribute
-      if (!$alt = @$img->getAttribute('alt')) {
-
-        continue;
-      }
-
-      if (!$title = @$img->getAttribute('title')) {
-          $title = null;
-      }
-
-      // Skip encoded content
-      if (false !== stripos($src, 'data:')) {
-
-        continue;
-      }
-
-      // Add link to queue
-      $links[] = [
-        'title'       => null,
-        'description' => null,
-        'keywords'    => Filter::pageKeywords($alt . ($title ? ',' . $title : '')),
-        'data'        => null,
-        'mime'        => null,
-        'ref'         => $src,
-      ];
-    }
-
-    // Collect media links
-    foreach (@$dom->getElementsByTagName('source') as $source) {
-
-      // Skip images without src attribute
-      if (!$src = @$source->getAttribute('src')) {
-
-        continue;
-      }
-
-      // Skip media without type attribute
-      if (!$type = @$source->getAttribute('type')) {
-
-        continue;
-      }
-
-      // Skip encoded content
-      if (false !== stripos($src, 'data:')) {
-
-        continue;
-      }
-
-      // Add link to queue
-      $links[] = [
-        'title'       => null,
-        'description' => null,
-        'keywords'    => null,
-        'data'        => null,
-        'mime'        => Filter::mime($type),
-        'ref'         => $src,
-      ];
-    }
-
-    foreach (@$dom->getElementsByTagName('video') as $video) {
-
-      // Skip images without src attribute
-      if (!$src = @$video->getAttribute('src')) {
-
-        continue;
-      }
-
-      // Skip media without type attribute
-      if (!$type = @$video->getAttribute('type')) {
-          $type = 'video/*';
-      }
-
-      // Skip encoded content
-      if (false !== stripos($src, 'data:')) {
-
-        continue;
-      }
-
-      // Add link to queue
-      $links[] = [
-        'title'       => null,
-        'description' => null,
-        'keywords'    => null,
-        'data'        => null,
-        'mime'        => Filter::mime($type),
-        'ref'         => $src,
-      ];
-    }
-
-    foreach (@$dom->getElementsByTagName('audio') as $audio) {
-
-      // Skip images without src attribute
-      if (!$src = @$audio->getAttribute('src')) {
-
-        continue;
-      }
-
-      // Skip media without type attribute
-      if (!$type = @$audio->getAttribute('type')) {
-          $type = 'audio/*';
-      }
-
-      // Skip encoded content
-      if (false !== stripos($src, 'data:')) {
-
-        continue;
-      }
-
-      // Add link to queue
-      $links[] = [
-        'title'       => null,
-        'description' => null,
-        'keywords'    => null,
-        'data'        => null,
-        'mime'        => Filter::mime($type),
-        'ref'         => $src,
-      ];
-    }
-
-    // Collect internal links from page content
-    foreach(@$dom->getElementsByTagName('a') as $a) {
-
-      // Skip links without required attribute
-      if (!$href = @$a->getAttribute('href')) {
-
-        continue;
-      }
-
-      // Get title attribute if available
-      if (!$title = @$a->getAttribute('title')) {
-          $title = null;
-      }
-
-      // Skip anchor links
-      if (false !== stripos($href, '#')) {
-
-        continue;
-      }
-
-      // Skip javascript links
-      if (false !== stripos($href, 'javascript:')) {
-
-        continue;
-      }
-
-      // Skip mailto links
-      if (false !== stripos($href, 'mailto:')) {
-
-        continue;
-      }
-
-      // Skip magnet links
-      if (false !== stripos($href, 'magnet:')) {
-
-        continue;
-      }
-
-      // Skip x-raw-image links
-      /*
-      if (false !== stripos($href, 'x-raw-image:')) {
-
-        continue;
-      }
-      */
-
-      // Add link to queue
-      $links[] = [
-        'title'       => null,
-        'description' => null,
-        'keywords'    => Filter::pageKeywords($title),
-        'data'        => null,
-        'mime'        => null,
-        'ref'         => $href,
-      ];
-    }
-
-    // Process links collected
-    foreach ($links as $link) {
-
-      //Make relative links absolute
-      if (!parse_url($link['ref'], PHP_URL_HOST)) {
-
-        $link['ref'] = $queueHostPage->scheme . '://' .
-                      $queueHostPage->name .
-                      ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
-                      '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
-      }
-
-      // Validate formatted link
-      if (filter_var($link['ref'], FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link['ref'])) {
-
-        // Parse formatted link
-        $hostURL     = Parser::hostURL($link['ref']);
-        $hostPageURI = Parser::uri($link['ref']);
-
-        // Host exists
-        if ($host = $db->getHost(crc32($hostURL->string))) {
-
-          $hostStatus        = $host->status;
-          $hostNsfw          = $host->nsfw;
-          $hostPageLimit     = $host->crawlPageLimit;
-          $hostMetaOnly      = $host->crawlMetaOnly;
-          $hostId            = $host->hostId;
-          $hostRobots        = $host->robots;
-          $hostRobotsPostfix = $host->robotsPostfix;
-
-        // Register new host
-        } else {
-
-          // Get robots.txt if exists
-          $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-          // Update curl stats
-          $httpRequestsTotal++;
-          $httpRequestsSizeTotal += $curl->getSizeRequest();
-          $httpDownloadSizeTotal += $curl->getSizeDownload();
-          $httpRequestsTimeTotal += $curl->getTotalTime();
-
-          if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-            $hostRobots = $curl->getContent();
-          } else {
-            $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
-          }
-
-          $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-          $hostStatus        = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
-          $hostNsfw          = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
-          $hostMetaOnly      = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
-          $hostPageLimit     = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-
-          $hostId = $db->addHost( $hostURL->scheme,
-                                  $hostURL->name,
-                                  $hostURL->port,
-                                  crc32($hostURL->string),
-                                  time(),
-                                  null,
-                                  $hostPageLimit,
-                                  (string) $hostMetaOnly,
-                                  (string) $hostStatus,
-                                  (string) $hostNsfw,
-                                  $hostRobots,
-                                  $hostRobotsPostfix);
-
-          // Add web root host page to make host visible in the crawl queue
-          $db->addHostPage($hostId, crc32('/'), '/', time());
-
-          // Increase counters
-          $hostPagesAdded++;
-          $hostsAdded++;
-
-          // When page is root, skip next operations
-          if ($hostPageURI->string == '/') {
-
-            continue;
-          }
-        }
-
-        // Init robots parser
-        $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
-
-        // Save page info
-        if ($hostStatus && // host enabled
-            $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
-            $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
-
-            if ($hostPage = $db->getHostPage($hostId, crc32($hostPageURI->string))) {
-
-              $hostPageId = $hostPage->hostPageId;
-
-            } else {
-
-              $hostPageId = $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
-
-              $db->addHostPageDescription($hostPageId,
-                                          $link['title'],
-                                          $link['description'],
-                                          $link['keywords'],
-                                          $hostMetaOnly ? null : ($link['data'] ? base64_encode($link['data']) : null),
-                                          time());
-
-              $hostPagesAdded++;
-            }
-
-            $db->addHostPageToHostPage($queueHostPage->hostPageId, $hostPageId);
-        }
       }
     }
 
