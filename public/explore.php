@@ -228,18 +228,19 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           </a>
         </div>
         <div>
-        <p><?php echo _('MIME') ?></p>
+          <p><?php echo $hostPage->mime ? _('MIME') : false ?></p>
           <p><?php echo $hostPage->mime ?></p>
-          <p><?php echo _('Time added') ?></p>
+          <p><?php echo $hostPage->size ? _('Size') : false ?></p>
+          <p><?php echo $hostPage->size ?></p>
+          <p><?php echo $hostPage->timeAdded ? _('Time added') : false ?></p>
           <p><?php echo date('c', $hostPage->timeAdded) ?></p>
-          <p><?php echo _('Time updated') ?></p>
+          <p><?php echo $hostPage->timeUpdated ? _('Time updated') : false ?></p>
           <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
           <?php $totalHostPageSnaps = $db->getTotalHostPageSnaps($hp); ?>
           <p>
-            <?php echo Filter::plural($totalHostPageSnaps, [sprintf(_('%s snap'),  $totalHostPageSnaps),
-                                                            sprintf(_('%s snaps'), $totalHostPageSnaps),
-                                                            sprintf(_('%s snaps'), $totalHostPageSnaps),
-                                                          ]) ?>
+            <?php echo $totalHostPageSnaps ? Filter::plural($totalHostPageSnaps, [sprintf(_('%s snap'),  $totalHostPageSnaps),
+                                                                                  sprintf(_('%s snaps'), $totalHostPageSnaps),
+                                                                                  sprintf(_('%s snaps'), $totalHostPageSnaps)]) : false ?>
           </p>
           <?php if ($totalHostPageSnaps) { ?>
             <?php foreach ($db->getHostPageSnaps($hp) as $hostPageSnap) { ?>
@@ -252,10 +253,9 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <?php } ?>
           <?php $totalHostPageIdSources = $db->getTotalHostPageIdSourcesByHostPageIdTarget($hp); ?>
           <p>
-            <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
-                                                                sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                ]) ?>
+            <?php echo $totalHostPageIdSources ? Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
+                                                                                          sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                                          sprintf(_('%s referrers'), $totalHostPageIdSources)]) : false ?>
           </p>
           <?php if ($totalHostPageIdSources) { ?>
             <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($hp) as $hostPageIdSource) { ?>

@@ -223,6 +223,7 @@ class MySQL {
                                          `hostPage`.`timeAdded`,
                                          `hostPage`.`timeUpdated`,
                                          `hostPage`.`mime`,
+                                         `hostPage`.`size`,
                                          `host`.`scheme`,
                                          `host`.`name`,
                                          `host`.`port`
