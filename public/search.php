@@ -307,7 +307,12 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
         <h1><a href="<?php echo WEBSITE_DOMAIN; ?>"><?php echo _('YGGo!') ?></a></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="<?php echo htmlentities($q) ?>" />
         <?php foreach ($hostPagesMime as $hostPageMime) { ?>
-          <label><input type="radio" name="t" value="<?php echo $hostPageMime->mime ?>" <?php echo ($t == $hostPageMime->mime ? 'checked="checked"' : false) ?>/> <?php echo $hostPageMime->mime ?> <!--(<?php // echo $sphinx->searchHostPagesTotalByMime(Filter::searchQuery($q, $m), $hostPageMime->mime) ?>)--></label>
+          <label title="<?php $searchHostPagesTotalByMime = $sphinx->searchHostPagesTotalByMime(Filter::searchQuery($q, $m), $hostPageMime->mime);
+                              echo Filter::plural($searchHostPagesTotalByMime, [sprintf(_('%s result'),  $searchHostPagesTotalByMime),
+                                                                                sprintf(_('%s results'), $searchHostPagesTotalByMime),
+                                                                                sprintf(_('%s results'), $searchHostPagesTotalByMime)]) ?>">
+          <input type="radio" name="t" value="<?php echo $hostPageMime->mime ?>" <?php echo ($t == $hostPageMime->mime ? 'checked="checked"' : false) ?>/> <?php echo $hostPageMime->mime ?>
+        </label>
         <?php } ?>
         <button type="submit"><?php echo _('Search'); ?></button>
       </form>
