@@ -41,9 +41,9 @@ $logsCleanerDeleted           = 0;
 $logsCrawlerDeleted           = 0;
 
 // Begin update
-$db->beginTransaction();
-
 try {
+
+  $db->beginTransaction();
 
   // Get cleaner queue
   foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFSET) as $host) {
@@ -227,17 +227,30 @@ try {
   // Commit results
   $db->commit();
 
-  // Optimize tables
-  if (CLEAN_DB_TABLES_OPTIMIZATION) {
-
-    $db->optimize();
-  }
-
-} catch(Exception $e) {
-
-  var_dump($e);
+} catch (Exception $e) {
 
   $db->rollBack();
+
+  var_dump($e);
+}
+
+// Optimize tables
+if (CLEAN_DB_TABLES_OPTIMIZATION) {
+
+  try {
+
+    $db->beginTransaction();
+
+    $db->optimize();
+
+    $db->commit();
+
+  } catch (Exception $e) {
+
+    $db->rollBack();
+
+    var_dump($e);
+  }
 }
 
 // Debug
