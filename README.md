@@ -195,6 +195,10 @@ GET m=SphinxQL
 * [x] Debug log
 * [x] Index homepages and shorter URI with higher priority
 * [x] Collect target location links on page redirect available
+* [ ] XML Feeds support
+  + [ ] Sitemap
+  + [ ] RSS
+  + [ ] Atom
 * [ ] Palette image index / filter
 * [ ] Crawl queue balancer, that depends of CPU available
 
