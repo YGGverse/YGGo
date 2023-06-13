@@ -866,6 +866,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         continue;
       }
 
+      // Skip magnet links
+      if (false !== stripos($href, 'magnet:')) {
+
+        continue;
+      }
+
       // Skip x-raw-image links
       if (false !== stripos($href, 'x-raw-image:')) {
 
