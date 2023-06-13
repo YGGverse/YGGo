@@ -282,7 +282,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
     // Update page index anyway, with the current time and http code
-    $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode());
+    $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode(), $curl->getSizeDownload());
 
     // This page has on 200 code
     if (200 != $curl->getCode()) {

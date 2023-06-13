@@ -616,11 +616,11 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function updateHostPageCrawlQueue(int $hostPageId, int $timeUpdated, int $httpCode) {
+  public function updateHostPageCrawlQueue(int $hostPageId, int $timeUpdated, int $httpCode, int $size) {
 
-    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeUpdated` = ?, `httpCode` = ? WHERE `hostPageId` = ? LIMIT 1');
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeUpdated` = ?, `httpCode` = ?, `size` = ? WHERE `hostPageId` = ? LIMIT 1');
 
-    $query->execute([$timeUpdated, $httpCode, $hostPageId]);
+    $query->execute([$timeUpdated, $httpCode, $size, $hostPageId]);
 
     return $query->rowCount();
   }
