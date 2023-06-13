@@ -873,10 +873,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       }
 
       // Skip x-raw-image links
+      /*
       if (false !== stripos($href, 'x-raw-image:')) {
 
         continue;
       }
+      */
 
       // Add link to queue
       $links[] = [
