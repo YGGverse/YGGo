@@ -49,8 +49,8 @@ index hostPage
 
 indexer
 {
-  mem_limit         = 128M
-  lemmatizer_cache  = 128M
+  mem_limit         = 256M
+  lemmatizer_cache  = 256M
 }
 
 common {
