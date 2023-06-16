@@ -502,6 +502,13 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function getHostPagesBanned() {
+
+    $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeBanned` IS NOT NULL');
+
+    return $query->fetchAll();
+  }
+
   public function resetBannedHostPages(int $timeOffset) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);

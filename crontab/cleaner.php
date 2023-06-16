@@ -217,6 +217,40 @@ try {
   // Reset banned pages
   $hostPagesBansRemoved += $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
 
+  // Clean up banned pages extra data
+  foreach ($db->getHostPagesBanned() as $hostPageBanned) {
+
+    // Delete host page descriptions
+    $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPageBanned->hostPageId);
+
+    // Delete host page refs data
+    $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPageBanned->hostPageId);
+
+    // Delete host page snaps
+    $snapFilePath = chunk_split($hostPageBanned->hostPageId, 1, '/');
+
+    foreach ($db->getHostPageSnaps($hostPageBanned->hostPageId) as $hostPageSnap) {
+
+      if ($hostPageSnap->storageLocal) {
+
+        unlink('../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+      }
+
+      if ($hostPageSnap->storageMega) {
+
+        $ftp = new Ftp();
+
+        if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+            $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+        }
+      }
+
+      $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
+
+      $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
+    }
+  }
+
   // Delete page description history
   $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
 
