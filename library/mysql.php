@@ -491,13 +491,13 @@ class MySQL {
 
     $query = $this->_db->prepare('SELECT * FROM `host`
 
-                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> 0
+                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> ?
 
                                            ORDER BY `hostId`
 
                                            LIMIT ' . (int) $limit);
 
-    $query->execute([$timeFrom]);
+    $query->execute([$timeFrom, 0]);
 
     return $query->fetchAll();
   }
@@ -605,14 +605,14 @@ class MySQL {
                                           FROM `hostPage`
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> 0
+                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> ?
                                                                                                                     AND `hostPage`.`timeBanned` IS NULL
 
                                           ORDER BY LENGTH(`hostPage`.`uri`) ASC, RAND()
 
                                           LIMIT ' . (int) $limit);
 
-    $query->execute([$timeFrom]);
+    $query->execute([$timeFrom, 0]);
 
     return $query->fetchAll();
   }
@@ -630,13 +630,13 @@ class MySQL {
 
     $query = $this->_db->prepare('SELECT * FROM `manifest`
 
-                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> 0
+                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
 
                                            ORDER BY RAND()
 
                                            LIMIT ' . (int) $limit);
 
-    $query->execute([$timeFrom]);
+    $query->execute([$timeFrom, 0]);
 
     return $query->fetchAll();
   }
