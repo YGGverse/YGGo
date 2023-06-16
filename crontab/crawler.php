@@ -494,7 +494,18 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       // Parse content
       $dom = new DomDocument();
 
-      @$dom->loadHTML(sprintf('<?xml encoding="%s" ?>', mb_detect_encoding($content)) . $content);
+      if ($encoding = mb_detect_encoding($content)) {
+
+        @$dom->loadHTML(sprintf('<?xml encoding="%s" ?>', $encoding) . $content);
+
+      } else {
+
+        $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
+
+        $db->commit();
+
+        continue;
+      }
 
       // Skip index page links without titles
       $title = @$dom->getElementsByTagName('title');
