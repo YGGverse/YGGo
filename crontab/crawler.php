@@ -1005,15 +1005,21 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     // Ban page that throws the data type error and stuck the crawl queue
     if (!empty($queueHostPage->hostPageId) &&
         !empty($e->errorInfo[0]) && in_array($e->errorInfo[0], ['HY000']) &&
-        !empty($e->errorInfo[1]) && in_array($e->errorInfo[1], [1366])) { // @TODO
+        !empty($e->errorInfo[1]) && in_array($e->errorInfo[1], [1366])) { // @TODO change DB
 
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
       $hostPagesProcessed++;
-    }
 
-    // Skip item
-    $db->rollBack();
+      // Apply changes
+      $db->commit();
+
+    } else {
+
+      // Skip item
+      $db->rollBack();
+
+    }
 
     continue;
   }
