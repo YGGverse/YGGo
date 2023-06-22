@@ -81,6 +81,19 @@ class Filter {
 
     if ($mode == 'default') {
 
+        // Remove single char words
+        $words = [];
+        foreach ((array) explode(' ', $query) as $word) {
+
+          if (mb_strlen($word) > 1) {
+            $words[] = $word;
+          }
+        }
+
+        if ($words) {
+          $query = implode(' ', $words);
+        }
+
         // Remove SphinxQL special chars
         $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
 
