@@ -547,7 +547,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           }
 
           // Skip page with meta robots:nofollow attribute
-          if (false !== stripos($robots, 'nofollow')) {
+          if (false !== stripos($metaRobots, 'nofollow')) {
 
             continue;
           }
