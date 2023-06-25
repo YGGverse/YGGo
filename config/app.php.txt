@@ -307,6 +307,22 @@ define('CRAWL_ROBOTS_DEFAULT_RULES', null); // string|null
 define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
 
 /*
+ * Generates hostPageDom index based on hostPage.data field
+ *
+ * Could be useful for building semantical index query (config/sphinx.conf.txt)
+ *
+ * At this moment feature available in the CLI only (cli/yggo.php)
+ *
+ */
+define('CRAWL_HOST_PAGE_DOM_SELECTORS', 'h1,h2,h3,h4,h5,h6');
+
+/*
+ * Strip HTML in the CRAWL_HOST_PAGE_DOM_SELECTORS content
+ *
+ */
+define('CRAWL_HOST_PAGE_DOM_STRIP_TAGS', true);
+
+/*
  * Look for third-party manifests to collect distributed index
  *
  * API address provided in yggo meta tag
@@ -385,6 +401,12 @@ define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
  *
  */
 define('CLEAN_PAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
+
+/*
+ * Remove page DOM history after following time
+ *
+ */
+define('CLEAN_PAGE_DOM_OFFSET', 60*60*24*30*12*10);
 
 /*
  * Database tables optimization

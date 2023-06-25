@@ -32,6 +32,7 @@ $manifestsTotal               = $db->getTotalManifests();
 $hostsUpdated                 = 0;
 $hostPagesDeleted             = 0;
 $hostPagesDescriptionsDeleted = 0;
+$hostPagesDomsDeleted         = 0;
 $hostPagesSnapDeleted         = 0;
 $hostPagesToHostPageDeleted   = 0;
 $manifestsDeleted             = 0;
@@ -81,6 +82,9 @@ try {
           // Delete host page descriptions
           $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
 
+          // Delete host page DOMs
+          $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPage->hostPageId);
+
           // Delete host page refs data
           $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
@@ -123,6 +127,9 @@ try {
 
         // Delete host page descriptions
         $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
+
+        // Delete host page DOMs
+        $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPage->hostPageId);
 
         // Delete host page refs data
         $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
@@ -223,6 +230,9 @@ try {
     // Delete host page descriptions
     $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPageBanned->hostPageId);
 
+    // Delete host page DOMs
+    $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPage->hostPageId);
+
     // Delete host page refs data
     $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPageBanned->hostPageId);
 
@@ -253,6 +263,9 @@ try {
 
   // Delete page description history
   $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
+
+  // Delete page dom history
+  $hostPagesDomsDeleted += $db->deleteHostPageDomsByTimeAdded(time() - CLEAN_PAGE_DOM_OFFSET);
 
   // Delete deprecated logs
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
@@ -292,6 +305,7 @@ if (CLEAN_LOG_ENABLED) {
                       $hostsUpdated,
                       $hostPagesDeleted,
                       $hostPagesDescriptionsDeleted,
+                      $hostPagesDomsDeleted,
                       $hostPagesSnapDeleted,
                       $hostPagesToHostPageDeleted,
                       $hostPagesBansRemoved,
@@ -316,6 +330,7 @@ echo 'Manifests deleted: ' . $manifestsDeleted . PHP_EOL;
 
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
 echo 'Host page descriptions deleted: ' . $hostPagesDescriptionsDeleted . PHP_EOL;
+echo 'Host page doms deleted: ' . $hostPagesDomsDeleted . PHP_EOL;
 echo 'Host page snaps deleted: ' . $hostPagesSnapDeleted . PHP_EOL;
 echo 'Host page to host page deleted: ' . $hostPagesToHostPageDeleted . PHP_EOL;
 

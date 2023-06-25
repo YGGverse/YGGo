@@ -17,6 +17,7 @@ require_once('../library/robots.php');
 require_once('../library/filter.php');
 require_once('../library/parser.php');
 require_once('../library/mysql.php');
+require_once('../library/vendor/simple_html_dom.php');
 
 // Check disk quota
 if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
@@ -491,7 +492,33 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       $metaKeywords     = null;
       $metaYggoManifest = null;
 
-      // Parse content
+      // Collect page DOM elements data
+      if (CRAWL_HOST_PAGE_DOM_SELECTORS) {
+
+        // Begin selectors extraction
+        $html = str_get_html($content);
+
+        foreach ((array) explode(',', CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
+
+          foreach($html->find($selector) as $element) {
+
+            if (!empty($element->innertext)) {
+
+              $db->addHostPageDom($queueHostPage->hostPageId,
+                                  time(),
+                                  $selector,
+                                  trim(CRAWL_HOST_PAGE_DOM_STRIP_TAGS ? strip_tags(
+                                                                        preg_replace('/[\s]+/',
+                                                                                      ' ',
+                                                                                      str_replace(['<br />', '<br/>', '<br>', '</'],
+                                                                                                  [' ', ' ', ' ', ' </'],
+                                                                                                  $element->innertext))) : $element->innertext));
+          }
+          }
+        }
+      }
+
+      // Parse page content
       $dom = new DomDocument();
 
       if ($encoding = mb_detect_encoding($content)) {

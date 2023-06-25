@@ -198,6 +198,13 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function getHostPagesByIndexed() {
+
+    $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeUpdated` IS NOT NULL AND `timeBanned` IS NULL LIMIT 100,1'); // @TODO
+
+    return $query->fetchAll();
+  }
+
   public function getHostPagesByLimit(int $hostId, int $limit) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? ORDER BY `hostPageId` DESC LIMIT ' . (int) $limit);
@@ -486,6 +493,34 @@ class MySQL {
     return $query->fetch()->size;
   }
 
+  public function addHostPageDom(int $hostPageId, int $timeAdded, string $selector, string $value) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostPageDom` SET `hostPageId` = ?, `timeAdded` = ?, `selector` = ?, `value` = ?');
+
+    $query->execute([$hostPageId, $timeAdded, $selector, $value]);
+  }
+
+  public function deleteHostPageDoms(int $hostPageId) {
+
+    $query = $this->_db->query('DELETE FROM `hostPageDom` WHERE `hostPageId` = ?');
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostPageDomsByTimeAdded(int $timeOffset) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPageDom` WHERE `timeAdded` < ' . (int) $timeOffset);
+
+    $query->execute();
+
+    return $query->rowCount();
+  }
+
+  public function truncateHostPageDom() {
+
+    $query = $this->_db->query('TRUNCATE `hostPageDom`');
+  }
+
   // Cleaner tools
   public function getCleanerQueue(int $limit, int $timeFrom) {
 
@@ -532,6 +567,7 @@ class MySQL {
                                 int $hostsUpdated,
                                 int $hostPagesDeleted,
                                 int $hostPagesDescriptionsDeleted,
+                                int $hostPagesDomsDeleted,
                                 int $hostPagesSnapDeleted,
                                 int $hostPagesToHostPageDeleted,
                                 int $hostPagesBansRemoved,
@@ -550,6 +586,7 @@ class MySQL {
                                                             `hostsUpdated`,
                                                             `hostPagesDeleted`,
                                                             `hostPagesDescriptionsDeleted`,
+                                                            `hostPagesDomsDeleted`,
                                                             `hostPagesSnapDeleted`,
                                                             `hostPagesToHostPageDeleted`,
                                                             `hostPagesBansRemoved`,
@@ -561,7 +598,7 @@ class MySQL {
                                                             `httpRequestsSizeTotal`,
                                                             `httpDownloadSizeTotal`,
                                                             `httpRequestsTimeTotal`,
-                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
     $query->execute([
       $timeAdded,
@@ -569,6 +606,7 @@ class MySQL {
       $hostsUpdated,
       $hostPagesDeleted,
       $hostPagesDescriptionsDeleted,
+      $hostPagesDomsDeleted,
       $hostPagesSnapDeleted,
       $hostPagesToHostPageDeleted,
       $hostPagesBansRemoved,
@@ -718,6 +756,7 @@ class MySQL {
     $this->_db->query('OPTIMIZE TABLE `host`');
     $this->_db->query('OPTIMIZE TABLE `hostPage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDescription`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageDom`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnap`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapDownload`');
     $this->_db->query('OPTIMIZE TABLE `hostPageToHostPage`');
