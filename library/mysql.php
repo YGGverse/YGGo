@@ -406,20 +406,20 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function getTotalHostPageSnaps(int $hostPageId) {
+  public function getTotalHostPageSnaps(int $hostPageId, bool $storageLocal = true, bool $storageMega = true) {
 
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnap` WHERE `hostPageId` = ?');
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnap` WHERE `hostPageId` = ? AND (`storageLocal` = ? OR `storageMega` = ?)');
 
-    $query->execute([$hostPageId]);
+    $query->execute([$hostPageId, $storageLocal, $storageMega]);
 
     return $query->fetch()->total;
   }
 
-  public function getHostPageSnaps(int $hostPageId) {
+  public function getHostPageSnaps(int $hostPageId, bool $storageLocal = true, bool $storageMega = true) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? ORDER BY `timeAdded` DESC');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND (`storageLocal` = ? OR `storageMega` = ?) ORDER BY `timeAdded` DESC');
 
-    $query->execute([$hostPageId]);
+    $query->execute([$hostPageId, $storageLocal, $storageMega]);
 
     return $query->fetchAll();
   }
