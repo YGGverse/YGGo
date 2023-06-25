@@ -195,6 +195,8 @@ GET m=SphinxQL
 * [x] Debug log
 * [x] Index homepages and shorter URI with higher priority
 * [x] Collect target location links on page redirect available
+* [ ] Host page DOM elements collecting by CSS selectors
+  * [ ] Custom settings for each host
 * [ ] XML Feeds support
   + [ ] Sitemap
   + [ ] RSS
@@ -203,6 +205,7 @@ GET m=SphinxQL
 * [ ] Crawl queue balancer, that depends of CPU available
 
 ##### Cleaner
+
 * [x] Deprecated DB items auto deletion / host settings update
   + [x] Pages
   + [x] Snaps
@@ -215,6 +218,15 @@ GET m=SphinxQL
 * [x] Banned resources reset by timeout
 * [x] DB tables optimization
 * [x] Debug log
+
+##### CLI
+
+* [x] help
+* [x] hostPageDom
+  + [x] generate
+  + [x] truncate
+* [ ] hostPage
+  + [ ] add
 
 ##### Other
 
@@ -240,7 +252,9 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 
 #### License
 * Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
+* HTML parser [simple_html_dom](http://sourceforge.net/projects/simplehtmldom/)
 * Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
+* CLI logo by [patorjk.com](https://patorjk.com/software/taag/#p=display&f=Slant&t=YGGo!)
 
 #### See also
 
