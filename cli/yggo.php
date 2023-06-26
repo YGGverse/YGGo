@@ -39,7 +39,17 @@ switch ($argv[1]) {
 
       case 'generate':
 
-        if (CRAWL_HOST_PAGE_DOM_SELECTORS) {
+        $selectors = [];
+
+        foreach ((array) explode(';', !empty($argv[3]) ? $argv[3] : (string) CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
+
+          if (!empty($selector)) {
+
+            $selectors[] = trim($selector);
+          }
+        }
+
+        if ($selectors) {
 
           // Init variables
           $hostPagesProcessedTotal = 0;
@@ -58,7 +68,7 @@ switch ($argv[1]) {
 
                   $html = str_get_html(base64_decode($hostPageDescription->data));
 
-                  foreach ((array) explode(',', CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
+                  foreach ($selectors as $selector) {
 
                     foreach($html->find($selector) as $element) {
 
@@ -117,8 +127,8 @@ echo '/_/\____/\____/\____(_)'    . PHP_EOL;
 
 echo PHP_EOL . _('available options:') . PHP_EOL . PHP_EOL;
 
-echo _('  help                 - this message') . PHP_EOL;
-echo _('  hostPageDom generate - make hostPageDom index based on related hostPage.data field') . PHP_EOL;
-echo _('  hostPageDom truncate - flush hostPageDom table') . PHP_EOL . PHP_EOL;
+echo _('  help                             - this message') . PHP_EOL;
+echo _('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field') . PHP_EOL;
+echo _('  hostPageDom truncate             - flush hostPageDom table') . PHP_EOL . PHP_EOL;
 
 echo _('get support: https://github.com/YGGverse/YGGo/issues') . PHP_EOL . PHP_EOL;
