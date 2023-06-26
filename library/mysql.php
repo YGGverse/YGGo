@@ -200,7 +200,7 @@ class MySQL {
 
   public function getHostPagesByIndexed() {
 
-    $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeUpdated` IS NOT NULL AND `timeBanned` IS NULL LIMIT 100,1'); // @TODO
+    $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeUpdated` IS NOT NULL AND `timeBanned` IS NULL');
 
     return $query->fetchAll();
   }
