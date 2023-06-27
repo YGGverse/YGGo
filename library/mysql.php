@@ -163,6 +163,7 @@ class MySQL {
     return $query->fetch()->total;
   }
 
+  /* not in use
   public function getTotalPagesByHttpCode(mixed $httpCode) {
 
     if (is_null($httpCode)) {
@@ -179,6 +180,7 @@ class MySQL {
 
     return $query->fetch()->total;
   }
+  */
 
   public function getHostPage(int $hostId, int $crc32uri) {
 
@@ -660,6 +662,21 @@ class MySQL {
     $query->execute([$timeFrom, 0]);
 
     return $query->fetchAll();
+  }
+
+  public function getHostPageCrawlQueueTotal(int $timeFrom) {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total`
+
+                                          FROM `hostPage`
+                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+
+                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> ?
+                                                                                                                    AND `hostPage`.`timeBanned` IS NULL');
+
+    $query->execute([$timeFrom, 0]);
+
+    return $query->fetch()->total;
   }
 
   public function updateHostPageCrawlQueue(int $hostPageId, int $timeUpdated, int $httpCode, int $size) {

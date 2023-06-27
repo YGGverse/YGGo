@@ -321,7 +321,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       <?php if ($results) { ?>
         <div>
           <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
-          <?php if ($queueTotal = $db->getTotalPagesByHttpCode(null)) { ?>
+          <?php if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_PAGE_SECONDS_OFFSET)) { ?>
             <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
           <?php } ?>
         </div>
@@ -391,7 +391,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       <?php } else { ?>
         <div style="text-align:center">
           <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
-          <?php if ($q && $queueTotal = $db->getTotalPagesByHttpCode(null)) { ?>
+          <?php if ($q && $queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_PAGE_SECONDS_OFFSET)) { ?>
             <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
           <?php } ?>
         </div>
