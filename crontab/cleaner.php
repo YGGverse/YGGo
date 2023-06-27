@@ -231,7 +231,7 @@ try {
     $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPageBanned->hostPageId);
 
     // Delete host page DOMs
-    $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPage->hostPageId);
+    $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPageBanned->hostPageId);
 
     // Delete host page refs data
     $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPageBanned->hostPageId);
