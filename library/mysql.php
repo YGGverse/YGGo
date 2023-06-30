@@ -504,7 +504,9 @@ class MySQL {
 
   public function deleteHostPageDoms(int $hostPageId) {
 
-    $query = $this->_db->query('DELETE FROM `hostPageDom` WHERE `hostPageId` = ?');
+    $query = $this->_db->prepare('DELETE FROM `hostPageDom` WHERE `hostPageId` = ?');
+
+    $query->execute([$hostPageId]);
 
     return $query->rowCount();
   }
@@ -636,9 +638,26 @@ class MySQL {
   }
 
   // Crawl tools
-  public function getHostPageCrawlQueue(int $limit, int $timeFrom) {
+  public function getHostPageCrawlQueueTotal(int $hostPageTimeFrom, int $hostPageHomeTimeFrom) {
 
-    $query = $this->_db->prepare('SELECT `hostPage`.`hostId`,
+    $query = $this->_db->prepare("SELECT COUNT(*) AS `total`
+
+                                          FROM `hostPage`
+                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+
+                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR (`hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?)))
+
+                                          AND  `host`.`status` <> ?
+                                          AND  `hostPage`.`timeBanned` IS NULL");
+
+    $query->execute([$hostPageTimeFrom, $hostPageHomeTimeFrom, 0]);
+
+    return $query->fetch()->total;
+  }
+
+  public function getHostPageCrawlQueue(int $limit, int $hostPageTimeFrom, int $hostPageHomeTimeFrom) {
+
+    $query = $this->_db->prepare("SELECT `hostPage`.`hostId`,
                                          `hostPage`.`hostPageId`,
                                          `hostPage`.`uri`,
                                          `host`.`scheme`,
@@ -652,31 +671,18 @@ class MySQL {
                                           FROM `hostPage`
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> ?
-                                                                                                                    AND `hostPage`.`timeBanned` IS NULL
+                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR (`hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?)))
+
+                                          AND  `host`.`status` <> ?
+                                          AND  `hostPage`.`timeBanned` IS NULL
 
                                           ORDER BY LENGTH(`hostPage`.`uri`) ASC, RAND()
 
-                                          LIMIT ' . (int) $limit);
+                                          LIMIT " . (int) $limit);
 
-    $query->execute([$timeFrom, 0]);
+    $query->execute([$hostPageTimeFrom, $hostPageHomeTimeFrom, 0]);
 
     return $query->fetchAll();
-  }
-
-  public function getHostPageCrawlQueueTotal(int $timeFrom) {
-
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total`
-
-                                          FROM `hostPage`
-                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
-
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? ) AND `host`.`status` <> ?
-                                                                                                                    AND `hostPage`.`timeBanned` IS NULL');
-
-    $query->execute([$timeFrom, 0]);
-
-    return $query->fetch()->total;
   }
 
   public function updateHostPageCrawlQueue(int $hostPageId, int $timeUpdated, int $httpCode, int $size) {

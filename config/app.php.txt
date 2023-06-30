@@ -191,6 +191,21 @@ define('CRAWL_MANIFEST_LIMIT', 10);
 define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
 
 /*
+ * Renew home page index by timing offset provided
+ *
+ * Used for new pages scanning in highter priority
+ *
+ * This option works with CRAWL_PAGE_SECONDS_OFFSET and CRAWL_PAGE_LIMIT step queue
+ *
+ * Pay attention, that CRAWL_PAGE_LIMIT + CRAWL_PAGE_SECONDS_OFFSET pair
+ * must have enough value to crawl all pages collected in the DB index
+ *
+ * or the crawler can stuck in queue
+ *
+ */
+define('CRAWL_PAGE_HOME_SECONDS_OFFSET', 60*60*24*7);
+
+/*
  * Index pages match MIME types
  *
  * comma separated
@@ -314,7 +329,7 @@ define('CRAWL_ROBOTS_POSTFIX_RULES', null); // string|null
  * At this moment feature available in the CLI only (cli/yggo.php)
  *
  */
-define('CRAWL_HOST_PAGE_DOM_SELECTORS', 'h1,h2,h3,h4,h5,h6');
+define('CRAWL_HOST_PAGE_DOM_SELECTORS', 'h1;h2;h3;h4;h5;h6');
 
 /*
  * Strip HTML in the CRAWL_HOST_PAGE_DOM_SELECTORS content
@@ -337,7 +352,7 @@ define('CRAWL_MANIFEST', true);
  * Manifest API version compatibility
  *
  */
-define('CRAWL_MANIFEST_API_VERSION', 0.9);
+define('CRAWL_MANIFEST_API_VERSION', 0.10);
 
 /*
  * Set default auto-crawl status for new manifest added

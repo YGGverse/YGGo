@@ -1,7 +1,7 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.9);
+define('API_VERSION', 0.10);
 
 // Load system dependencies
 require_once('../config/app.php');
@@ -102,18 +102,19 @@ if (API_ENABLED) {
           'status' => true,
           'result' => [
             'config' => [
-              'websiteDomain'               => WEBSITE_DOMAIN,
-              'crawlUrlRegexp'              => CRAWL_URL_REGEXP,
-              'crawlHostDefaultNsfw'        => CRAWL_HOST_DEFAULT_NSFW,
-              'crawlHostDefaultPagesLimit'  => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
-              'crawlHostDefaultStatus'      => CRAWL_HOST_DEFAULT_STATUS,
-              'crawlHostDefaultMetaOnly'    => CRAWL_HOST_DEFAULT_META_ONLY,
-              'crawlHostPageSecondsOffset'  => CRAWL_PAGE_SECONDS_OFFSET,
-              'crawlHostPageMimeIndex'      => CRAWL_PAGE_MIME_INDEX,
-              'crawlHostPageMimeSnapLocal'  => CRAWL_PAGE_MIME_SNAP_LOCAL,
-              'cleanHostSecondsOffset'      => CLEAN_HOST_SECONDS_OFFSET,
-              'crawlRobotsDefaultRules'     => CRAWL_ROBOTS_DEFAULT_RULES,
-              'crawlRobotsPostfixRules'     => CRAWL_ROBOTS_POSTFIX_RULES,
+              'websiteDomain'                  => WEBSITE_DOMAIN,
+              'crawlUrlRegexp'                 => CRAWL_URL_REGEXP,
+              'crawlHostDefaultNsfw'           => CRAWL_HOST_DEFAULT_NSFW,
+              'crawlHostDefaultPagesLimit'     => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
+              'crawlHostDefaultStatus'         => CRAWL_HOST_DEFAULT_STATUS,
+              'crawlHostDefaultMetaOnly'       => CRAWL_HOST_DEFAULT_META_ONLY,
+              'crawlHostPageSecondsOffset'     => CRAWL_PAGE_SECONDS_OFFSET,
+              'crawlHostPageHomeSecondsOffset' => CRAWL_PAGE_HOME_SECONDS_OFFSET,
+              'crawlHostPageMimeIndex'         => CRAWL_PAGE_MIME_INDEX,
+              'crawlHostPageMimeSnapLocal'     => CRAWL_PAGE_MIME_SNAP_LOCAL,
+              'cleanHostSecondsOffset'         => CLEAN_HOST_SECONDS_OFFSET,
+              'crawlRobotsDefaultRules'        => CRAWL_ROBOTS_DEFAULT_RULES,
+              'crawlRobotsPostfixRules'        => CRAWL_ROBOTS_POSTFIX_RULES,
             ],
             'api' => [
               'version'  => API_VERSION,

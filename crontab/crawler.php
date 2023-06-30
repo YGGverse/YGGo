@@ -264,7 +264,7 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
 }
 
 // Process pages crawl queue
-foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET) as $queueHostPage) {
+foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET, time() - CRAWL_PAGE_HOME_SECONDS_OFFSET) as $queueHostPage) {
 
   $db->beginTransaction();
 
