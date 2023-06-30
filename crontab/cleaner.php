@@ -10,11 +10,11 @@ if (false === sem_acquire($semaphore, true)) {
 }
 
 // Load system dependencies
-require_once('../config/app.php');
-require_once('../library/curl.php');
-require_once('../library/robots.php');
-require_once('../library/mysql.php');
-require_once('../library/ftp.php');
+require_once(__DIR__ . '/../config/app.php');
+require_once(__DIR__ . '/../library/curl.php');
+require_once(__DIR__ . '/../library/robots.php');
+require_once(__DIR__ . '/../library/mysql.php');
+require_once(__DIR__ . '/../library/ftp.php');
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
@@ -95,7 +95,7 @@ try {
 
             if ($hostPageSnap->storageLocal) {
 
-              unlink('../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+              unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
             }
 
             if ($hostPageSnap->storageMega) {
@@ -141,7 +141,7 @@ try {
 
           if ($hostPageSnap->storageLocal) {
 
-            unlink('../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+            unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
           }
 
           if ($hostPageSnap->storageMega) {
@@ -243,7 +243,7 @@ try {
 
       if ($hostPageSnap->storageLocal) {
 
-        unlink('../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+        unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
       }
 
       if ($hostPageSnap->storageMega) {

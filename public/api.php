@@ -4,13 +4,13 @@
 define('API_VERSION', 0.10);
 
 // Load system dependencies
-require_once('../config/app.php');
-require_once('../library/curl.php');
-require_once('../library/robots.php');
-require_once('../library/filter.php');
-require_once('../library/parser.php');
-require_once('../library/mysql.php');
-require_once('../library/sphinxql.php');
+require_once(__DIR__ . '/../config/app.php');
+require_once(__DIR__ . '/../library/curl.php');
+require_once(__DIR__ . '/../library/robots.php');
+require_once(__DIR__ . '/../library/filter.php');
+require_once(__DIR__ . '/../library/parser.php');
+require_once(__DIR__ . '/../library/mysql.php');
+require_once(__DIR__ . '/../library/sphinxql.php');
 
 if (API_ENABLED) {
 

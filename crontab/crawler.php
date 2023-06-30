@@ -10,14 +10,14 @@ if (false === sem_acquire($semaphore, true)) {
 }
 
 // Load system dependencies
-require_once('../config/app.php');
-require_once('../library/ftp.php');
-require_once('../library/curl.php');
-require_once('../library/robots.php');
-require_once('../library/filter.php');
-require_once('../library/parser.php');
-require_once('../library/mysql.php');
-require_once('../library/vendor/simple_html_dom.php');
+require_once(__DIR__ . '/../config/app.php');
+require_once(__DIR__ . '/../library/ftp.php');
+require_once(__DIR__ . '/../library/curl.php');
+require_once(__DIR__ . '/../library/robots.php');
+require_once(__DIR__ . '/../library/filter.php');
+require_once(__DIR__ . '/../library/parser.php');
+require_once(__DIR__ . '/../library/mysql.php');
+require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
 
 // Check disk quota
 if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
@@ -953,8 +953,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         $snapTime = time();
         $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
 
-        $snapTmp  = '../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
-            @mkdir('../storage/tmp/snap/hp/' . $snapPath, 0755, true);
+        $snapTmp  = __DIR__ . '/../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
+            @mkdir(__DIR__ . '/../storage/tmp/snap/hp/' . $snapPath, 0755, true);
 
         // Create new ZIP container
         $zip = new ZipArchive();
@@ -983,9 +983,9 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
                 // Copy tmp snap to the permanent local storage
                 if ($snapLocal) {
 
-                  @mkdir('../storage/snap/hp/' . $snapPath, 0755, true);
+                  @mkdir(__DIR__ . '/../storage/snap/hp/' . $snapPath, 0755, true);
 
-                  if (copy($snapTmp, '../storage/snap/hp/' . $snapPath . $snapTime . '.zip')) {
+                  if (copy($snapTmp, __DIR__ . '/../storage/snap/hp/' . $snapPath . $snapTime . '.zip')) {
 
                     // Update snap location info
                     $db->updateHostPageSnapStorageLocal($hostPageSnapId, true);

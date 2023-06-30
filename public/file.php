@@ -1,9 +1,9 @@
 <?php
 
-require_once('../config/app.php');
-require_once('../library/icon.php');
-require_once('../library/mysql.php');
-require_once('../library/ftp.php');
+require_once(__DIR__ . '/../config/app.php');
+require_once(__DIR__ . '/../library/icon.php');
+require_once(__DIR__ . '/../library/mysql.php');
+require_once(__DIR__ . '/../library/ftp.php');
 
 $type = !empty($_GET['type']) ? $_GET['type'] : false;
 
@@ -22,7 +22,7 @@ switch ($type) {
 
     if (WEBSITE_IDENTICON_IMAGE_CACHE) {
 
-      $filename = dirname(__FILE__) . '/../storage/cache/' . $query . '.webp';
+      $filename = __DIR__ . '/../storage/cache/' . $query . '.webp';
 
       if (!file_exists($filename)) {
 
@@ -73,10 +73,10 @@ switch ($type) {
       $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
 
       // Download local snap in higher priority if possible
-      if ($hostPageSnap->storageLocal && file_exists('../storage/snap/' . $snapFile) &&
-                                        is_readable('../storage/snap/' . $snapFile)) {
+      if ($hostPageSnap->storageLocal && file_exists(__DIR__ . '/../storage/snap/' . $snapFile) &&
+                                         is_readable(__DIR__ . '/../storage/snap/' . $snapFile)) {
 
-        $snapSize = (int) @filesize('../storage/snap/' . $snapFile);
+        $snapSize = (int) @filesize(__DIR__ . '/../storage/snap/' . $snapFile);
 
         $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'local', $snapSize, 200);
 
@@ -85,7 +85,7 @@ switch ($type) {
         header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
                                                                             $hostPageSnap->hostPageId,
                                                                             $hostPageSnap->timeAdded));
-        readfile('../storage/snap/' . $snapFile);
+        readfile(__DIR__ . '/../storage/snap/' . $snapFile);
 
       // Then try to download from MEGA storage if exists
       } else if ($hostPageSnap->storageMega) {
