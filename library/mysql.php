@@ -645,7 +645,7 @@ class MySQL {
                                           FROM `hostPage`
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR (`hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?)))
+                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?))
 
                                           AND  `host`.`status` <> ?
                                           AND  `hostPage`.`timeBanned` IS NULL");
@@ -671,7 +671,7 @@ class MySQL {
                                           FROM `hostPage`
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR (`hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?)))
+                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?))
 
                                           AND  `host`.`status` <> ?
                                           AND  `hostPage`.`timeBanned` IS NULL
