@@ -257,8 +257,10 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <?php if ($totalHostPageIdSources) { ?>
             <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
               <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
+                <?php $hostPageDescription = $db->getLastPageDescription($hostPageIdSource->hostPageIdSource); ?>
                 <p>
-                  <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
+                  <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>"
+                     title="<?php echo (!empty($hostPageDescription->title) ? $hostPageDescription->title : (!empty($hostPageDescription->description) ? $hostPageDescription->description : false)) ?>">
                     <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
                     <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
                   </a>
