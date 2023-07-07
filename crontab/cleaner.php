@@ -271,6 +271,30 @@ try {
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
   $logsCrawlerDeleted += $db->deleteLogCrawler(time() - CRAWL_LOG_SECONDS_OFFSET);
 
+  // Delete failed snaps
+  $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
+
+  foreach ($db->getHostPageSnaps($hostPage->hostPageId, false, false, 'AND') as $hostPageSnap) {
+
+    if ($hostPageSnap->storageLocal) {
+
+      unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+    }
+
+    if ($hostPageSnap->storageMega) {
+
+      $ftp = new Ftp();
+
+      if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+          $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+      }
+    }
+
+    $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
+
+    $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
+  }
+
   // Commit results
   $db->commit();
 

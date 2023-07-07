@@ -417,9 +417,9 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function getHostPageSnaps(int $hostPageId, bool $storageLocal = true, bool $storageMega = true) {
+  public function getHostPageSnaps(int $hostPageId, bool $storageLocal = true, bool $storageMega = true, string $condition = 'OR') {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND (`storageLocal` = ? OR `storageMega` = ?) ORDER BY `timeAdded` DESC');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND (`storageLocal` = ? ' . ($condition == 'OR' ? 'OR' : 'AND') . ' `storageMega` = ?) ORDER BY `timeAdded` DESC');
 
     $query->execute([$hostPageId, $storageLocal, $storageMega]);
 
