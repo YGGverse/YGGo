@@ -29,6 +29,16 @@ if (empty($argv[1])) $argv[1] = 'help';
 
 switch ($argv[1]) {
 
+  case 'crawl':
+
+    include_once(__DIR__ . '/../crontab/crawler.php');
+
+  break;
+  case 'clean':
+
+    include_once(__DIR__ . '/../crontab/cleaner.php');
+
+  break;
   case 'hostPageDom':
 
     if (empty($argv[2])) {
@@ -128,6 +138,8 @@ echo '/_/\____/\____/\____(_)'    . PHP_EOL;
 echo PHP_EOL . _('available options:') . PHP_EOL . PHP_EOL;
 
 echo _('  help                             - this message') . PHP_EOL;
+echo _('  crawl                            - execute crawler step in the crontab queue') . PHP_EOL;
+echo _('  clean                            - execute cleaner step in the crontab queue') . PHP_EOL;
 echo _('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field') . PHP_EOL;
 echo _('  hostPageDom truncate             - flush hostPageDom table') . PHP_EOL . PHP_EOL;
 

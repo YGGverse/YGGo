@@ -222,6 +222,8 @@ GET m=SphinxQL
 ##### CLI
 
 * [x] help
+* [x] crawl
+* [x] clean
 * [x] hostPageDom
   + [x] generate
   + [x] truncate
