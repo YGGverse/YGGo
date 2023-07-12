@@ -492,32 +492,6 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       $metaKeywords     = null;
       $metaYggoManifest = null;
 
-      // Collect page DOM elements data
-      if (CRAWL_HOST_PAGE_DOM_SELECTORS) {
-
-        // Begin selectors extraction
-        $html = str_get_html($content);
-
-        foreach ((array) explode(',', CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
-
-          foreach($html->find($selector) as $element) {
-
-            if (!empty($element->innertext)) {
-
-              $db->addHostPageDom($queueHostPage->hostPageId,
-                                  time(),
-                                  $selector,
-                                  trim(CRAWL_HOST_PAGE_DOM_STRIP_TAGS ? strip_tags(
-                                                                        preg_replace('/[\s]+/',
-                                                                                      ' ',
-                                                                                      str_replace(['<br />', '<br/>', '<br>', '</'],
-                                                                                                  [' ', ' ', ' ', ' </'],
-                                                                                                  $element->innertext))) : $element->innertext));
-          }
-          }
-        }
-      }
-
       // Parse page content
       $dom = new DomDocument();
 
@@ -594,13 +568,39 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
                                   $content         ? ($queueHostPage->crawlMetaOnly ? null : base64_encode($content)) : null,
                                   time());
 
+      // Collect page DOM elements data on enabled
+      if (CRAWL_HOST_PAGE_DOM_SELECTORS) {
+
+        // Begin selectors extraction
+        $html = str_get_html($content);
+
+        foreach ((array) explode(',', CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
+
+          foreach($html->find($selector) as $element) {
+
+            if (!empty($element->innertext)) {
+
+              $db->addHostPageDom($queueHostPage->hostPageId,
+                                  time(),
+                                  $selector,
+                                  trim(CRAWL_HOST_PAGE_DOM_STRIP_TAGS ? strip_tags(
+                                                                        preg_replace('/[\s]+/',
+                                                                                      ' ',
+                                                                                      str_replace(['<br />', '<br/>', '<br>', '</'],
+                                                                                                  [' ', ' ', ' ', ' </'],
+                                                                                                  $element->innertext))) : $element->innertext));
+            }
+          }
+        }
+      }
+
       // Update manifest registry
       if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
 
         $metaYggoManifestCRC32 = crc32($metaYggoManifest);
 
         if (!$db->getManifest($metaYggoManifestCRC32)) {
-            $db->addManifest($metaYggoManifestCRC32,
+             $db->addManifest($metaYggoManifestCRC32,
                               $metaYggoManifest,
                               (string) CRAWL_MANIFEST_DEFAULT_STATUS,
                               time());
