@@ -49,7 +49,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       form {
         display: block;
         max-width: 640px;
-        margin: 280px auto;
+        margin: 20% auto;
         text-align: center;
       }
 
