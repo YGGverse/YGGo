@@ -239,10 +239,10 @@ GET m=SphinxQL
 
 #### Contributions
 
-Please make a new branch of master|sqliteway tree for each patch in your fork before create PR
+Please make a new branch of main|sqliteway tree for each patch in your fork before create PR
 
 ```
-git checkout master
+git checkout main
 git checkout -b my-pr-branch-name
 ```
 
