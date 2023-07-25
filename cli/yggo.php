@@ -126,6 +126,56 @@ switch ($argv[1]) {
     }
 
   break;
+  case 'hostPageSnap':
+
+    if (empty($argv[2])) {
+      echo PHP_EOL . _('hostPageSnap method requires action argument') . PHP_EOL;
+    }
+
+    switch ($argv[2]) {
+
+      case 'truncate':
+
+        foreach ($db->getHosts() as $host) {
+
+          foreach ($db->getHostPages($host->hostId) as $hostPage) {
+
+            $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
+
+            foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
+
+              if ($hostPageSnap->storageLocal) {
+
+                unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+              }
+
+              if ($hostPageSnap->storageMega) {
+
+                $ftp = new Ftp();
+
+                if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+                    $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                }
+              }
+
+              $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
+              $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
+
+              // @TODO reset primary key indexes
+            }
+          }
+        }
+
+        echo _('hostPageSnap, hostPageSnapDownload tables successfully truncated') . PHP_EOL;
+        exit;
+
+      break;
+      default:
+
+        echo PHP_EOL . _('undefined action argument') . PHP_EOL;
+    }
+
+  break;
 }
 
 // Default message
@@ -141,6 +191,7 @@ echo _('  help                             - this message') . PHP_EOL;
 echo _('  crawl                            - execute crawler step in the crontab queue') . PHP_EOL;
 echo _('  clean                            - execute cleaner step in the crontab queue') . PHP_EOL;
 echo _('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field') . PHP_EOL;
-echo _('  hostPageDom truncate             - flush hostPageDom table') . PHP_EOL . PHP_EOL;
+echo _('  hostPageDom truncate             - flush hostPageDom table') . PHP_EOL;
+echo _('  hostPageSnap truncate            - flush hostPageSnap, hostPageSnapDownload tables') . PHP_EOL . PHP_EOL;
 
 echo _('get support: https://github.com/YGGverse/YGGo/issues') . PHP_EOL . PHP_EOL;

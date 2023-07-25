@@ -84,6 +84,13 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function getHosts() {
+
+    $query = $this->_db->query('SELECT * FROM `host`');
+
+    return $query->fetchAll();
+  }
+
   public function getHost(int $crc32url) {
 
     $query = $this->_db->prepare('SELECT * FROM `host` WHERE `crc32url` = ? LIMIT 1');
