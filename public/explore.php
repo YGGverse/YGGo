@@ -207,13 +207,13 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         <div>
           <?php if ($hostPageDescription = $db->getLastPageDescription($hp)) { ?>
             <?php if (!empty($hostPageDescription->title)) { ?>
-              <h2><?php echo $hostPageDescription->title ?></h2>
+              <h2><?php echo htmlentities($hostPageDescription->title) ?></h2>
             <?php } ?>
             <?php if (!empty($hostPageDescription->description)) { ?>
-              <span><?php echo $hostPageDescription->description ?></span>
+              <span><?php echo htmlentities($hostPageDescription->description) ?></span>
             <?php } ?>
             <?php if (!empty($hostPageDescription->keywords)) { ?>
-              <span><?php echo $hostPageDescription->keywords ?></span>
+              <span><?php echo htmlentities($hostPageDescription->keywords) ?></span>
             <?php } ?>
           <?php } ?>
           <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
