@@ -227,6 +227,8 @@ GET m=SphinxQL
 * [x] hostPageDom
   + [x] generate
   + [x] truncate
+* [x] hostPageSnap
+  + [x] truncate
 * [ ] hostPage
   + [ ] add
 
