@@ -99,28 +99,24 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         right: 0;
         text-align: center;
         padding: 24px;
+        color: #9ba2ac;
+        font-size: 12px;
       }
 
-      a, a:visited, a:active {
-        color: #ccc;
+      footer > a, a:visited,
+      footer > a:active {
+        color: #9ba2ac;
+        font-size: 12px;
       }
 
-      a:hover {
-        color: #fff;
+      footer > a:hover {
+        color: #54a3f7;
       }
 
       footer > a,
       footer > a:visited,
       footer > a:active {
         text-decoration: none;
-      }
-
-      footer > span:first-child {
-        color: #ff0;
-      }
-
-      footer > span:last-child {
-        color: #3394fb;
       }
 
       /*
@@ -271,12 +267,18 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
     </main>
     <!-- css animation : end -->
     <footer>
+      <a href="<?php echo WEBSITE_DOMAIN; ?>/top.php"><?php echo _('Top') ?></a>
+      <?php if (API_ENABLED && API_MANIFEST_ENABLED) { ?>
+      |
+      <a href="<?php echo WEBSITE_DOMAIN; ?>/api.php?action=manifest"><?php echo _('API') ?></a>
+      <?php } ?>
       <!-- This product released under the MIT License (https://github.com/YGGverse/YGGo/blob/main/LICENSE)
            Before removing the copyright,
            please, make a small donation to the project contributors:
            https://github.com/YGGverse/YGGo#donate-to-contributors
       -->
-      <span>^</span><a href="https://github.com/YGGverse/YGGo"><?php echo _('meow') ?></a><span>^</span>
+      |
+      <a href="https://github.com/YGGverse/YGGo"><?php echo _('Source') ?></a>
     </footer>
   </body>
 </html>
