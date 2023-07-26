@@ -167,6 +167,7 @@ GET m=SphinxQL
   + [x] Meta
   + [x] Snaps history
   + [x] Referrers
+* [x] Top hosts page
 * [ ] Safe media preview
 * [ ] Results with found matches highlight
 * [ ] The time machine feature by content snaps history
