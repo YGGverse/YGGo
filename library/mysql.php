@@ -84,6 +84,33 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function getTopHosts() {
+
+     $query = $this->_db->query("SELECT `hostPage`.`hostPageId`,
+                                        `hostPage`.`uri`,
+                                        `host`.`hostId`,
+                                        `host`.`scheme`,
+                                        `host`.`name`,
+                                        `host`.`port`,
+                                        (SELECT COUNT(*) FROM  `hostPageToHostPage`
+                                                         WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPage`.`hostPageId`
+                                                         AND   (SELECT `hostPageSource`.`hostId` FROM `hostPage` AS `hostPageSource`
+                                                                                                 WHERE `hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`) <> `hostPage`.`hostId`) AS `rank`
+
+                                  FROM  `hostPage`
+                                  JOIN  `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+
+                                  WHERE `host`.`status`         = '1'
+                                  AND   `hostPage`.`uri`        = '/'
+                                  AND   `hostPage`.`httpCode`   = 200
+                                  AND   `hostPage`.`timeBanned` IS NULL
+                                  AND   `hostPage`.`mime`       IS NOT NULL
+
+                                  ORDER BY `rank` DESC");
+
+    return $query->fetchAll();
+  }
+
   public function getHosts() {
 
     $query = $this->_db->query('SELECT * FROM `host`');
