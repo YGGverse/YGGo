@@ -117,7 +117,7 @@ if (API_ENABLED) {
               'crawlRobotsPostfixRules'        => CRAWL_ROBOTS_POSTFIX_RULES,
             ],
             'api' => [
-              'version'  => API_VERSION,
+              'version'  => (string) API_VERSION,
               'manifest' => API_ENABLED && API_MANIFEST_ENABLED ? WEBSITE_DOMAIN . '/api.php?action=manifest' : false,
               'search'   => API_ENABLED && API_SEARCH_ENABLED ? WEBSITE_DOMAIN . '/api.php?action=search' : false,
               'hosts'    => API_ENABLED && API_HOSTS_ENABLED ? WEBSITE_DOMAIN . '/api.php?action=hosts' : false,
