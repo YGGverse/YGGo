@@ -148,6 +148,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
         margin: 0;
         padding: 0;
         font-family: Sans-serif;
+        color: #ccc;
       }
 
       body {
@@ -284,7 +285,6 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       }
 
       span {
-        color: #ccc;
         display: block;
         margin: 8px 0;
       }

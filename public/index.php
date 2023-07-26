@@ -33,10 +33,11 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         margin: 0;
         padding: 0;
         font-family: Sans-serif;
+        color: #ccc;
       }
 
       body {
-        background-color: #2e3436
+        background-color: #2e3436;
       }
 
       h1 {

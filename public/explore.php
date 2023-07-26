@@ -41,6 +41,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         margin: 0;
         padding: 0;
         font-family: Sans-serif;
+        color: #ccc;
       }
 
       body {
@@ -177,7 +178,6 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       }
 
       span {
-        color: #ccc;
         display: block;
         margin: 8px 0;
       }
