@@ -84,29 +84,45 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function getTopHosts() {
+  public function getTopHostPages() {
 
-     $query = $this->_db->query("SELECT `hostPage`.`hostPageId`,
-                                        `hostPage`.`uri`,
-                                        `host`.`hostId`,
-                                        `host`.`scheme`,
-                                        `host`.`name`,
-                                        `host`.`port`,
-                                        (SELECT COUNT(*) FROM  `hostPageToHostPage`
-                                                         WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPage`.`hostPageId`
-                                                         AND   (SELECT `hostPageSource`.`hostId` FROM `hostPage` AS `hostPageSource`
-                                                                                                 WHERE `hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`) <> `hostPage`.`hostId`) AS `rank`
+     $query = $this->_db->query(" SELECT
 
-                                  FROM  `hostPage`
-                                  JOIN  `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+                                  `hostPageTarget`.`hostId`,
+                                  `hostPageTarget`.`hostPageId`,
+                                  `hostPageTarget`.`uri`,
 
-                                  WHERE `host`.`status`         = '1'
-                                  AND   `hostPage`.`uri`        = '/'
-                                  AND   `hostPage`.`httpCode`   = 200
-                                  AND   `hostPage`.`timeBanned` IS NULL
-                                  AND   `hostPage`.`mime`       IS NOT NULL
+                                  `hostTarget`.`scheme`,
+                                  `hostTarget`.`name`,
+                                  `hostTarget`.`port`,
 
-                                  ORDER BY `rank` DESC");
+                                  (
+
+                                    SELECT COUNT(*)
+
+                                    FROM `hostPageToHostPage`
+                                    JOIN `hostPage` AS `hostPageSource` ON (`hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`)
+
+                                    WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPageTarget`.`hostPageId`
+                                    AND   `hostPageSource`.`hostId` <> `hostPageTarget`.`hostId`
+
+                                  )  AS `rank`
+
+                                  FROM `hostPage` AS `hostPageTarget`
+                                  JOIN `host` AS `hostTarget` ON (`hostTarget`.`hostId` = `hostPageTarget`.`hostId`)
+
+                                  WHERE `hostTarget`.`status`         = '1'
+                                  AND   `hostPageTarget`.`httpCode`   = 200
+                                  AND   `hostPageTarget`.`timeBanned` IS NULL
+                                  AND   `hostPageTarget`.`mime`       IS NOT NULL
+
+                                  GROUP BY `hostPageTarget`.`hostPageId`
+
+                                  HAVING `rank` > 0
+
+                                  ORDER BY `rank` DESC
+
+    ");
 
     return $query->fetchAll();
   }

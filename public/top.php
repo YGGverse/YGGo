@@ -229,20 +229,20 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       </form>
     </header>
     <main>
-      <?php if ($results = $db->getTopHosts()) { ?>
+      <?php if ($topHostPages = $db->getTopHostPages()) { ?>
         <table>
           <tr>
             <th><?php echo _('#') ?></th>
-            <th><?php echo _('Host') ?></th>
+            <th><?php echo _('Address') ?></th>
             <th><?php echo _('Pages') ?></th>
             <th><?php echo _('PR') ?></th>
             <th><?php echo _('Actions') ?></th>
           </tr>
-          <?php foreach ($results as $i => $result) { ?>
+          <?php foreach ($topHostPages as $i => $topHostPage) { ?>
               <tr>
                 <td><?php echo $i + 1 ?></td>
                 <td>
-                  <?php if ($hostPageDescription = $db->getLastPageDescription($result->hostPageId)) { ?>
+                  <?php if ($hostPageDescription = $db->getLastPageDescription($topHostPage->hostPageId)) { ?>
                     <?php if (!empty($hostPageDescription->title)) { ?>
                       <?php $title = htmlentities($hostPageDescription->title) ?>
                     <?php } else if (!empty($hostPageDescription->description)) { ?>
@@ -253,18 +253,18 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                       <?php $title = false ?>
                     <?php } ?>
                   <?php } ?>
-                  <a href="<?php echo $result->scheme . '://' . $result->name . ($result->port ? ':' . $result->port : false) ?>"title="<?php echo trim($title) ?>">
-                    <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($result->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-                    <?php echo htmlentities(urldecode($result->scheme . '://' . $result->name . ($result->port ? ':' . $result->port : false))) ?>
+                  <a href="<?php echo $topHostPage->scheme . '://' . $topHostPage->name . ($topHostPage->port ? ':' . $topHostPage->port : false) . $topHostPage->uri ?>"title="<?php echo trim($title) ?>">
+                    <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($topHostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+                    <?php echo htmlentities(urldecode($topHostPage->scheme . '://' . $topHostPage->name . ($topHostPage->port ? ':' . $topHostPage->port : false))) ?>
                   </a>
                 </td>
                 <td>
-                  <?php $totalHostPages = $db->getTotalHostPages($result->hostId) ?>
+                  <?php $totalHostPages = $db->getTotalHostPages($topHostPage->hostId) ?>
                   <?php echo $totalHostPages . ($totalHostPages >= CRAWL_HOST_DEFAULT_PAGES_LIMIT ? '+' : false) ?>
                 </td>
-                <td><?php echo $result->rank ?></td>
+                <td><?php echo $topHostPage->rank ?></td>
                 <td>
-                  <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->hostPageId ?>">
+                  <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $topHostPage->hostPageId ?>">
                       <?php echo _('explore'); ?>
                   </a>
                 </td>
