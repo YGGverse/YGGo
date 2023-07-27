@@ -9,8 +9,12 @@ require_once(__DIR__ . '/../library/sphinxql.php');
 // Connect Sphinx search server
 $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 
+// Connect Memcached
+$memcached = new Memcached();
+$memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
+
 // Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD, $memcached);
 
 // Define page basics
 $totalPages = $sphinx->getHostPagesTotal();
@@ -19,8 +23,6 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                                             sprintf(_('Over %s pages or enter the new one...'), $totalPages),
                                             sprintf(_('Over %s pages or enter the new one...'), $totalPages),
                                             ]);
-
-
 
 ?>
 
@@ -240,7 +242,9 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           </tr>
           <?php foreach ($topHostPages as $i => $topHostPage) { ?>
               <tr>
-                <td><?php echo $i + 1 ?></td>
+                <td>
+                  <?php echo $i + 1 ?>
+                </td>
                 <td>
                   <?php if ($hostPageDescription = $db->getLastPageDescription($topHostPage->hostPageId)) { ?>
                     <?php if (!empty($hostPageDescription->title)) { ?>
@@ -259,10 +263,12 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                   </a>
                 </td>
                 <td>
-                  <?php $totalHostPages = $db->getTotalHostPages($topHostPage->hostId) ?>
-                  <?php echo $totalHostPages . ($totalHostPages >= CRAWL_HOST_DEFAULT_PAGES_LIMIT ? '+' : false) ?>
+                  <?php $totalHostPagesIndexed = $db->getTotalHostPagesIndexed($topHostPage->hostId) ?>
+                  <?php echo $totalHostPagesIndexed . ($totalHostPagesIndexed >= CRAWL_HOST_DEFAULT_PAGES_LIMIT ? '+' : false) ?>
                 </td>
-                <td><?php echo $topHostPage->rank ?></td>
+                <td>
+                  <?php echo $topHostPage->rank ?>
+                </td>
                 <td>
                   <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $topHostPage->hostPageId ?>">
                       <?php echo _('explore'); ?>

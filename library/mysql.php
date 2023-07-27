@@ -3,13 +3,18 @@
 class MySQL {
 
   private PDO $_db;
+  private Memcached $_memcached;
 
-  public function __construct(string $host, int $port, string $database, string $username, string $password) {
+  public function __construct(string $host, int $port, string $database, string $username, string $password, Memcached $memcached = null) {
 
     $this->_db = new PDO('mysql:dbname=' . $database . ';host=' . $host . ';port=' . $port . ';charset=utf8', $username, $password, [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8']);
     $this->_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
     $this->_db->setAttribute(PDO::ATTR_TIMEOUT, 600);
+
+    if ($memcached) {
+      $this->_memcached = $memcached;
+    }
   }
 
   // System
@@ -86,57 +91,60 @@ class MySQL {
 
   public function getTopHostPages() {
 
-     $query = $this->_db->query(" SELECT
+    if ($this->_memcached) {
 
-                                  `hostPageTarget`.`hostId`,
-                                  `hostPageTarget`.`hostPageId`,
-                                  `hostPageTarget`.`uri`,
+      if ($result = $this->_memcached->get('MySQL.getTopHostPages')) {
 
-                                  `hostTarget`.`scheme`,
-                                  `hostTarget`.`name`,
-                                  `hostTarget`.`port`,
+        return $result;
+      }
+    }
 
-                                  (
+    $query = $this->_db->query(" SELECT
 
-                                    SELECT COUNT(*) FROM `hostPage` AS `hostPageTotal`
+                                `hostPageTarget`.`hostId`,
+                                `hostPageTarget`.`hostPageId`,
+                                `hostPageTarget`.`uri`,
 
-                                    WHERE `hostPageTotal`.`hostId` = `hostPageTarget`.`hostId`
+                                `hostTarget`.`scheme`,
+                                `hostTarget`.`name`,
+                                `hostTarget`.`port`,
 
-                                    AND   `hostPageTotal`.`httpCode`   = 200
-                                    AND   `hostPageTotal`.`timeBanned` IS NULL
-                                    AND   `hostPageTotal`.`mime`       IS NOT NULL
+                                (
 
-                                  )  AS `total`,
+                                  SELECT COUNT(*)
 
-                                  (
+                                  FROM `hostPageToHostPage`
+                                  JOIN `hostPage` AS `hostPageSource` ON (`hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`)
 
-                                    SELECT COUNT(*)
+                                  WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPageTarget`.`hostPageId`
+                                  AND   `hostPageSource`.`hostId` <> `hostPageTarget`.`hostId`
 
-                                    FROM `hostPageToHostPage`
-                                    JOIN `hostPage` AS `hostPageSource` ON (`hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`)
+                                )  AS `rank`
 
-                                    WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPageTarget`.`hostPageId`
-                                    AND   `hostPageSource`.`hostId` <> `hostPageTarget`.`hostId`
+                                FROM `hostPage` AS `hostPageTarget`
+                                JOIN `host` AS `hostTarget` ON (`hostTarget`.`hostId` = `hostPageTarget`.`hostId`)
 
-                                  )  AS `rank`
+                                WHERE `hostTarget`.`status`         = '1'
+                                AND   `hostPageTarget`.`httpCode`   = 200
+                                AND   `hostPageTarget`.`timeBanned` IS NULL
+                                AND   `hostPageTarget`.`mime`       IS NOT NULL
 
-                                  FROM `hostPage` AS `hostPageTarget`
-                                  JOIN `host` AS `hostTarget` ON (`hostTarget`.`hostId` = `hostPageTarget`.`hostId`)
+                                GROUP BY `hostPageTarget`.`hostPageId`
 
-                                  WHERE `hostTarget`.`status`         = '1'
-                                  AND   `hostPageTarget`.`httpCode`   = 200
-                                  AND   `hostPageTarget`.`timeBanned` IS NULL
-                                  AND   `hostPageTarget`.`mime`       IS NOT NULL
+                                HAVING `rank` > 0
 
-                                  GROUP BY `hostPageTarget`.`hostPageId`
-
-                                  HAVING `rank` > 0
-
-                                  ORDER BY `rank` DESC
+                                ORDER BY `rank` DESC
 
     ");
 
-    return $query->fetchAll();
+    $result = $query->fetchAll();
+
+    if ($this->_memcached) {
+
+      $this->_memcached->set('MySQL.getTopHostPages', $result, time() + 3600);
+    }
+
+    return $result;
   }
 
   public function getHosts() {
@@ -223,6 +231,36 @@ class MySQL {
     $query->execute([$hostId]);
 
     return $query->fetch()->total;
+  }
+
+  public function getTotalHostPagesIndexed(int $hostId) {
+
+    if ($this->_memcached) {
+
+      if ($result = $this->_memcached->get(sprintf('MySQL.getTotalHostPagesIndexed.%s', $hostId))) {
+
+        return $result;
+      }
+    }
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPage`
+
+                                  WHERE `hostId` = ?
+
+                                  AND   `httpCode`   = 200
+                                  AND   `timeBanned` IS NULL
+                                  AND   `mime`       IS NOT NULL');
+
+    $query->execute([$hostId]);
+
+    $result = $query->fetch()->total;
+
+    if ($this->_memcached) {
+
+      $this->_memcached->set(sprintf('MySQL.getTotalHostPagesIndexed.%s', $hostId), $result, time() + 3600);
+    }
+
+    return $result;
   }
 
   /* not in use

@@ -30,6 +30,8 @@ php-gd
 php-mbstring
 php-zip
 php-mysql
+php-memcached
+memcached
 sphinxsearch
 ```
 

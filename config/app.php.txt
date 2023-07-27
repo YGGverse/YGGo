@@ -86,6 +86,10 @@ define('DB_PASSWORD', '');
 define('SPHINX_HOST', '127.0.0.1');
 define('SPHINX_PORT', 9306);
 
+// Memcached
+define('MEMCACHED_HOST', '127.0.0.1');
+define('MEMCACHED_PORT', 11211);
+
 // Third-party connections (optional)
 
 /*
