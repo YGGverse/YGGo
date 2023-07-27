@@ -14,6 +14,7 @@ require_once(__DIR__ . '/../config/app.php');
 require_once(__DIR__ . '/../library/ftp.php');
 require_once(__DIR__ . '/../library/curl.php');
 require_once(__DIR__ . '/../library/robots.php');
+require_once(__DIR__ . '/../library/sitemap.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/parser.php');
 require_once(__DIR__ . '/../library/mysql.php');
@@ -260,6 +261,78 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
     $db->rollBack();
 
     continue;
+  }
+}
+
+// Process robots crawl queue
+foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_SECONDS_OFFSET) as $host) {
+
+  // Build web root URL
+  $hostURL = $host->scheme . '://' .
+             $host->name .
+            ($host->port ? ':' . $host->port : '');
+
+  // Get robots.txt
+  $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+
+  // Update curl stats
+  $httpRequestsTotal++;
+  $httpRequestsSizeTotal += $curl->getSizeRequest();
+  $httpDownloadSizeTotal += $curl->getSizeDownload();
+  $httpRequestsTimeTotal += $curl->getTotalTime();
+
+  // Sitemap provided in robots.txt
+  if (200 == $curl->getCode()) {
+
+    $hostRobots = $curl->getContent();
+
+  } else {
+
+    $hostRobots = $host->robots;
+  }
+
+  // Update host index
+  $db->updateHostRobots($host->hostId, $hostRobots, time());
+
+  // Process sitemaps when enabled
+  if (CRAWL_SITEMAPS) {
+
+    // Look for custom sitemap URL served in robots.txt
+    $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+
+    if ($hostSitemapPath = $robots->getSitemap()) {
+
+        // Replace relative paths
+        $hostSitemapPath = trim($hostSitemapPath, '/');
+        $hostSitemapPath = str_replace($hostURL, '', $hostSitemapPath);
+        $hostSitemapPath = sprintf('%s%s', $hostURL, $hostSitemapPath);
+
+    // Set default path when not exists
+    } else {
+
+        $hostSitemapPath = sprintf('%s/sitemap.xml', $hostURL);
+    }
+
+    // Init sitemap data
+    $sitemap = new Sitemap($hostSitemapPath);
+
+    // Process collected sitemap links
+    foreach ($sitemap->getLinks() as $link => $attributes) {
+
+      // Parse formatted link
+      $linkURI     = Parser::uri($link);
+      $linkHostURL = Parser::hostURL($link);
+
+      // Add host page
+      if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
+          $linkHostURL->string == $hostURL && // this host links only
+          $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
+          $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
+         !$db->getHostPage($host->hostId, crc32($linkURI->string))) { // page does not exists
+
+          $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+      }
+    }
   }
 }
 

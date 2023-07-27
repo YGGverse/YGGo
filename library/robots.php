@@ -2,8 +2,9 @@
 
 class Robots {
 
-  private $_rule = [];
-  private $_data = null;
+  private $_rule    = [];
+  private $_sitemap = null;
+  private $_data    = null;
 
   public function __construct(mixed $data) {
 
@@ -14,6 +15,15 @@ class Robots {
     foreach ((array) explode(PHP_EOL, (string) $data) as $row) {
 
       $row = strtolower(trim($row));
+
+      // Parse sitemap address
+      if (preg_match('!^sitemap:\s?(.*)!', $row, $matches)) {
+
+        if (!empty($matches[1])) {
+
+          $this->_sitemap = urldecode(trim($matches[1]));
+        }
+      }
 
       // User-agent * begin
       if (preg_match('!^user-agent:\s?\*!', $row)) {
@@ -63,6 +73,7 @@ class Robots {
     return $result;
   }
 
+  /* @TODO not in use
   public function append(string $key, string $value) {
 
     if (!preg_match('!^user-agent:\s?\*!', strtolower(trim($this->_data)))) {
@@ -75,10 +86,16 @@ class Robots {
       $this->_data .= PHP_EOL . $key . ' ' . $value;
     }
   }
+  */
 
   public function getData() {
 
     return $this->_data;
+  }
+
+  public function getSitemap() {
+
+    return $this->_sitemap;
   }
 
   private function _regex(string $string) {

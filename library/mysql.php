@@ -728,6 +728,21 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function getHostRobotsCrawlQueue(int $limit, int $timeFrom) {
+
+    $query = $this->_db->prepare('SELECT * FROM `host`
+
+                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
+
+                                           ORDER BY RAND()
+
+                                           LIMIT ' . (int) $limit);
+
+    $query->execute([$timeFrom, 0]);
+
+    return $query->fetchAll();
+  }
+
   public function getManifestCrawlQueue(int $limit, int $timeFrom) {
 
     $query = $this->_db->prepare('SELECT * FROM `manifest`

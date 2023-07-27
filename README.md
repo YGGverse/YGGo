@@ -23,6 +23,7 @@ https://github.com/YGGverse/YGGo/tree/main/media
 ```
 php8^
 php-dom
+php-xml
 php-pdo
 php-curl
 php-gd
@@ -199,7 +200,7 @@ GET m=SphinxQL
 * [ ] Host page DOM elements collecting by CSS selectors
   * [ ] Custom settings for each host
 * [ ] XML Feeds support
-  + [ ] Sitemap
+  + [x] Sitemap
   + [ ] RSS
   + [ ] Atom
 * [ ] Palette image index / filter
