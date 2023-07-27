@@ -98,6 +98,18 @@ class MySQL {
 
                                   (
 
+                                    SELECT COUNT(*) FROM `hostPage` AS `hostPageTotal`
+
+                                    WHERE `hostPageTotal`.`hostId` = `hostPageTarget`.`hostId`
+
+                                    AND   `hostPageTotal`.`httpCode`   = 200
+                                    AND   `hostPageTotal`.`timeBanned` IS NULL
+                                    AND   `hostPageTotal`.`mime`       IS NOT NULL
+
+                                  )  AS `total`,
+
+                                  (
+
                                     SELECT COUNT(*)
 
                                     FROM `hostPageToHostPage`
