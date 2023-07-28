@@ -205,25 +205,6 @@ class MySQL {
     return $result;
   }
 
-  /* not in use
-  public function getTotalPagesByHttpCode(mixed $httpCode) {
-
-    if (is_null($httpCode)) {
-
-      $query = $this->_db->query('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE `httpCode` IS NULL');
-
-    } else {
-
-      $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE `httpCode` = ?');
-
-      $query->execute([$httpCode]);
-
-    }
-
-    return $query->fetch()->total;
-  }
-  */
-
   public function getHostPage(int $hostId, int $crc32uri) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? AND `crc32uri` = ? LIMIT 1');
@@ -554,17 +535,6 @@ class MySQL {
 
     return $query->fetch();
   }
-
-  /* not in use
-  public function getHostPageSnapDownloads(int $hostPageSnapId) {
-
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapDownload` WHERE `hostPageSnapId` = ? LIMIT 1');
-
-    $query->execute([$hostPageSnapId]);
-
-    return $query->fetchAll();
-  }
-  */
 
   public function addHostPageSnapDownload(int $hostPageSnapId, string $crc32ip, int $timeAdded) {
 
