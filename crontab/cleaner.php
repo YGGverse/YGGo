@@ -272,27 +272,33 @@ try {
   $logsCrawlerDeleted += $db->deleteLogCrawler(time() - CRAWL_LOG_SECONDS_OFFSET);
 
   // Delete failed snaps
-  $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
+  foreach ($db->getHosts() as $host) {
 
-  foreach ($db->getHostPageSnaps($hostPage->hostPageId, false, false, 'AND') as $hostPageSnap) {
+    foreach ($db->getHostPages($host->hostId) as $hostPage) {
 
-    if ($hostPageSnap->storageLocal) {
+      $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
 
-      unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
-    }
+      foreach ($db->getHostPageSnaps($hostPage->hostPageId, false, false, 'AND') as $hostPageSnap) {
 
-    if ($hostPageSnap->storageMega) {
+        if ($hostPageSnap->storageLocal) {
 
-      $ftp = new Ftp();
+          unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+        }
 
-      if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
-          $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+        if ($hostPageSnap->storageMega) {
+
+          $ftp = new Ftp();
+
+          if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+              $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+          }
+        }
+
+        $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
+
+        $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
       }
     }
-
-    $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
-
-    $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
   }
 
   // Commit results
