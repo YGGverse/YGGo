@@ -355,6 +355,9 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
+    // Update page rank
+    $db->updateHostPageRank($queueHostPage->hostPageId, $db->getTotalExternalHostPageIdSourcesByHostPageIdTarget($queueHostPage->hostPageId)); // @TODO add library cover
+
     // Update page index anyway, with the current time and http code
     $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode(), $curl->getSizeDownload());
 

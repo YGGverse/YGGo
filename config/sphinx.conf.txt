@@ -14,12 +14,9 @@ source hostPage : common
   sql_query   = \
     SELECT `hostPage`.`hostPageId`, \
            `hostPage`.`uri`, \
+           `hostPage`.`rank`, \
            `host`.`name`, \
            REGEXP_REPLACE(`hostPage`.`mime`, '^([A-z-]+)/[A-z-]+.*', '$1') AS `mime`, \
-          (SELECT COUNT(*) FROM `hostPageToHostPage` \
-           WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPage`.`hostPageId` \
-           AND   (SELECT `hostPageSource`.`hostId` FROM `hostPage` AS `hostPageSource` \
-                  WHERE  `hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`) <> `hostPage`.`hostId`) AS `rank`, \
           (SELECT GROUP_CONCAT(CONCAT_WS(' ', `hostPageDescription`.`title`, \
                                               `hostPageDescription`.`description`, \
                                               `hostPageDescription`.`keywords`)) \

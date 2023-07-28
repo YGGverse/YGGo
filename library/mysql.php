@@ -89,64 +89,6 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function getTopHostPages() {
-
-    if ($this->_memcached) {
-
-      if ($result = $this->_memcached->get('MySQL.getTopHostPages')) {
-
-        return $result;
-      }
-    }
-
-    $query = $this->_db->query(" SELECT
-
-                                `hostPageTarget`.`hostId`,
-                                `hostPageTarget`.`hostPageId`,
-                                `hostPageTarget`.`uri`,
-
-                                `hostTarget`.`scheme`,
-                                `hostTarget`.`name`,
-                                `hostTarget`.`port`,
-
-                                (
-
-                                  SELECT COUNT(*)
-
-                                  FROM `hostPageToHostPage`
-                                  JOIN `hostPage` AS `hostPageSource` ON (`hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`)
-
-                                  WHERE `hostPageToHostPage`.`hostPageIdTarget` = `hostPageTarget`.`hostPageId`
-                                  AND   `hostPageSource`.`hostId` <> `hostPageTarget`.`hostId`
-
-                                )  AS `rank`
-
-                                FROM `hostPage` AS `hostPageTarget`
-                                JOIN `host` AS `hostTarget` ON (`hostTarget`.`hostId` = `hostPageTarget`.`hostId`)
-
-                                WHERE `hostTarget`.`status`         = '1'
-                                AND   `hostPageTarget`.`httpCode`   = 200
-                                AND   `hostPageTarget`.`timeBanned` IS NULL
-                                AND   `hostPageTarget`.`mime`       IS NOT NULL
-
-                                GROUP BY `hostPageTarget`.`hostPageId`
-
-                                HAVING `rank` > 0
-
-                                ORDER BY `rank` DESC
-
-    ");
-
-    $result = $query->fetchAll();
-
-    if ($this->_memcached) {
-
-      $this->_memcached->set('MySQL.getTopHostPages', $result, time() + 3600);
-    }
-
-    return $result;
-  }
-
   public function getHosts() {
 
     $query = $this->_db->query('SELECT * FROM `host`');
@@ -300,6 +242,50 @@ class MySQL {
     return $query->fetchAll();
   }
 
+  public function getTopHostPages(int $limit = 100) {
+
+    if ($this->_memcached) {
+
+      if ($result = $this->_memcached->get(sprintf('MySQL.getTopHostPages.%s', $limit))) {
+
+        return $result;
+      }
+    }
+
+    $query = $this->_db->query(" SELECT
+
+                                `hostPage`.`hostId`,
+                                `hostPage`.`hostPageId`,
+                                `hostPage`.`uri`,
+                                `hostPage`.`rank`,
+
+                                `host`.`scheme`,
+                                `host`.`name`,
+                                `host`.`port`
+
+                                FROM `hostPage`
+                                JOIN `host` ON (`hostPage`.`hostId` = `host`.`hostId`)
+
+                                WHERE `host`.`status`         = '1'
+                                AND   `hostPage`.`httpCode`   = 200
+                                AND   `hostPage`.`rank`       > 0
+                                AND   `hostPage`.`timeBanned` IS NULL
+                                AND   `hostPage`.`mime`       IS NOT NULL
+
+                                ORDER BY `rank` DESC
+
+                                LIMIT " . (int) $limit);
+
+    $result = $query->fetchAll();
+
+    if ($this->_memcached) {
+
+      $this->_memcached->set(sprintf('MySQL.getTopHostPages.%s', $limit), $result, time() + 3600);
+    }
+
+    return $result;
+  }
+
   public function getHostPagesByIndexed() {
 
     $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeUpdated` IS NOT NULL AND `timeBanned` IS NULL');
@@ -390,6 +376,15 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function updateHostPageRank(int $hostPageId, int $rank) {
+
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `rank` = ? WHERE `hostPageId` = ? LIMIT 1');
+
+    $query->execute([$rank, $hostPageId]);
+
+    return $query->rowCount();
+  }
+
   public function deleteHostPage(int $hostPageId) {
 
     $query = $this->_db->prepare('DELETE FROM `hostPage` WHERE `hostPageId` = ? LIMIT 1');
@@ -450,6 +445,22 @@ class MySQL {
     $query->execute([$hostPageId, $hostPageId]);
 
     return $query->rowCount();
+  }
+
+  public function getTotalExternalHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget) {
+
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total`
+
+                                  FROM  `hostPageToHostPage`
+                                  JOIN  `hostPage` AS `hostPageSource` ON (`hostPageSource`.`hostPageId` = `hostPageToHostPage`.`hostPageIdSource`)
+                                  JOIN  `hostPage` AS `hostPageTarget` ON (`hostPageTarget`.`hostPageId` = `hostPageToHostPage`.`hostPageIdTarget`)
+
+                                  WHERE `hostPageToHostPage`.`hostPageIdTarget` = ?
+                                  AND   `hostPageSource`.`hostId` <> `hostPageTarget`.`hostId`');
+
+    $query->execute([$hostPageIdTarget]);
+
+    return $query->fetch()->total;
   }
 
   public function getTotalHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget) {

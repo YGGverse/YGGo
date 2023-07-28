@@ -39,6 +39,56 @@ switch ($argv[1]) {
     include_once(__DIR__ . '/../crontab/cleaner.php');
 
   break;
+  case 'hostPage':
+
+    if (empty($argv[2])) {
+      echo PHP_EOL . _('hostPage method requires action argument') . PHP_EOL;
+    }
+
+    switch ($argv[2]) {
+
+      case 'rank':
+
+        if (empty($argv[3])) {
+          echo PHP_EOL . _('hostPage rank requires action argument') . PHP_EOL;
+        }
+
+        switch ($argv[3]) {
+
+          case 'reindex':
+
+            foreach ($db->getHosts() as $host) {
+
+              foreach ($db->getHostPages($host->hostId) as $hostPage) {
+
+                $db->updateHostPageRank($hostPage->hostPageId, $db->getTotalExternalHostPageIdSourcesByHostPageIdTarget($hostPage->hostPageId)); // @TODO add library cover
+              }
+            }
+
+            echo _('hostPage rank successfully updated') . PHP_EOL;
+            exit;
+
+          break;
+          default:
+
+            echo PHP_EOL . _('undefined action argument') . PHP_EOL;
+        }
+
+      break;
+      case 'truncate':
+
+        $db->truncateHostPageDom();
+
+        echo _('hostPageDom table successfully truncated') . PHP_EOL;
+        exit;
+
+      break;
+      default:
+
+        echo PHP_EOL . _('undefined action argument') . PHP_EOL;
+    }
+
+  break;
   case 'hostPageDom':
 
     if (empty($argv[2])) {
@@ -190,6 +240,7 @@ echo PHP_EOL . _('available options:') . PHP_EOL . PHP_EOL;
 echo _('  help                             - this message') . PHP_EOL;
 echo _('  crawl                            - execute crawler step in the crontab queue') . PHP_EOL;
 echo _('  clean                            - execute cleaner step in the crontab queue') . PHP_EOL;
+echo _('  hostPage rank reindex            - generate rank indexes in hostPage table') . PHP_EOL;
 echo _('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field') . PHP_EOL;
 echo _('  hostPageDom truncate             - flush hostPageDom table') . PHP_EOL;
 echo _('  hostPageSnap truncate            - flush hostPageSnap, hostPageSnapDownload tables') . PHP_EOL . PHP_EOL;
