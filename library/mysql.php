@@ -891,6 +891,7 @@ class MySQL {
     $this->_db->query('OPTIMIZE TABLE `hostPageDescription`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDom`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnap`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageSnapStorage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapDownload`');
     $this->_db->query('OPTIMIZE TABLE `hostPageToHostPage`');
 
