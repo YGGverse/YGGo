@@ -97,8 +97,12 @@ switch ($argv[1]) {
 
                           if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                            CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $i));
+                            CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
                           }
+
+                        } else {
+
+                          CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
                         }
                       }
 
@@ -119,8 +123,11 @@ switch ($argv[1]) {
 
                             if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                              CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $i));
+                              CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
                             }
+                          } else {
+
+                            CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
                           }
                         }
                       }
@@ -136,7 +143,7 @@ switch ($argv[1]) {
 
                 $hostPageSnapsTrashQueue[] = $hostPageSnap->hostPageSnapId;
 
-                CLI::warning(sprintf(_('trash snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
+                CLI::danger(sprintf(_('trash snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
               }
             }
           }
