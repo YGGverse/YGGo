@@ -16,6 +16,12 @@ class Robots {
 
       $row = strtolower(trim($row));
 
+      // User-agent * begin
+      if (preg_match('!^user-agent:\s?\*!', $row)) {
+        $read = true;
+        continue;
+      }
+
       // Parse sitemap address
       if (preg_match('!^sitemap:\s?(.*)!', $row, $matches)) {
 
@@ -23,12 +29,6 @@ class Robots {
 
           $this->_sitemap = urldecode(trim($matches[1]));
         }
-      }
-
-      // User-agent * begin
-      if (preg_match('!^user-agent:\s?\*!', $row)) {
-        $read = true;
-        continue;
       }
 
       if ($read) {
