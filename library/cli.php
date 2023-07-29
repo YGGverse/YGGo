@@ -14,7 +14,7 @@ class CLI {
 
   public static function notice(string $string) {
 
-    echo sprintf("\033[36ms%s\033[0m", $string) . self::brake();
+    echo sprintf("\033[36m%s\033[0m", $string) . self::brake();
   }
 
   public static function warning(string $string) {
