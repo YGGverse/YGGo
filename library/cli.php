@@ -24,11 +24,11 @@ class CLI {
 
   public static function danger(string $string) {
 
-    echo sprintf("\033[31m%s\033[31m", $string) . self::brake();
+    echo sprintf("\033[31m%s\033[0m", $string) . self::brake();
   }
 
   public static function success(string $string) {
 
-    echo sprintf("\033[32m%s\033[32m", $string) . self::brake();
+    echo sprintf("\033[32m%s\033[0m", $string) . self::brake();
   }
 }
