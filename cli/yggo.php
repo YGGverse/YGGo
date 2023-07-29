@@ -62,7 +62,7 @@ switch ($argv[1]) {
         // Scan for new files/storages
         CLI::notice(_('scan database registry for missed snap files...'));
 
-        $hostPageSnapsTrash = [];
+        $hostPageSnapsTrashQueue = [];
 
         foreach ($db->getHosts() as $host) {
 
@@ -76,16 +76,12 @@ switch ($argv[1]) {
               $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
 
               // Check file exists
-              $snapStorageIndex = 0;
-
               foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-                foreach ($storages as $storage) {
-
-                  $snapStorageIndex++;
+                foreach ($storages as $i => $storage) {
 
                   // Generate storage id
-                  $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+                  $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
                   switch ($name) {
 
@@ -101,7 +97,7 @@ switch ($argv[1]) {
 
                           if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                            CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $snapStorageIndex));
+                            CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $i));
                           }
                         }
                       }
@@ -123,7 +119,7 @@ switch ($argv[1]) {
 
                             if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                              CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $snapStorageIndex));
+                              CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $i));
                             }
                           }
                         }
@@ -138,7 +134,7 @@ switch ($argv[1]) {
 
               if (!$snapFileExists) {
 
-                $hostPageSnapsTrash[] = $hostPageSnap->hostPageSnapId;
+                $hostPageSnapsTrashQueue[] = $hostPageSnap->hostPageSnapId;
 
                 CLI::warning(sprintf(_('trash snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
               }
@@ -146,11 +142,11 @@ switch ($argv[1]) {
           }
         }
 
-        if ($hostPageSnapsTrash) {
+        if ($hostPageSnapsTrashQueue && isset($argv[3]) && $argv[3] == 'purge') {
 
           CLI::notice(_('snap index deletion queue begin...'));
 
-          foreach ($hostPageSnapsTrash as $hostPageSnapId) {
+          foreach ($hostPageSnapsTrashQueue as $hostPageSnapId) {
 
             CLI::warning(sprintf(_('delete snap index: #%s;'), $hostPageSnapId));
 
@@ -164,7 +160,7 @@ switch ($argv[1]) {
             $db->deleteHostPageSnap($hostPageSnapId);
           }
 
-          CLI::success(_('snap index trash deletion completed!'));
+          CLI::success(_('snap index trash queue deleted!'));
         }
 
         CLI::notice(_('optimize database tables...'));
@@ -342,7 +338,7 @@ CLI::default('available options:');
 CLI::default('  help                             - this message');
 CLI::default('  crawl                            - execute crawler step in the crontab queue');
 CLI::default('  clean                            - execute cleaner step in the crontab queue');
-CLI::default('  snap reindex                     - sync DB/FS relations');
+CLI::default('  snap reindex [purge]             - sync DB/FS relations. optionally delete unrelated DB/FS items');
 CLI::default('  hostPage rank reindex            - generate rank indexes in hostPage table');
 CLI::default('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field');
 CLI::default('  hostPageDom truncate             - flush hostPageDom table');
