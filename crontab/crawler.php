@@ -954,6 +954,25 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         ];
       }
 
+      foreach (@$dom->getElementsByTagName('script') as $script) {
+
+        // Skip nodes without href attribute
+        if (!$src = @$script->getAttribute('src')) {
+
+          continue;
+        }
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => null,
+          'data'        => null,
+          'mime'        => null,
+          'ref'         => $src,
+        ];
+      }
+
       foreach (@$dom->getElementsByTagName('link') as $link) {
 
         // Skip nodes without href attribute
