@@ -84,6 +84,11 @@ class Ftp {
     return false;
   }
 
+  public function list(string $path) {
+
+    return ftp_nlist($this->_connection, $path);
+  }
+
   public function close() {
 
     return ftp_close($this->_connection);
