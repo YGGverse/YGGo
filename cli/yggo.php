@@ -332,7 +332,7 @@ CLI::default(' \  / / __/ / __/ __ \/ /' );
 CLI::default(' / / /_/ / /_/ / /_/ /_/'  );
 CLI::default('/_/\____/\____/\____(_)'   );
 
-CLI::brake();
+CLI::break();
 CLI::default('available options:');
 
 CLI::default('  help                             - this message');
@@ -342,6 +342,9 @@ CLI::default('  snap reindex [purge]             - sync DB/FS relations. optiona
 CLI::default('  hostPage rank reindex            - generate rank indexes in hostPage table');
 CLI::default('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field');
 CLI::default('  hostPageDom truncate             - flush hostPageDom table');
-CLI::brake();
+CLI::break();
 
 CLI::default('get support: https://github.com/YGGverse/YGGo/issues');
+
+CLI::break();
+CLI::break();
