@@ -15,14 +15,10 @@ class Ftp {
                           mixed  $login = null,
                           mixed  $password = null,
                           string $directory = '/',
-                          int    $timeout = 90) {
+                          int    $timeout = 90,
+                          bool   $passive = false) {
 
     if (!$this->_connection = ftp_connect($host, $port, $timeout)) {
-
-      return false;
-    }
-
-    if (!ftp_pasv($this->_connection, $this->_passive)) {
 
       return false;
     }
@@ -33,6 +29,11 @@ class Ftp {
 
         return false;
       }
+    }
+
+    if ($passive && !ftp_pasv($this->_connection, $this->_passive)) {
+
+      return false;
     }
 
     return ftp_chdir($this->_connection, $directory);

@@ -39,7 +39,7 @@ sphinxsearch
 
 * The web root dir is `/public`
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
-* Install [Sphinx Search Server](https://sphinxsearch.com), [MEGAcmd](https://mega.nz/cmd) (on remote snaps enabled)
+* Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples presented at `/config` folder
 * Make sure `/storage/cache`, `/storage/tmp`, `/storage/snap` folders are writable
 * Set up the `/crontab` by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
@@ -155,10 +155,8 @@ GET m=SphinxQL
 * [x] Flexible settings compatible with IPv4/IPv6 networks
 * [x] Extended search syntax support
 * [x] Compressed page history snaps with multi-provider storage sync
-  + [x] Local
-  + [x] Remote
-    + [x] MEGAcmd/FTP
-    + [ ] Yggdrasil over NAT
+  + [x] Local (unlimited locations)
+  + [x] Remote FTP (unlimited mirrors)
   + [x] Privacy-oriented downloads counting, traffic controls
 
 ##### UI
@@ -213,7 +211,7 @@ GET m=SphinxQL
 * [x] Deprecated DB items auto deletion / host settings update
   + [x] Pages
   + [x] Snaps
-    + [x] Snap downloads
+    + [ ] Snap downloads
     + [ ] Missed snap file relations
   + [x] Manifests
   + [x] Logs
@@ -232,7 +230,7 @@ GET m=SphinxQL
   + [x] generate
   + [x] truncate
 * [x] hostPageSnap
-  + [x] truncate
+  + [ ] truncate
 * [ ] hostPage
   + [ ] add
 

@@ -111,7 +111,6 @@ if (API_ENABLED) {
               'crawlHostPageSecondsOffset'     => CRAWL_PAGE_SECONDS_OFFSET,
               'crawlHostPageHomeSecondsOffset' => CRAWL_PAGE_HOME_SECONDS_OFFSET,
               'crawlHostPageMimeIndex'         => CRAWL_PAGE_MIME_INDEX,
-              'crawlHostPageMimeSnapLocal'     => CRAWL_PAGE_MIME_SNAP_LOCAL,
               'cleanHostSecondsOffset'         => CLEAN_HOST_SECONDS_OFFSET,
               'crawlRobotsDefaultRules'        => CRAWL_ROBOTS_DEFAULT_RULES,
               'crawlRobotsPostfixRules'        => CRAWL_ROBOTS_POSTFIX_RULES,

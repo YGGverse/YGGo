@@ -46,102 +46,93 @@ switch ($type) {
     // Connect database
     $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
+    // Init request
+    $crc32ip = crc32(!empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
+
     // Get snap details from DB
     if ($hostPageSnap = $db->getHostPageSnap(!empty($_GET['hps']) ? (int) $_GET['hps'] : 0)) {
 
-      // Init variables
-      $crc32ip = crc32(!empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
-      $time    = time();
+      // Get snap file
 
-      $hostPageDownloadsTotalSize = $db->findHostPageSnapDownloadsTotalSize($crc32ip, $time - WEBSITE_QUOTA_IP_SNAP_DOWNLOAD_TOTAL_SIZE_TIME_OFFSET);
+      $snapStorageIndex = 0;
 
-      // Check for downloading quotas
-      if ($hostPageDownloadsTotalSize >= WEBSITE_QUOTA_IP_SNAP_DOWNLOAD_TOTAL_SIZE) {
+      foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-        header('HTTP/1.0 403 Forbidden');
+        foreach ($storages as $storage) {
 
-        echo _('403 Access forbidden by requests quota');
+          $snapStorageIndex++;
 
-        exit;
-      }
+          // Generate storage id
+          $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
 
-      // Register snap download
-      $hostPageSnapDownloadId = $db->addHostPageSnapDownload($hostPageSnap->hostPageSnapId, $crc32ip, $time);
+          switch ($name) {
 
-      // Init variables
-      $snapSize = 0;
-      $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
+            case 'localhost':
 
-      // Download local snap in higher priority if possible
-      if ($hostPageSnap->storageLocal && file_exists(__DIR__ . '/../storage/snap/' . $snapFile) &&
-                                         is_readable(__DIR__ . '/../storage/snap/' . $snapFile)) {
+              if ($hostPageSnapStorage = $db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
-        $snapSize = (int) @filesize(__DIR__ . '/../storage/snap/' . $snapFile);
+                // Check request quota
+                //if ()
 
-        $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'local', $snapSize, 200);
+                // Get file
+                $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
 
-        header('Content-Type: application/zip');
-        header(sprintf('Content-Length: %s', $snapSize));
-        header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
-                                                                            $hostPageSnap->hostPageId,
-                                                                            $hostPageSnap->timeAdded));
-        readfile(__DIR__ . '/../storage/snap/' . $snapFile);
+                // Download local snap in higher priority if possible
+                if (file_exists($storage->directory . $snapFile) &&
+                    is_readable($storage->directory . $snapFile)) {
 
-      // Then try to download from MEGA storage if exists
-      } else if ($hostPageSnap->storageMega) {
+                    // Register snap download
+                    $db->addHostPageSnapDownload($hostPageSnapStorage->hostPageSnapStorageId, $crc32ip, time());
 
-        $ftp = new Ftp();
+                    // Return snap file
+                    header('Content-Type: application/zip');
+                    header(sprintf('Content-Length: %s', $snapSize));
+                    header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
+                                                                                        $hostPageSnap->hostPageId,
+                                                                                        $hostPageSnap->timeAdded));
+                    readfile($storage->directory . $snapFile);
 
-        if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
+                    exit;
+                }
+              }
 
-          if ($snapSize = $ftp->size($snapFile)) {
+            break;
+            case 'ftp':
 
-            $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize, 200);
+              if ($hostPageSnapStorage = $db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
-            header('Content-Type: application/zip');
-            header(sprintf('Content-Length: %s', $snapSize));
-            header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
-                                                                                $hostPageSnap->hostPageId,
-                                                                                $hostPageSnap->timeAdded));
+                $ftp = new Ftp();
 
-            $ftp->get($snapFile, 'php://output');
+                if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
 
-          } else {
+                  // Register snap download
+                  $db->addHostPageSnapDownload($hostPageSnapStorage->hostPageSnapStorageId, $crc32ip, time());
 
-            $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize, 404);
+                  // Return snap file
+                  header('Content-Type: application/zip');
+                  header(sprintf('Content-Length: %s', $snapSize));
+                  header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
+                                                                                      $hostPageSnap->hostPageId,
+                                                                                      $hostPageSnap->timeAdded));
 
-            header('HTTP/1.0 404 Not Found');
+                  $ftp->get($snapFile, 'php://output');
 
-            echo _('404 File not found');
+                  exit;
+                }
+              }
+
+            break;
           }
-
-        } else {
-
-          $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'mega', $snapSize, 404);
-
-          header('HTTP/1.0 404 Not Found');
-
-          echo _('404 File not found');
         }
-
-      // Return 404 when file not found
-      } else {
-
-        $db->updateHostPageSnapDownload($hostPageSnapDownloadId, 'other', $snapSize, 404);
-
-        header('HTTP/1.0 404 Not Found');
-
-        echo _('404 File not found');
       }
-
-    } else {
-
-      header('HTTP/1.0 404 Not Found');
-
-      echo _('404 Snap not found');
     }
 
+    header('HTTP/1.0 404 Not Found');
+
+    echo _('404 Snap not found');
+
   break;
+
   default:
 
     header('HTTP/1.0 404 Not Found');

@@ -93,23 +93,43 @@ try {
 
           foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
-            if ($hostPageSnap->storageLocal) {
+            // Delete snap files
+            foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-              unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
-            }
+              foreach ($storages as $storage) {
 
-            if ($hostPageSnap->storageMega) {
+                // Generate storage id
+                $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
 
-              $ftp = new Ftp();
+                switch ($name) {
 
-              if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
-                  $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                  case 'localhost':
+
+                    @unlink($storage->directory . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+
+                  break;
+                  case 'ftp':
+
+                    $ftp = new Ftp();
+
+                    if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+                        $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                    }
+
+                  break;
+                }
+
+                // Clean up DB registry
+                foreach ($db->getHostPageSnapStorages($hostPageSnap->hostPageSnapId) as $hostPageSnapStorage) {
+
+                  $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+                }
+
+                $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
+
+                $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
               }
             }
-
-            $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
-
-            $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
           }
 
           // Delete host page
@@ -139,23 +159,43 @@ try {
 
         foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
-          if ($hostPageSnap->storageLocal) {
+          // Delete snap files
+          foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-            unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
-          }
+            foreach ($storages as $storage) {
 
-          if ($hostPageSnap->storageMega) {
+              // Generate storage id
+              $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
 
-            $ftp = new Ftp();
+              switch ($name) {
 
-            if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
-                $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                case 'localhost':
+
+                  @unlink($storage->directory . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+
+                break;
+                case 'ftp':
+
+                  $ftp = new Ftp();
+
+                  if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+                      $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                  }
+
+                break;
+              }
+
+              // Clean up DB registry
+              foreach ($db->getHostPageSnapStorages($hostPageSnap->hostPageSnapId) as $hostPageSnapStorage) {
+
+                $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+              }
+
+              $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
+
+              $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
             }
           }
-
-          $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
-
-          $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
         }
 
         // Delete host page
@@ -225,39 +265,59 @@ try {
   $hostPagesBansRemoved += $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
 
   // Clean up banned pages extra data
-  foreach ($db->getHostPagesBanned() as $hostPageBanned) {
+  foreach ($db->getHostPagesBanned() as $hostPage) {
 
     // Delete host page descriptions
-    $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPageBanned->hostPageId);
+    $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
 
     // Delete host page DOMs
-    $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPageBanned->hostPageId);
+    $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPage->hostPageId);
 
     // Delete host page refs data
-    $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPageBanned->hostPageId);
+    $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
     // Delete host page snaps
-    $snapFilePath = chunk_split($hostPageBanned->hostPageId, 1, '/');
+    $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
 
-    foreach ($db->getHostPageSnaps($hostPageBanned->hostPageId) as $hostPageSnap) {
+    foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
-      if ($hostPageSnap->storageLocal) {
+      // Delete snap files
+      foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-        unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
-      }
+        foreach ($storages as $storage) {
 
-      if ($hostPageSnap->storageMega) {
+          // Generate storage id
+          $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
 
-        $ftp = new Ftp();
+          switch ($name) {
 
-        if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
-            $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+            case 'localhost':
+
+              @unlink($storage->directory . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+
+            break;
+            case 'ftp':
+
+              $ftp = new Ftp();
+
+              if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+                  $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+              }
+
+            break;
+          }
+
+          // Clean up DB registry
+          foreach ($db->getHostPageSnapStorages($hostPageSnap->hostPageSnapId) as $hostPageSnapStorage) {
+
+            $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+          }
+
+          $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
+
+          $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
         }
       }
-
-      $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
-
-      $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
     }
   }
 
@@ -271,35 +331,8 @@ try {
   $logsCleanerDeleted += $db->deleteLogCleaner(time() - CLEAN_LOG_SECONDS_OFFSET);
   $logsCrawlerDeleted += $db->deleteLogCrawler(time() - CRAWL_LOG_SECONDS_OFFSET);
 
-  // Delete failed snaps
-  foreach ($db->getHosts() as $host) {
-
-    foreach ($db->getHostPages($host->hostId) as $hostPage) {
-
-      $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
-
-      foreach ($db->getHostPageSnaps($hostPage->hostPageId, false, false, 'AND') as $hostPageSnap) {
-
-        if ($hostPageSnap->storageLocal) {
-
-          unlink(__DIR__ . '/../storage/snap/hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
-        }
-
-        if ($hostPageSnap->storageMega) {
-
-          $ftp = new Ftp();
-
-          if ($ftp->connect(MEGA_FTP_HOST, MEGA_FTP_PORT, null, null, MEGA_FTP_DIRECTORY)) {
-              $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
-          }
-        }
-
-        $db->deleteHostPageSnapDownloads($hostPageSnap->hostPageSnapId);
-
-        $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
-      }
-    }
-  }
+  // Delete failed snap files
+  // @TODO
 
   // Commit results
   $db->commit();

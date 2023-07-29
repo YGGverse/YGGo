@@ -462,33 +462,16 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function addHostPageSnap(int $hostPageId, string $crc32data, int $timeAdded) {
+  public function addHostPageSnap(int $hostPageId, string $crc32data, int $size, int $timeAdded) {
 
     $query = $this->_db->prepare('INSERT INTO `hostPageSnap` (`hostPageId`,
                                                               `crc32data`,
-                                                              `timeAdded`) VALUES (?, ?, ?)');
+                                                              `size`,
+                                                              `timeAdded`) VALUES (?, ?, ?, ?)');
 
-    $query->execute([$hostPageId, $crc32data, $timeAdded]);
+    $query->execute([$hostPageId, $crc32data, $size, $timeAdded]);
 
     return $this->_db->lastInsertId();
-  }
-
-  public function updateHostPageSnapStorageLocal(int $hostPageSnapId, mixed $value) {
-
-    $query = $this->_db->prepare('UPDATE `hostPageSnap` SET `storageLocal` = ? WHERE `hostPageSnapId` = ? LIMIT 1');
-
-    $query->execute([$value, $hostPageSnapId]);
-
-    return $query->rowCount();
-  }
-
-  public function updateHostPageSnapStorageMega(int $hostPageSnapId, mixed $value) {
-
-    $query = $this->_db->prepare('UPDATE `hostPageSnap` SET `storageMega` = ? WHERE `hostPageSnapId` = ? LIMIT 1');
-
-    $query->execute([$value, $hostPageSnapId]);
-
-    return $query->rowCount();
   }
 
   public function deleteHostPageSnap(int $hostPageSnapId) {
@@ -500,22 +483,35 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function getTotalHostPageSnaps(int $hostPageId, bool $storageLocal = true, bool $storageMega = true) {
+  public function getTotalHostPageSnaps(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnap` WHERE `hostPageId` = ? AND (`storageLocal` = ? OR `storageMega` = ?)');
+    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageSnap` WHERE `hostPageId` = ?');
 
-    $query->execute([$hostPageId, $storageLocal, $storageMega]);
+    $query->execute([$hostPageId]);
 
     return $query->fetch()->total;
   }
 
-  public function getHostPageSnaps(int $hostPageId, bool $storageLocal = true, bool $storageMega = true, string $condition = 'OR') {
+  public function getHostPageSnaps(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND (`storageLocal` = ? ' . ($condition == 'OR' ? 'OR' : 'AND') . ' `storageMega` = ?) ORDER BY `timeAdded` DESC');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? ORDER BY `timeAdded` DESC');
 
-    $query->execute([$hostPageId, $storageLocal, $storageMega]);
+    $query->execute([$hostPageId]);
 
     return $query->fetchAll();
+  }
+
+  public function getTotalHostPageSnapSizeByStorage(int $hostPageId, int $crc32name) {
+
+    $query = $this->_db->prepare('SELECT SUM(`hostPageSnap`.`size`) AS `total` FROM  `hostPageSnap`
+                                                                               JOIN  `hostPageSnapStorage` ON (`hostPageSnapStorage`.`hostPageSnapId` = `hostPageSnap`.`hostPageSnapId`)
+
+                                                                               WHERE `hostPageSnap`.`hostPageSnapId` = ?
+                                                                                 AND `hostPageSnapStorage`.`crc32name` = ?');
+
+    $query->execute([$hostPageId, $crc32name]);
+
+    return $query->fetch()->total;
   }
 
   public function getHostPageSnap(int $hostPageSnapId) {
@@ -536,44 +532,62 @@ class MySQL {
     return $query->fetch();
   }
 
-  public function addHostPageSnapDownload(int $hostPageSnapId, string $crc32ip, int $timeAdded) {
+  public function addHostPageSnapDownload(int $hostPageSnapStorageId, string $crc32ip, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT INTO `hostPageSnapDownload` (`hostPageSnapId`,
+    $query = $this->_db->prepare('INSERT INTO `hostPageSnapDownload` (`hostPageSnapStorageId`,
                                                                       `crc32ip`,
                                                                       `timeAdded`) VALUES (?, ?, ?)');
 
-    $query->execute([$hostPageSnapId, $crc32ip, $timeAdded]);
+    $query->execute([$hostPageSnapStorageId, $crc32ip, $timeAdded]);
 
     return $this->_db->lastInsertId();
   }
 
-  public function updateHostPageSnapDownload(int $hostPageSnapDownloadId, string $storage, int $size, mixed $httpCode = NULL) {
+  public function addHostPageSnapStorage(int $hostPageSnapId, int $crc32name, int $timeAdded) {
 
-    $query = $this->_db->prepare('UPDATE `hostPageSnapDownload` SET `storage` = ?, `size` = ?, `httpCode` = ? WHERE `hostPageSnapDownloadId` = ? LIMIT 1');
+    $query = $this->_db->prepare('INSERT INTO `hostPageSnapStorage` (`hostPageSnapId`,
+                                                                     `crc32name`,
+                                                                     `timeAdded`) VALUES (?, ?, ?)');
 
-    $query->execute([$storage, $size, $httpCode, $hostPageSnapDownloadId]);
+    $query->execute([$hostPageSnapId, $crc32name,  $timeAdded]);
 
-    return $query->rowCount();
+    return $this->_db->lastInsertId();
   }
 
-  public function deleteHostPageSnapDownloads(int $hostPageSnapId) {
+  public function getHostPageSnapStorageByCRC32Name(int $hostPageSnapId, int $crc32name) {
 
-    $query = $this->_db->prepare('DELETE FROM `hostPageSnapDownload` WHERE `hostPageSnapId` = ? LIMIT 1');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapStorage` WHERE `hostPageSnapId` = ? AND `crc32name` = ?');
+
+    $query->execute([$hostPageSnapId, $crc32name]);
+
+    return $query->fetch();
+  }
+
+  public function getHostPageSnapStorages(int $hostPageSnapId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnapStorage` WHERE `hostPageSnapId` = ?');
+
+    $query->execute([$hostPageSnapId]);
+
+    return $query->fetchAll();
+  }
+
+  public function deleteHostPageSnapStorages(int $hostPageSnapId) {
+
+    $query = $this->_db->prepare('DELETE FROM `hostPageSnapStorage` WHERE `hostPageSnapId` = ?');
 
     $query->execute([$hostPageSnapId]);
 
     return $query->rowCount();
   }
 
-  public function findHostPageSnapDownloadsTotalSize(int $crc32ip, int $timeOffset) {
+  public function deleteHostPageSnapDownloads(int $hostPageSnapStorageId) {
 
-    $query = $this->_db->prepare('SELECT SUM(`size`) AS `size` FROM `hostPageSnapDownload`
+    $query = $this->_db->prepare('DELETE FROM `hostPageSnapDownload` WHERE `hostPageSnapStorageId` = ?');
 
-                                                               WHERE `crc32ip` = ? AND `timeAdded` < ?');
+    $query->execute([$hostPageSnapStorageId]);
 
-    $query->execute([$crc32ip, $timeOffset]);
-
-    return $query->fetch()->size;
+    return $query->rowCount();
   }
 
   public function addHostPageDom(int $hostPageId, int $timeAdded, string $selector, string $value) {
