@@ -3,7 +3,7 @@
 // CLI only to prevent https server connection timeout
 if (php_sapi_name() != 'cli') {
 
-  CLI::error(_('supported command line interface only'));
+  CLI::danger(_('supported command line interface only'));
   exit;
 }
 
@@ -12,7 +12,7 @@ $semaphore = sem_get(crc32('cli.yggo'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
-  CLI::error(_('Process locked by another thread.'));
+  CLI::danger(_('Process locked by another thread.'));
   exit;
 }
 
@@ -52,7 +52,7 @@ switch ($argv[1]) {
   case 'snap':
 
     if (empty($argv[2])) {
-      CLI::error(_('snap method requires action argument'));
+      CLI::danger(_('snap method requires action argument'));
     }
 
     switch ($argv[2]) {
@@ -179,7 +179,7 @@ switch ($argv[1]) {
       break;
       default:
 
-        CLI::error(_('undefined action argument'));
+        CLI::danger(_('undefined action argument'));
     }
 
   break;
@@ -187,7 +187,7 @@ switch ($argv[1]) {
 
     if (empty($argv[2])) {
 
-      CLI::error(_('hostPage method requires action argument'));
+      CLI::danger(_('hostPage method requires action argument'));
     }
 
     switch ($argv[2]) {
@@ -196,7 +196,7 @@ switch ($argv[1]) {
 
         if (empty($argv[3])) {
 
-          CLI::error(_('hostPage rank requires action argument'));
+          CLI::danger(_('hostPage rank requires action argument'));
         }
 
         switch ($argv[3]) {
@@ -217,7 +217,7 @@ switch ($argv[1]) {
           break;
           default:
 
-          CLI::error(_('undefined action argument'));
+          CLI::danger(_('undefined action argument'));
         }
 
       break;
@@ -231,7 +231,7 @@ switch ($argv[1]) {
       break;
       default:
 
-        CLI::error(_('undefined action argument'));
+        CLI::danger(_('undefined action argument'));
     }
 
   break;
@@ -239,7 +239,7 @@ switch ($argv[1]) {
 
     if (empty($argv[2])) {
 
-      CLI::error(_('hostPageDom method requires action argument'));
+      CLI::danger(_('hostPageDom method requires action argument'));
     }
 
     switch ($argv[2]) {
@@ -305,7 +305,7 @@ switch ($argv[1]) {
           exit;
         }
 
-        CLI::error(_('CRAWL_HOST_PAGE_DOM_SELECTORS not provided in the configuration file'));
+        CLI::danger(_('CRAWL_HOST_PAGE_DOM_SELECTORS not provided in the configuration file'));
         exit;
 
       break;
@@ -319,7 +319,7 @@ switch ($argv[1]) {
       break;
       default:
 
-        CLI::error(_('undefined action argument'));
+        CLI::danger(_('undefined action argument'));
     }
 
   break;
