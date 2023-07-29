@@ -117,6 +117,8 @@ switch ($type) {
 
                   $ftp->get($snapFile, 'php://output');
 
+                  $ftp->close();
+
                   exit;
                 }
               }
