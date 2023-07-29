@@ -669,14 +669,18 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
         $crc32data = crc32($content);
 
+        $snapTime = time();
+        $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
+
+        $snapTmp  = __DIR__ . '/../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
+             @mkdir(__DIR__ . '/../storage/tmp/snap/hp/' . $snapPath, 0755, true);
+
         // Create not duplicated data snaps only, even newer by time added
-        if (!$db->findHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
+        if ($hostPageSnap = $db->findHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
 
-          $snapTime = time();
-          $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
+          $hostPageSnapId = $hostPageSnap->hostPageSnapId;
 
-          $snapTmp  = __DIR__ . '/../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
-               @mkdir(__DIR__ . '/../storage/tmp/snap/hp/' . $snapPath, 0755, true);
+        } else {
 
           // Create new ZIP container
           $zip = new ZipArchive();
