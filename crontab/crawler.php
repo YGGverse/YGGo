@@ -708,17 +708,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         }
 
         // Copy files to each storage
-
-        $snapStorageIndex = 0;
-
         foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-          foreach ($storages as $storage) {
-
-            $snapStorageIndex++;
+          foreach ($storages as $i => $storage) {
 
             // Generate storage id
-            $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+            $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
             switch ($name) {
 

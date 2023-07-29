@@ -96,10 +96,10 @@ try {
             // Delete snap files
             foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-              foreach ($storages as $storage) {
+              foreach ($storages as $i => $storage) {
 
                 // Generate storage id
-                $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+                $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
                 switch ($name) {
 
@@ -162,10 +162,10 @@ try {
           // Delete snap files
           foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-            foreach ($storages as $storage) {
+            foreach ($storages as $i => $storage) {
 
               // Generate storage id
-              $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+              $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
               switch ($name) {
 
@@ -284,10 +284,10 @@ try {
       // Delete snap files
       foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-        foreach ($storages as $storage) {
+        foreach ($storages as $i => $storage) {
 
           // Generate storage id
-          $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+          $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
           switch ($name) {
 
