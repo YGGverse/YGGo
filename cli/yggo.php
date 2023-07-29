@@ -2,7 +2,8 @@
 
 // CLI only to prevent https server connection timeout
 if (php_sapi_name() != 'cli') {
-  echo sprintf(_('supported command line interface only'), PHP_EOL);
+
+  CLI::error(_('supported command line interface only'));
   exit;
 }
 
@@ -11,14 +12,16 @@ $semaphore = sem_get(crc32('cli.yggo'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
-  echo _('Process locked by another thread.') . PHP_EOL;
+  CLI::error(_('Process locked by another thread.'));
   exit;
 }
 
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
+require_once(__DIR__ . '/../library/cli.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/filter.php');
+require_once(__DIR__ . '/../library/ftp.php');
 require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
 
 // Connect database
@@ -31,18 +34,164 @@ switch ($argv[1]) {
 
   case 'crawl':
 
+    CLI::notice(_('crawler queue step begin...'));
+
     include_once(__DIR__ . '/../crontab/crawler.php');
 
+    CLI::notice(_('crawler queue step begin...'));
   break;
   case 'clean':
 
+    CLI::notice(_('cleaner queue step begin...'));
+
     include_once(__DIR__ . '/../crontab/cleaner.php');
+
+    CLI::notice(_('cleaner queue step completed.'));
+
+  break;
+  case 'snap':
+
+    if (empty($argv[2])) {
+      CLI::error(_('snap method requires action argument'));
+    }
+
+    switch ($argv[2]) {
+
+      case 'reindex':
+
+        // Scan for new files/storages
+        CLI::notice(_('scan database registry for missed snap files...'));
+
+        $hostPageSnapsTrash = [];
+
+        foreach ($db->getHosts() as $host) {
+
+          foreach ($db->getHostPages($host->hostId) as $hostPage) {
+
+            foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
+
+              // Define variables
+              $snapFileExists = false;
+
+              $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
+
+              // Check file exists
+              $snapStorageIndex = 0;
+
+              foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
+
+                foreach ($storages as $storage) {
+
+                  $snapStorageIndex++;
+
+                  // Generate storage id
+                  $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+
+                  switch ($name) {
+
+                    case 'localhost':
+
+                      $filename = $storage->directory . $snapPath . $hostPageSnap->timeAdded . '.zip';
+
+                      if (file_exists($filename)) {
+
+                        $snapFileExists = true;
+
+                        if (!$db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
+
+                          if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
+
+                            CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $snapStorageIndex));
+                          }
+                        }
+                      }
+
+                    break;
+                    case 'ftp':
+
+                      $ftp = new Ftp();
+
+                      if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+
+                        $filename = 'hp/' . $snapPath . $hostPageSnap->timeAdded . '.zip';
+
+                        if ($ftp->size($filename)) {
+
+                          $snapFileExists = true;
+
+                          if (!$db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
+
+                            if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
+
+                              CLI::success(sprintf(_('register new file location: %s storage: %s index: %s;'), $filename, $name, $snapStorageIndex));
+                            }
+                          }
+                        }
+                      }
+
+                      $ftp->close();
+
+                    break;
+                  }
+                }
+              }
+
+              if (!$snapFileExists) {
+
+                $hostPageSnapsTrash[] = $hostPageSnap->hostPageSnapId;
+
+                CLI::warning(sprintf(_('trash snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
+              }
+            }
+          }
+        }
+
+        if ($hostPageSnapsTrash) {
+
+          CLI::notice(_('snap index deletion queue begin...'));
+
+          foreach ($hostPageSnapsTrash as $hostPageSnapId) {
+
+            CLI::warning(sprintf(_('delete snap index: #%s;'), $hostPageSnapId));
+
+            // Clear queued snap registry
+            foreach ($db->getHostPageSnapStorages($hostPageSnapId) as $hostPageSnapStorage) {
+
+              $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+            }
+
+            $db->deleteHostPageSnapStorages($hostPageSnapId);
+            $db->deleteHostPageSnap($hostPageSnapId);
+          }
+
+          CLI::success(_('snap index trash deletion completed!'));
+        }
+
+        CLI::notice(_('optimize database tables...'));
+
+        $db->optimize();
+
+        CLI::success(_('tables successfully optimized!'));
+
+        CLI::notice(_('scan storage locations for snap files not registered in the DB...'));
+
+        CLI::success(_('snap index successfully updated!'));
+
+        // Cleanup FS items on missed DB registry
+        // @TODO
+
+      break;
+      default:
+
+        CLI::error(_('undefined action argument'));
+    }
 
   break;
   case 'hostPage':
 
     if (empty($argv[2])) {
-      echo PHP_EOL . _('hostPage method requires action argument') . PHP_EOL;
+
+      CLI::error(_('hostPage method requires action argument'));
     }
 
     switch ($argv[2]) {
@@ -50,7 +199,8 @@ switch ($argv[1]) {
       case 'rank':
 
         if (empty($argv[3])) {
-          echo PHP_EOL . _('hostPage rank requires action argument') . PHP_EOL;
+
+          CLI::error(_('hostPage rank requires action argument'));
         }
 
         switch ($argv[3]) {
@@ -65,13 +215,13 @@ switch ($argv[1]) {
               }
             }
 
-            echo _('hostPage rank successfully updated') . PHP_EOL;
+            CLI::success(_('hostPage rank successfully updated'));
             exit;
 
           break;
           default:
 
-            echo PHP_EOL . _('undefined action argument') . PHP_EOL;
+          CLI::error(_('undefined action argument'));
         }
 
       break;
@@ -79,20 +229,21 @@ switch ($argv[1]) {
 
         $db->truncateHostPageDom();
 
-        echo _('hostPageDom table successfully truncated') . PHP_EOL;
+        CLI::success(_('hostPageDom table successfully truncated'));
         exit;
 
       break;
       default:
 
-        echo PHP_EOL . _('undefined action argument') . PHP_EOL;
+        CLI::error(_('undefined action argument'));
     }
 
   break;
   case 'hostPageDom':
 
     if (empty($argv[2])) {
-      echo PHP_EOL . _('hostPageDom method requires action argument') . PHP_EOL;
+
+      CLI::error(_('hostPageDom method requires action argument'));
     }
 
     switch ($argv[2]) {
@@ -153,12 +304,12 @@ switch ($argv[1]) {
             }
           }
 
-          echo sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal) . PHP_EOL;
-          echo sprintf(_('Host page DOM elements added: %s'), $hostPageDOMAddedTotal) . PHP_EOL;
+          CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
+          CLI::success(sprintf(_('Host page DOM elements added: %s'), $hostPageDOMAddedTotal));
           exit;
         }
 
-        echo PHP_EOL . _('CRAWL_HOST_PAGE_DOM_SELECTORS not provided in the configuration file') . PHP_EOL;
+        CLI::error(_('CRAWL_HOST_PAGE_DOM_SELECTORS not provided in the configuration file'));
         exit;
 
       break;
@@ -166,32 +317,35 @@ switch ($argv[1]) {
 
         $db->truncateHostPageDom();
 
-        echo _('hostPageDom table successfully truncated') . PHP_EOL;
+        CLI::success(_('hostPageDom table successfully truncated'));
         exit;
 
       break;
       default:
 
-        echo PHP_EOL . _('undefined action argument') . PHP_EOL;
+        CLI::error(_('undefined action argument'));
     }
 
   break;
 }
 
 // Default message
-echo '__  ______________      __' . PHP_EOL;
-echo '\ \/ / ____/ ____/___  / /' . PHP_EOL;
-echo ' \  / / __/ / __/ __ \/ /'  . PHP_EOL;
-echo ' / / /_/ / /_/ / /_/ /_/'   . PHP_EOL;
-echo '/_/\____/\____/\____(_)'    . PHP_EOL;
+CLI::default('__  ______________      __');
+CLI::default('\ \/ / ____/ ____/___  / /');
+CLI::default(' \  / / __/ / __/ __ \/ /' );
+CLI::default(' / / /_/ / /_/ / /_/ /_/'  );
+CLI::default('/_/\____/\____/\____(_)'   );
 
-echo PHP_EOL . _('available options:') . PHP_EOL . PHP_EOL;
+CLI::brake();
+CLI::default('available options:');
 
-echo _('  help                             - this message') . PHP_EOL;
-echo _('  crawl                            - execute crawler step in the crontab queue') . PHP_EOL;
-echo _('  clean                            - execute cleaner step in the crontab queue') . PHP_EOL;
-echo _('  hostPage rank reindex            - generate rank indexes in hostPage table') . PHP_EOL;
-echo _('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field') . PHP_EOL;
-echo _('  hostPageDom truncate             - flush hostPageDom table') . PHP_EOL . PHP_EOL;
+CLI::default('  help                             - this message');
+CLI::default('  crawl                            - execute crawler step in the crontab queue');
+CLI::default('  clean                            - execute cleaner step in the crontab queue');
+CLI::default('  snap reindex                     - sync DB/FS relations');
+CLI::default('  hostPage rank reindex            - generate rank indexes in hostPage table');
+CLI::default('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field');
+CLI::default('  hostPageDom truncate             - flush hostPageDom table');
+CLI::brake();
 
-echo _('get support: https://github.com/YGGverse/YGGo/issues') . PHP_EOL . PHP_EOL;
+CLI::default('get support: https://github.com/YGGverse/YGGo/issues');
