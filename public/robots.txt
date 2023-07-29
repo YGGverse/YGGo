@@ -3,3 +3,4 @@ User-agent: *
 Disallow: /api*
 Disallow: /file*
 Disallow: /search*
+Disallow: /explore*
