@@ -954,6 +954,25 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         ];
       }
 
+      foreach (@$dom->getElementsByTagName('link') as $link) {
+
+        // Skip nodes without href attribute
+        if (!$href = @$link->getAttribute('href')) {
+
+          continue;
+        }
+
+        // Add link to queue
+        $links[] = [
+          'title'       => null,
+          'description' => null,
+          'keywords'    => null,
+          'data'        => null,
+          'mime'        => null,
+          'ref'         => $href,
+        ];
+      }
+
       // Collect internal links from page content
       foreach(@$dom->getElementsByTagName('a') as $a) {
 
