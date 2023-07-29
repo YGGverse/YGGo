@@ -212,7 +212,6 @@ GET m=SphinxQL
   + [x] Pages
   + [x] Snaps
     + [ ] Snap downloads
-    + [ ] Missed snap file relations
   + [x] Manifests
   + [x] Logs
     + [x] Crawler
@@ -226,6 +225,8 @@ GET m=SphinxQL
 * [x] help
 * [x] crawl
 * [x] clean
+* [x] snap
+  + [x] reindex
 * [x] hostPageDom
   + [x] generate
   + [x] truncate
