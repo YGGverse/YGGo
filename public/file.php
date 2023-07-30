@@ -53,26 +53,18 @@ switch ($type) {
     if ($hostPageSnap = $db->getHostPageSnap(!empty($_GET['hps']) ? (int) $_GET['hps'] : 0)) {
 
       // Get snap file
-
-      $snapStorageIndex = 0;
-
       foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-        foreach ($storages as $storage) {
-
-          $snapStorageIndex++;
+        foreach ($storages as $i => $storage) {
 
           // Generate storage id
-          $crc32name = crc32(sprintf('%s.%s', $name, $snapStorageIndex));
+          $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
-          switch ($name) {
+          if ($hostPageSnapStorage = $db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
-            case 'localhost':
+            switch ($name) {
 
-              if ($hostPageSnapStorage = $db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
-
-                // Check request quota
-                //if ()
+              case 'localhost':
 
                 // Get file
                 $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
@@ -94,12 +86,9 @@ switch ($type) {
 
                     exit;
                 }
-              }
 
-            break;
-            case 'ftp':
-
-              if ($hostPageSnapStorage = $db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
+              break;
+              case 'ftp':
 
                 $ftp = new Ftp();
 
@@ -121,9 +110,9 @@ switch ($type) {
 
                   exit;
                 }
-              }
 
-            break;
+              break;
+            }
           }
         }
       }
