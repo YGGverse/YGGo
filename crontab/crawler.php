@@ -5,7 +5,16 @@ $semaphore = sem_get(crc32('crontab.crawler'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
-  echo 'Process locked by another thread.' . PHP_EOL;
+  echo 'process locked by another thread.' . PHP_EOL;
+  exit;
+}
+
+// Stop crawler on cli running
+$semaphore = sem_get(crc32('cli.yggo'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  echo 'cli.yggo process running in another thread.' . PHP_EOL;
   exit;
 }
 
@@ -719,9 +728,10 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
                         if (copy($hostPageSnapFilenameTmp, $storage->directory . $hostPageSnapPath . $hostPageSnapTimeAdded . '.zip')) {
 
                           // Register storage name
-                          $db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time());
+                          if ($db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time())) {
 
-                          $snapFilesExists = true;
+                            $snapFilesExists = true;
+                          }
                         }
 
                       break;
@@ -752,9 +762,10 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
                           if ($ftp->copy($hostPageSnapFilenameTmp, 'hp/' . $hostPageSnapPath . $hostPageSnapTimeAdded . '.zip')) {
 
                             // Register storage name
-                            $db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time());
+                            if ($db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time())) {
 
-                            $snapFilesExists = true;
+                              $snapFilesExists = true;
+                            }
                           }
 
                           $ftp->close();

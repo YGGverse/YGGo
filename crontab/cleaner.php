@@ -5,7 +5,16 @@ $semaphore = sem_get(crc32('crontab.cleaner'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
-  echo 'Process locked by another thread.' . PHP_EOL;
+  echo 'process locked by another thread.' . PHP_EOL;
+  exit;
+}
+
+// Stop cleaner on cli running
+$semaphore = sem_get(crc32('cli.yggo'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  echo 'cli.yggo process running in another thread.' . PHP_EOL;
   exit;
 }
 
