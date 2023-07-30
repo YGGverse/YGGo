@@ -223,8 +223,9 @@ GET m=SphinxQL
 ##### CLI
 
 * [x] help
-* [x] crawl
-* [x] clean
+* [x] crontab
+  * [x] crawl
+  * [x] clean
 * [x] hostPageSnap
   + [x] repair
       + [x] _sync DB-FS relations_

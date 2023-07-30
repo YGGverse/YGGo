@@ -54,21 +54,34 @@ if (empty($argv[1])) $argv[1] = 'help';
 
 switch ($argv[1]) {
 
-  case 'crawl':
+  case 'crontab':
 
-    CLI::notice(_('crawler queue step begin...'));
+    if (empty($argv[2])) {
 
-    include_once(__DIR__ . '/../crontab/crawler.php');
+      CLI::danger(_('crontab method requires action argument'));
 
-    CLI::notice(_('crawler queue step begin...'));
-  break;
-  case 'clean':
+      switch ($argv[2]) {
 
-    CLI::notice(_('cleaner queue step begin...'));
+        case 'crawl':
 
-    include_once(__DIR__ . '/../crontab/cleaner.php');
+          CLI::notice(_('crawler queue step begin...'));
 
-    CLI::notice(_('cleaner queue step completed.'));
+          include_once(__DIR__ . '/../crontab/crawler.php');
+
+          CLI::notice(_('crawler queue step begin...'));
+        break;
+
+        case 'clean':
+
+          CLI::notice(_('cleaner queue step begin...'));
+
+          include_once(__DIR__ . '/../crontab/cleaner.php');
+
+          CLI::notice(_('cleaner queue step completed.'));
+
+        break;
+      }
+    }
 
   break;
   case 'hostPageSnap':
@@ -423,8 +436,7 @@ CLI::break();
 CLI::default('available options:');
 
 CLI::default('  help                             - this message');
-CLI::default('  crawl                            - execute crawler step in the crontab queue');
-CLI::default('  clean                            - execute cleaner step in the crontab queue');
+CLI::default('  crontab [crawl|clean]            - execute crontab script queue');
 CLI::default('  hostPage rank reindex            - generate rank indexes in hostPage table');
 CLI::default('  hostPageSnap repair              - sync DB/FS relations');
 CLI::default('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field');
