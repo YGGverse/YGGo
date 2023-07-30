@@ -146,13 +146,13 @@ switch ($argv[1]) {
 
                   $db->beginTransaction();
 
-                  foreach ($db->getHostPageSnapStorages($hostPageSnapId) as $hostPageSnapStorage) {
+                  foreach ($db->getHostPageSnapStorages($hostPageSnap->hostPageSnapId) as $hostPageSnapStorage) {
 
                     $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
                   }
 
-                  $db->deleteHostPageSnapStorages($hostPageSnapId);
-                  $db->deleteHostPageSnap($hostPageSnapId);
+                  $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
+                  $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
 
                   CLI::danger(sprintf(_('delete snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
 
