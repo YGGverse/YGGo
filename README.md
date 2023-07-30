@@ -234,11 +234,10 @@ GET m=SphinxQL
       + [x] _delete FS missed in the DB_
         + [x] _FTP_
         + [ ] _localhost_
+  + [ ] truncate
 * [x] hostPageDom
   + [x] generate
   + [x] truncate
-* [x] hostPageSnap
-  + [ ] truncate
 * [ ] hostPage
   + [ ] add
 
