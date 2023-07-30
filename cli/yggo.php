@@ -71,7 +71,7 @@ switch ($argv[1]) {
             foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
               // Define variables
-              $snapFileExists = false;
+              $snapFilesExists = false;
 
               $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
 
@@ -91,7 +91,7 @@ switch ($argv[1]) {
 
                       if (file_exists($filename)) {
 
-                        $snapFileExists = true;
+                        $snapFilesExists = true;
 
                         if (!$db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
@@ -117,7 +117,7 @@ switch ($argv[1]) {
 
                         if ($ftp->size($filename)) {
 
-                          $snapFileExists = true;
+                          $snapFilesExists = true;
 
                           if (!$db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
@@ -139,7 +139,8 @@ switch ($argv[1]) {
                 }
               }
 
-              if (!$snapFileExists) {
+              // Snap FS relation does not exist, add registry item to the delete queue
+              if (!$snapFilesExists) {
 
                 $hostPageSnapsTrashQueue[] = $hostPageSnap->hostPageSnapId;
 
@@ -155,16 +156,29 @@ switch ($argv[1]) {
 
           foreach ($hostPageSnapsTrashQueue as $hostPageSnapId) {
 
-            CLI::warning(sprintf(_('delete snap index: #%s;'), $hostPageSnapId));
+            try {
 
-            // Clear queued snap registry
-            foreach ($db->getHostPageSnapStorages($hostPageSnapId) as $hostPageSnapStorage) {
+              $db->beginTransaction();
 
-              $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+              CLI::warning(sprintf(_('delete snap index: #%s;'), $hostPageSnapId));
+
+              // Clear queued snap registry
+              foreach ($db->getHostPageSnapStorages($hostPageSnapId) as $hostPageSnapStorage) {
+
+                $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+              }
+
+              $db->deleteHostPageSnapStorages($hostPageSnapId);
+              $db->deleteHostPageSnap($hostPageSnapId);
+
+              $db->commit();
+
+            } catch(Exception $e) {
+
+              $db->rollBack();
+
+              var_dump($e);
             }
-
-            $db->deleteHostPageSnapStorages($hostPageSnapId);
-            $db->deleteHostPageSnap($hostPageSnapId);
           }
 
           CLI::success(_('snap index trash queue deleted!'));
