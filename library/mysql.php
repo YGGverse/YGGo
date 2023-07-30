@@ -242,7 +242,17 @@ class MySQL {
 
                                 `host`.`scheme`,
                                 `host`.`name`,
-                                `host`.`port`
+                                `host`.`port`,
+
+                                IF (`host`.`port` IS NOT NULL,
+                                    CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
+                                    CONCAT(`host`.`scheme`, '://', `host`.`name`)
+                                ) AS `hostURL`,
+
+                                IF (`host`.`port` IS NOT NULL,
+                                    CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
+                                    CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
+                                ) AS `hostPageURL`
 
                                 FROM `hostPage`
                                 JOIN `host` ON (`hostPage`.`hostId` = `host`.`hostId`)
@@ -294,22 +304,33 @@ class MySQL {
 
   public function getFoundHostPage(int $hostPageId) {
 
-    $query = $this->_db->prepare('SELECT `hostPage`.`hostPageId`,
+    $query = $this->_db->prepare("SELECT `hostPage`.`hostPageId`,
                                          `hostPage`.`uri`,
                                          `hostPage`.`timeAdded`,
                                          `hostPage`.`timeUpdated`,
                                          `hostPage`.`mime`,
                                          `hostPage`.`size`,
+
                                          `host`.`scheme`,
                                          `host`.`name`,
-                                         `host`.`port`
+                                         `host`.`port`,
 
-                                          FROM `hostPage`
-                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+                                         IF (`host`.`port` IS NOT NULL,
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`)
+                                         ) AS `hostURL`,
 
-                                          WHERE `hostPage`.`hostPageId` = ?
+                                         IF (`host`.`port` IS NOT NULL,
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
+                                         ) AS `hostPageURL`
 
-                                          LIMIT 1');
+                                         FROM `hostPage`
+                                         JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+
+                                         WHERE `hostPage`.`hostPageId` = ?
+
+                                         LIMIT 1");
 
     $query->execute([$hostPageId]);
 
@@ -623,13 +644,16 @@ class MySQL {
   // Cleaner tools
   public function getCleanerQueue(int $limit, int $timeFrom) {
 
-    $query = $this->_db->prepare('SELECT * FROM `host`
+    $query = $this->_db->prepare("SELECT *, IF (`port` IS NOT NULL,
+                                              CONCAT(`scheme`, '://', `name`, ':', `port`),
+                                              CONCAT(`scheme`, '://', `name`)
+                                            ) AS `hostURL` FROM `host`
 
-                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> ?
+                                            WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> ?
 
-                                           ORDER BY `hostId`
+                                            ORDER BY `hostId`
 
-                                           LIMIT ' . (int) $limit);
+                                            LIMIT " . (int) $limit);
 
     $query->execute([$timeFrom, 0]);
 
@@ -755,25 +779,36 @@ class MySQL {
     $query = $this->_db->prepare("SELECT `hostPage`.`hostId`,
                                          `hostPage`.`hostPageId`,
                                          `hostPage`.`uri`,
+
                                          `host`.`scheme`,
                                          `host`.`name`,
                                          `host`.`port`,
                                          `host`.`crawlPageLimit`,
                                          `host`.`crawlMetaOnly`,
                                          `host`.`robots`,
-                                         `host`.`robotsPostfix`
+                                         `host`.`robotsPostfix`,
 
-                                          FROM `hostPage`
-                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+                                         IF (`host`.`port` IS NOT NULL,
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`)
+                                         ) AS `hostURL`,
 
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?))
+                                         IF (`host`.`port` IS NOT NULL,
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
+                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
+                                         ) AS `hostPageURL`
 
-                                          AND  `host`.`status` <> ?
-                                          AND  `hostPage`.`timeBanned` IS NULL
+                                         FROM `hostPage`
+                                         JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                          ORDER BY LENGTH(`hostPage`.`uri`) ASC, RAND()
+                                         WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?))
 
-                                          LIMIT " . (int) $limit);
+                                         AND  `host`.`status` <> ?
+                                         AND  `hostPage`.`timeBanned` IS NULL
+
+                                         ORDER BY LENGTH(`hostPage`.`uri`) ASC, RAND()
+
+                                         LIMIT " . (int) $limit);
 
     $query->execute([$hostPageTimeFrom, $hostPageHomeTimeFrom, 0]);
 
@@ -791,13 +826,18 @@ class MySQL {
 
   public function getHostRobotsCrawlQueue(int $limit, int $timeFrom) {
 
-    $query = $this->_db->prepare('SELECT * FROM `host`
+    $query = $this->_db->prepare("SELECT *, IF (`port` IS NOT NULL,
+                                             CONCAT(`scheme`, '://', `name`, ':', `port`),
+                                             CONCAT(`scheme`, '://', `name`)
+                                            ) AS `hostURL`
 
-                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
+                                            FROM `host`
 
-                                           ORDER BY RAND()
+                                            WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
 
-                                           LIMIT ' . (int) $limit);
+                                            ORDER BY RAND()
+
+                                            LIMIT " . (int) $limit);
 
     $query->execute([$timeFrom, 0]);
 

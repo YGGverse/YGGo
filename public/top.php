@@ -257,9 +257,9 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                       <?php $title = false ?>
                     <?php } ?>
                   <?php } ?>
-                  <a href="<?php echo $topHostPage->scheme . '://' . $topHostPage->name . ($topHostPage->port ? ':' . $topHostPage->port : false) . $topHostPage->uri ?>"title="<?php echo trim($title) ?>">
+                  <a href="<?php echo $topHostPage->hostPageURL ?>"title="<?php echo trim($title) ?>">
                     <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($topHostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-                    <?php echo htmlentities(urldecode($topHostPage->scheme . '://' . $topHostPage->name . ($topHostPage->port ? ':' . $topHostPage->port : false))) ?>
+                    <?php echo htmlentities(urldecode($topHostPage->hostURL)) ?>
                   </a>
                 </td>
                 <td>

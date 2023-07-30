@@ -49,11 +49,8 @@ try {
   // Get cleaner queue
   foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFSET) as $host) {
 
-    // Parse host info
-    $hostURL = $host->scheme . '://' . $host->name . ($host->port ? ':' . $host->port : false);
-
     // Get robots.txt if exists
-    $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+    $curl = new Curl($host->hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;

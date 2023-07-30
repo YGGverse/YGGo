@@ -216,9 +216,9 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
               <span><?php echo htmlentities($hostPageDescription->keywords) ?></span>
             <?php } ?>
           <?php } ?>
-          <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>">
+          <a href="<?php echo $hostPage->hostPageURL ?>">
             <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-            <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . urldecode($hostPage->uri)) ?>
+            <?php echo htmlentities(urldecode($hostPage->hostURL) . urldecode($hostPage->uri)) ?>
           </a>
         </div>
         <div>
@@ -256,10 +256,10 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
               <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                 <?php $hostPageDescription = $db->getLastPageDescription($hostPageIdSource->hostPageIdSource); ?>
                 <p>
-                  <a href="<?php echo $hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false) . $hostPage->uri ?>"
+                  <a href="<?php echo $hostPage->hostPageURL ?>"
                      title="<?php echo (!empty($hostPageDescription->title) ? $hostPageDescription->title : (!empty($hostPageDescription->description) ? $hostPageDescription->description : false)) ?>">
                     <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-                    <?php echo htmlentities(urldecode($hostPage->scheme . '://' . $hostPage->name . ($hostPage->port ? ':' . $hostPage->port : false)) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
+                    <?php echo htmlentities(urldecode($hostPage->hostURL) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
                   </a>
                   |
                   <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $hostPage->hostPageId ?>">

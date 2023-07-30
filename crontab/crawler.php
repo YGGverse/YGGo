@@ -194,7 +194,7 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
       }
 
       $hostURL = $remoteManifestHost->scheme . '://' .
-                  $remoteManifestHost->name .
+                 $remoteManifestHost->name .
                 (!empty($remoteManifestHost->port) ? ':' . $remoteManifestHost->port : false);
 
       // Validate formatted link
@@ -267,13 +267,8 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
 // Process robots crawl queue
 foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_SECONDS_OFFSET) as $host) {
 
-  // Build web root URL
-  $hostURL = $host->scheme . '://' .
-             $host->name .
-            ($host->port ? ':' . $host->port : '');
-
   // Get robots.txt
-  $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+  $curl = new Curl($host->hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
   // Update curl stats
   $httpRequestsTotal++;
@@ -304,13 +299,13 @@ foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_
 
         // Replace relative paths
         $hostSitemapPath = trim($hostSitemapPath, '/');
-        $hostSitemapPath = str_replace($hostURL, '', $hostSitemapPath);
-        $hostSitemapPath = sprintf('%s%s', $hostURL, $hostSitemapPath);
+        $hostSitemapPath = str_replace($host->hostURL, '', $hostSitemapPath);
+        $hostSitemapPath = sprintf('%s%s', $host->hostURL, $hostSitemapPath);
 
     // Set default path when not exists
     } else {
 
-        $hostSitemapPath = sprintf('%s/sitemap.xml', $hostURL);
+        $hostSitemapPath = sprintf('%s/sitemap.xml', $host->hostURL);
     }
 
     // Init sitemap data
@@ -325,7 +320,7 @@ foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_
 
       // Add host page
       if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
-          $linkHostURL->string == $hostURL && // this host links only
+          $linkHostURL->string == $host->hostURL && // this host links only
           $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
           $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
          !$db->getHostPage($host->hostId, crc32($linkURI->string))) { // page does not exists
@@ -343,11 +338,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
   try {
 
-    // Build URL from the DB
-    $queueHostPageURL = $queueHostPage->scheme . '://' . $queueHostPage->name . ($queueHostPage->port ? ':' . $queueHostPage->port : false) . $queueHostPage->uri;
-
     // Init page request
-    $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT);
+    $curl = new Curl($queueHostPage->hostPageURL, CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;
@@ -368,7 +360,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
       // Try to receive target page location on page redirect available
-      $curl = new Curl($queueHostPageURL, CRAWL_CURLOPT_USERAGENT, 10, true, true);
+      $curl = new Curl($queueHostPage->hostPageURL, CRAWL_CURLOPT_USERAGENT, 10, true, true);
 
       // Update curl stats
       $httpRequestsTotal++;
@@ -392,10 +384,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           //Make relative links absolute
           if (!parse_url($url, PHP_URL_HOST)) { // @TODO probably, case not in use
 
-            $url = $queueHostPage->scheme . '://' .
-                  $queueHostPage->name .
-                  ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
-                  '/' . trim(ltrim(str_replace(['./', '../'], '', $url), '/'), '.');
+            $url = $queueHostPage->hostURL . '/' . trim(ltrim(str_replace(['./', '../'], '', $url), '/'), '.');
           }
 
           // Validate formatted link
@@ -693,7 +682,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
                                                      sprintf('CRC32: %s',     $crc32data . PHP_EOL .
                                                      sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
                                                      sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
-                                                     sprintf('TARGET: %s',    Filter::url($queueHostPageURL))))) {
+                                                     sprintf('TARGET: %s',    Filter::url($queueHostPage->hostPageURL))))) {
 
               // Done
               $zip->close();
@@ -1055,10 +1044,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
         //Make relative links absolute
         if (!parse_url($link['ref'], PHP_URL_HOST)) {
 
-          $link['ref'] = $queueHostPage->scheme . '://' .
-                         $queueHostPage->name .
-                        ($queueHostPage->port ? ':' . $queueHostPage->port : '') .
-                        '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
+          $link['ref'] = $queueHostPage->hostURL . '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
         }
 
         // Validate formatted link
