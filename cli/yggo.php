@@ -123,7 +123,7 @@ switch ($argv[1]) {
 
                     case 'localhost':
 
-                      /* @TODO implemented, not tested
+                      // @TODO implemented, not tested
                       $hostPageSnapFilename = $storage->directory . $snapPath . $hostPageSnap->timeAdded . '.zip';
 
                       if (file_exists($hostPageSnapFilename)) {
@@ -142,7 +142,6 @@ switch ($argv[1]) {
                           CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                         }
                       }
-                      */
 
                     break;
 

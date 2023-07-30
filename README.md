@@ -230,7 +230,7 @@ GET m=SphinxQL
   + [x] repair
       + [x] _sync DB-FS relations_
         + [x] _FTP_
-        + [ ] _localhost (not tested)_
+        + [x] _localhost (not tested)_
       + [x] _delete FS missed in the DB_
         + [x] _FTP_
         + [ ] _localhost_
