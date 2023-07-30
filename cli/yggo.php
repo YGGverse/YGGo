@@ -254,6 +254,10 @@ switch ($argv[1]) {
 
                             CLI::danger(sprintf(_('delete snap file: #%s from storage %s index %s not found in registry;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                           }
+
+                        } else {
+
+                          CLI::success(sprintf(_('skip snap file: #%s available in storage %s index %s;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                         }
                       }
                     }
