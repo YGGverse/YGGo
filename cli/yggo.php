@@ -104,12 +104,12 @@ switch ($argv[1]) {
 
           foreach ($db->getHostPages($host->hostId) as $hostPage) {
 
+            $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
+
             foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
               // Define variables
-              $snapFilesExists = false;
-
-              $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
+              $hostPageSnapStorageFilesExists = false;
 
               // Check file exists
               foreach (json_decode(SNAP_STORAGE) as $hostPageSnapStorageName => $storages) {
@@ -128,18 +128,18 @@ switch ($argv[1]) {
 
                       if (file_exists($hostPageSnapFilename)) {
 
-                        $snapFilesExists = true;
+                        $hostPageSnapStorageFilesExists = true;
 
                         if (!$db->findHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
                           if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                            CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                            CLI::warning(sprintf(_('add index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                           }
 
                         } else {
 
-                          CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                          CLI::success(sprintf(_('skip related index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                         }
                       }
 
@@ -155,17 +155,17 @@ switch ($argv[1]) {
 
                         if ($ftp->size($hostPageSnapFilename)) {
 
-                          $snapFilesExists = true;
+                          $hostPageSnapStorageFilesExists = true;
 
                           if (!$db->findHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
                             if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                              CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                              CLI::warning(sprintf(_('add index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                             }
                           } else {
 
-                            CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                            CLI::success(sprintf(_('skip related index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                           }
                         }
 
@@ -185,7 +185,7 @@ switch ($argv[1]) {
               }
 
               // Files not exists
-              if (!$snapFilesExists) {
+              if (!$hostPageSnapStorageFilesExists) {
 
                 // Delete snap from registry
                 try {
@@ -200,7 +200,7 @@ switch ($argv[1]) {
                   $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
                   $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
 
-                  CLI::warning(sprintf(_('delete snap index: #%s timestamp: %s as not found in file storages;'), $hostPageSnap->hostPageSnapId, $hostPageSnap->timeAdded));
+                  CLI::warning(sprintf(_('delete hostPageSnapId: #%s timeAdded: %s as not found in file storages;'), $hostPageSnap->hostPageSnapId, $hostPageSnap->timeAdded));
 
                   $db->commit();
 
