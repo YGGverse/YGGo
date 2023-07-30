@@ -63,7 +63,7 @@ switch ($type) {
           // Generate storage id
           $crc32name = crc32(sprintf('%s.%s', $name, $i));
 
-          if ($hostPageSnapStorage = $db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
+          if ($hostPageSnapStorage = $db->findHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
             switch ($name) {
 

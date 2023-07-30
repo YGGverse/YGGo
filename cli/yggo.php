@@ -130,7 +130,7 @@ switch ($argv[1]) {
 
                         $snapFilesExists = true;
 
-                        if (!$db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
+                        if (!$db->findHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
                           if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
@@ -158,7 +158,7 @@ switch ($argv[1]) {
 
                           $snapFilesExists = true;
 
-                          if (!$db->getHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
+                          if (!$db->findHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
                             if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 

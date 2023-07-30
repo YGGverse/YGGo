@@ -559,7 +559,7 @@ class MySQL {
     return $this->_db->lastInsertId();
   }
 
-  public function getHostPageSnapStorageByCRC32Name(int $hostPageSnapId, int $crc32name) {
+  public function findHostPageSnapStorageByCRC32Name(int $hostPageSnapId, int $crc32name) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPageSnapStorage` WHERE `hostPageSnapId` = ? AND `crc32name` = ?');
 
