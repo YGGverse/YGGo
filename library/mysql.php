@@ -483,14 +483,11 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function addHostPageSnap(int $hostPageId, string $crc32data, int $size, int $timeAdded) {
+  public function addHostPageSnap(int $hostPageId, int $timeAdded) {
 
-    $query = $this->_db->prepare('INSERT INTO `hostPageSnap` (`hostPageId`,
-                                                              `crc32data`,
-                                                              `size`,
-                                                              `timeAdded`) VALUES (?, ?, ?, ?)');
+    $query = $this->_db->prepare('INSERT INTO `hostPageSnap` (`hostPageId`, `timeAdded`) VALUES (?, ?)');
 
-    $query->execute([$hostPageId, $crc32data, $size, $timeAdded]);
+    $query->execute([$hostPageId, $timeAdded]);
 
     return $this->_db->lastInsertId();
   }
@@ -522,33 +519,11 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function getTotalHostPageSnapSizeByStorage(int $hostPageId, int $crc32name) {
-
-    $query = $this->_db->prepare('SELECT SUM(`hostPageSnap`.`size`) AS `total` FROM  `hostPageSnap`
-                                                                               JOIN  `hostPageSnapStorage` ON (`hostPageSnapStorage`.`hostPageSnapId` = `hostPageSnap`.`hostPageSnapId`)
-
-                                                                               WHERE `hostPageSnap`.`hostPageSnapId` = ?
-                                                                                 AND `hostPageSnapStorage`.`crc32name` = ?');
-
-    $query->execute([$hostPageId, $crc32name]);
-
-    return $query->fetch()->total;
-  }
-
   public function getHostPageSnap(int $hostPageSnapId) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageSnapId` = ? LIMIT 1');
 
     $query->execute([$hostPageSnapId]);
-
-    return $query->fetch();
-  }
-
-  public function findHostPageSnap(int $hostPageId, int $crc32data) {
-
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND `crc32data` = ? LIMIT 1');
-
-    $query->execute([$hostPageId, $crc32data]);
 
     return $query->fetch();
   }

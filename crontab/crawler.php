@@ -656,133 +656,131 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       // Begin snaps
       if (SNAP_STORAGE) {
 
-        $crc32data = crc32($content);
+        $hostPageSnapTimeAdded = time();
+        $hostPageSnapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
 
-        $snapTime = time();
-        $snapPath = chunk_split($queueHostPage->hostPageId, 1, '/');
+        $hostPageSnapFilenameTmp  = __DIR__ . '/../storage/tmp/snap/hp/' . $hostPageSnapPath . $hostPageSnapTimeAdded . '.zip';
+                             @mkdir(__DIR__ . '/../storage/tmp/snap/hp/' . $hostPageSnapPath, 0755, true);
 
-        $snapTmp  = __DIR__ . '/../storage/tmp/snap/hp/' . $snapPath . $snapTime . '.zip';
-             @mkdir(__DIR__ . '/../storage/tmp/snap/hp/' . $snapPath, 0755, true);
+        // Create new ZIP container
+        $zip = new ZipArchive();
 
-        // Create not duplicated data snaps only, even newer by time added
-        if ($hostPageSnap = $db->findHostPageSnap($queueHostPage->hostPageId, $crc32data)) {
+        if (true === $zip->open($hostPageSnapFilenameTmp, ZipArchive::CREATE)) {
 
-          $hostPageSnapId = $hostPageSnap->hostPageSnapId;
+          // Insert compressed snap data into the tmp storage
+          if (true === $zip->addFromString('DATA', $content) &&
+              true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $hostPageSnapTimeAdded) . PHP_EOL .
+                                                   sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
+                                                   sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
+                                                   sprintf('TARGET: %s',    Filter::url($queueHostPage->hostPageURL)))) {
 
-        } else {
+            // Done
+            $zip->close();
 
-          // Create new ZIP container
-          $zip = new ZipArchive();
+            // Temporarily snap file exists
+            if (file_exists($hostPageSnapFilenameTmp)) {
 
-          if (true === $zip->open($snapTmp, ZipArchive::CREATE)) {
+              // Register snap in DB
+              if ($hostPageSnapId = $db->addHostPageSnap($queueHostPage->hostPageId, $hostPageSnapTimeAdded)) {
 
-            // Insert compressed snap data into the tmp storage
-            if (true === $zip->addFromString('DATA', $content) &&
-                true === $zip->addFromString('META', sprintf('TIMESTAMP: %s', $snapTime) . PHP_EOL .
-                                                     sprintf('CRC32: %s',     $crc32data . PHP_EOL .
-                                                     sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
-                                                     sprintf('SOURCE: %s',    Filter::url(WEBSITE_DOMAIN . '/explore.php?hp=' . $queueHostPage->hostPageId)) . PHP_EOL .
-                                                     sprintf('TARGET: %s',    Filter::url($queueHostPage->hostPageURL))))) {
+                // Default storage success
+                $snapFilesExists = false;
 
-              // Done
-              $zip->close();
+                // Copy files to each storage
+                foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
-              // Temporarily snap file exists
-              if (file_exists($snapTmp)) {
+                  foreach ($storages as $i => $storage) {
 
-                // Register snap in DB
-                if ($hostPageSnapId = $db->addHostPageSnap($queueHostPage->hostPageId, $crc32data, filesize($snapTmp), $snapTime)) {
+                    // Generate storage id
+                    $crc32name = crc32(sprintf('%s.%s', $name, $i));
+
+                    switch ($name) {
+
+                      case 'localhost':
+
+                        // Validate mime
+                        if (!$storage->quota->mime) continue 2;
+
+                        $snapMimeValid = false;
+                        foreach ((array) explode(',', $storage->quota->mime) as $mime) {
+
+                          if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
+
+                            $snapMimeValid = true;
+                            break;
+                          }
+                        }
+
+                        if (!$snapMimeValid) continue 2;
+
+                        // Copy tmp snap file to the permanent storage
+                        @mkdir($storage->directory . $hostPageSnapPath, 0755, true);
+
+                        if (copy($hostPageSnapFilenameTmp, $storage->directory . $hostPageSnapPath . $hostPageSnapTimeAdded . '.zip')) {
+
+                          // Register storage name
+                          $db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time());
+
+                          $snapFilesExists = true;
+                        }
+
+                      break;
+                      case 'ftp':
+
+                        // Validate mime
+                        if (!$storage->quota->mime) continue 2;
+
+                        $snapMimeValid = false;
+                        foreach ((array) explode(',', $storage->quota->mime) as $mime) {
+
+                          if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
+
+                            $snapMimeValid = true;
+                            break;
+                          }
+                        }
+
+                        if (!$snapMimeValid) continue 2;
+
+                        // Copy tmp snap file to the permanent storage
+                        $ftp = new Ftp();
+
+                        if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+
+                          $ftp->mkdir('hp/' . $hostPageSnapPath, true);
+
+                          if ($ftp->copy($hostPageSnapFilenameTmp, 'hp/' . $hostPageSnapPath . $hostPageSnapTimeAdded . '.zip')) {
+
+                            // Register storage name
+                            $db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time());
+
+                            $snapFilesExists = true;
+                          }
+
+                          $ftp->close();
+                        }
+
+                      break;
+                    }
+                  }
+                }
+
+                // At least one file have been stored
+                if ($snapFilesExists) {
 
                   $hostPagesSnapAdded++;
+
+                } else {
+
+                  $db->deleteHostPageSnap($hostPageSnapId);
                 }
               }
             }
           }
         }
 
-        // Copy files to each storage
-        foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
-
-          foreach ($storages as $i => $storage) {
-
-            // Generate storage id
-            $crc32name = crc32(sprintf('%s.%s', $name, $i));
-
-            switch ($name) {
-
-              case 'localhost':
-
-                // Validate size quota
-                if ($db->getTotalHostPageSnapSizeByStorage($hostPageSnapId, $crc32name) >= $storage->quota->size) continue 2;
-
-                // Validate mime
-                if (!$storage->quota->mime) continue 2;
-
-                $snapMimeValid = false;
-                foreach ((array) explode(',', $storage->quota->mime) as $mime) {
-
-                  if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
-
-                    $snapMimeValid = true;
-                    break;
-                  }
-                }
-
-                if (!$snapMimeValid) continue 2;
-
-                // Copy tmp snap file to the permanent storage
-                @mkdir($storage->directory . $snapPath, 0755, true);
-
-                if (copy($snapTmp, $storage->directory . $snapPath . $snapTime . '.zip')) {
-
-                  // Register storage name
-                  $db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time());
-                }
-
-              break;
-              case 'ftp':
-
-                // Validate size quota
-                if ($db->getTotalHostPageSnapSizeByStorage($hostPageSnapId, $crc32name) >= $storage->quota->size) continue 2;
-
-                // Validate mime
-                if (!$storage->quota->mime) continue 2;
-
-                $snapMimeValid = false;
-                foreach ((array) explode(',', $storage->quota->mime) as $mime) {
-
-                  if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
-
-                    $snapMimeValid = true;
-                    break;
-                  }
-                }
-
-                if (!$snapMimeValid) continue 2;
-
-                // Copy tmp snap file to the permanent storage
-                $ftp = new Ftp();
-
-                if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
-
-                  $ftp->mkdir('hp/' . $snapPath, true);
-
-                  if ($ftp->copy($snapTmp, 'hp/' . $snapPath . $snapTime . '.zip')) {
-
-                    // Register storage name
-                    $db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time());
-                  }
-
-                  $ftp->close();
-                }
-
-              break;
-            }
-          }
-        }
-
         // Delete tmp snap
-        unlink($snapTmp);
+        unlink($hostPageSnapFilenameTmp);
       }
 
       // Skip page links following with meta robots:nofollow attribute
