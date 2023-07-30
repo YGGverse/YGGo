@@ -93,7 +93,7 @@ class Ftp {
 
     $result = [];
 
-    foreach ($this->nlist($path) as $line) {
+    foreach (ftp_nlist($this->_connection, $path) as $line) {
 
       if (ftp_size($this->_connection, $line) == -1) {
 
