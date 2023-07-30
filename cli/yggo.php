@@ -154,7 +154,7 @@ switch ($argv[1]) {
                   $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
                   $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
 
-                  CLI::danger(sprintf(_('delete snap index: #%s file: not found in the any of storage;'), $hostPageSnap->hostPageSnapId));
+                  CLI::danger(sprintf(_('delete snap index: #%s file not found in the any of storage;'), $hostPageSnap->hostPageSnapId));
 
                   $db->commit();
 
