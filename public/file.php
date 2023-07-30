@@ -52,6 +52,9 @@ switch ($type) {
     // Get snap details from DB
     if ($hostPageSnap = $db->getHostPageSnap(!empty($_GET['hps']) ? (int) $_GET['hps'] : 0)) {
 
+      // Get file
+      $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
+
       // Get snap file
       foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
 
@@ -65,9 +68,6 @@ switch ($type) {
             switch ($name) {
 
               case 'localhost':
-
-                // Get file
-                $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
 
                 // Download local snap in higher priority if possible
                 if (file_exists($storage->directory . $snapFile) &&
