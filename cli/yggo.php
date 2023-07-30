@@ -1,21 +1,5 @@
 <?php
 
-// CLI only to prevent https server connection timeout
-if (php_sapi_name() != 'cli') {
-
-  CLI::danger(_('supported command line interface only'));
-  exit;
-}
-
-// Lock multi-thread execution
-$semaphore = sem_get(crc32('cli.yggo'), 1);
-
-if (false === sem_acquire($semaphore, true)) {
-
-  CLI::danger(_('Process locked by another thread.'));
-  exit;
-}
-
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
 require_once(__DIR__ . '/../library/cli.php');
@@ -23,6 +7,44 @@ require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/ftp.php');
 require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
+
+// CLI only to prevent https server connection timeout
+if (php_sapi_name() != 'cli') {
+
+  CLI::danger(_('supported command line interface only'));
+  CLI::break();
+  exit;
+}
+
+// Lock multi-thread execution
+$semaphore = sem_get(crc32('crontab.crawler'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  CLI::danger(_('process locked by another thread.'));
+  CLI::break();
+  exit;
+}
+
+// Stop CLI execution on cleaner process running
+$semaphore = sem_get(crc32('crontab.cleaner'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  CLI::danger(_('stop crontab.cleaner is running in another thread.'));
+  CLI::break();
+  exit;
+}
+
+// Stop CLI execution on crawler process running
+$semaphore = sem_get(crc32('crontab.crawler'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  CLI::danger(_('stop crontab.crawler is running in another thread.'));
+  CLI::break();
+  exit;
+}
 
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
@@ -49,17 +71,20 @@ switch ($argv[1]) {
     CLI::notice(_('cleaner queue step completed.'));
 
   break;
-  case 'snap':
+  case 'hostPageSnap':
 
     if (empty($argv[2])) {
-      CLI::danger(_('snap method requires action argument'));
+
+      CLI::danger(_('hostPageSnap method requires action argument'));
+      CLI::break();
+      exit;
     }
 
     switch ($argv[2]) {
 
-      case 'reindex':
+      case 'repair':
 
-        // Scan for new files/storages
+        // Normalize & cleanup DB
         CLI::notice(_('scan database registry for missed snap files...'));
 
         foreach ($db->getHosts() as $host) {
@@ -74,20 +99,21 @@ switch ($argv[1]) {
               $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
 
               // Check file exists
-              foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
+              foreach (json_decode(SNAP_STORAGE) as $hostPageSnapStorageName => $storages) {
 
                 foreach ($storages as $i => $storage) {
 
                   // Generate storage id
-                  $crc32name = crc32(sprintf('%s.%s', $name, $i));
+                  $crc32name = crc32(sprintf('%s.%s', $hostPageSnapStorageName, $i));
 
-                  switch ($name) {
+                  switch ($hostPageSnapStorageName) {
 
                     case 'localhost':
 
-                      $filename = $storage->directory . $snapPath . $hostPageSnap->timeAdded . '.zip';
+                      /* @TODO implemented, not tested
+                      $hostPageSnapFilename = $storage->directory . $snapPath . $hostPageSnap->timeAdded . '.zip';
 
-                      if (file_exists($filename)) {
+                      if (file_exists($hostPageSnapFilename)) {
 
                         $snapFilesExists = true;
 
@@ -95,14 +121,15 @@ switch ($argv[1]) {
 
                           if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                            CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
+                            CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                           }
 
                         } else {
 
-                          CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
+                          CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                         }
                       }
+                      */
 
                     break;
 
@@ -112,9 +139,9 @@ switch ($argv[1]) {
 
                       if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
 
-                        $filename = 'hp/' . $snapPath . $hostPageSnap->timeAdded . '.zip';
+                        $hostPageSnapFilename = 'hp/' . $snapPath . $hostPageSnap->timeAdded . '.zip';
 
-                        if ($ftp->size($filename)) {
+                        if ($ftp->size($hostPageSnapFilename)) {
 
                           $snapFilesExists = true;
 
@@ -122,13 +149,20 @@ switch ($argv[1]) {
 
                             if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                              CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
+                              CLI::warning(sprintf(_('register snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                             }
                           } else {
 
-                            CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $filename, $name, $i));
+                            CLI::success(sprintf(_('skip related snap #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
                           }
                         }
+
+                      // Prevent snap deletion from registry on FTP connection lost
+                      } else {
+
+                        CLI::danger(sprintf(_('could not connect to storage %s index %s. operation stopped to prevent the data lose.'), $hostPageSnapStorageName, $i));
+                        CLI::break();
+                        exit;
                       }
 
                       $ftp->close();
@@ -154,7 +188,7 @@ switch ($argv[1]) {
                   $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
                   $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
 
-                  CLI::danger(sprintf(_('delete snap index: #%s file not found in the any of storage;'), $hostPageSnap->hostPageSnapId));
+                  CLI::warning(sprintf(_('delete snap index: #%s file not found in the any of storage;'), $hostPageSnap->hostPageSnapId));
 
                   $db->commit();
 
@@ -169,23 +203,70 @@ switch ($argv[1]) {
           }
         }
 
+        // Cleanup FS
+        CLI::notice(_('scan storage for snap files missed in the DB...'));
+
+        foreach (json_decode(SNAP_STORAGE) as $hostPageSnapStorageName => $storages) {
+
+          foreach ($storages as $i => $storage) {
+
+            switch ($hostPageSnapStorageName) {
+
+              case 'localhost':
+
+                // @TODO
+
+              break;
+
+              case 'ftp':
+
+                $ftp = new Ftp();
+
+                if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+
+                  foreach ($ftp->nlistr($storage->directory) as $hostPageSnapFilename) {
+
+                    if (false !== preg_match(sprintf('!/hp/([\d/]+)/([\d]+)\.zip$!ui', $storage->directory), $hostPageSnapFilename, $matches)) {
+
+                      if (!empty($matches[1]) && // hostPageSnapId
+                          !empty($matches[2])) { // timeAdded
+
+                        if (!$db->findHostPageSnapByTimeAdded($matches[1], $matches[2])) {
+
+                          if ($ftp->delete($hostPageSnapFilename)) {
+
+                            CLI::warning(sprintf(_('delete snap file: #%s from storage %s index %s not found in registry;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+
+                          } else {
+
+                            CLI::danger(sprintf(_('delete snap file: #%s from storage %s index %s not found in registry;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+                $ftp->close();
+
+              break;
+            }
+          }
+        }
+
+        CLI::success(_('missed snap files successfully deleted!'));
+
+        // Optimize DB tables
         CLI::notice(_('optimize database tables...'));
 
         $db->optimize();
 
         CLI::success(_('tables successfully optimized!'));
 
-        CLI::notice(_('scan storage locations for snap files not registered in the DB...'));
-
-        CLI::success(_('snap index successfully updated!'));
-
-        // Cleanup FS items on missed DB registry
-        // @TODO
-
       break;
       default:
 
-        CLI::danger(_('undefined action argument'));
+        CLI::danger(_('undefined action argument!'));
     }
 
   break;
@@ -344,8 +425,8 @@ CLI::default('available options:');
 CLI::default('  help                             - this message');
 CLI::default('  crawl                            - execute crawler step in the crontab queue');
 CLI::default('  clean                            - execute cleaner step in the crontab queue');
-CLI::default('  snap reindex                     - sync DB/FS relations');
 CLI::default('  hostPage rank reindex            - generate rank indexes in hostPage table');
+CLI::default('  hostPageSnap repair              - sync DB/FS relations');
 CLI::default('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field');
 CLI::default('  hostPageDom truncate             - flush hostPageDom table');
 CLI::break();

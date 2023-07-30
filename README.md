@@ -163,7 +163,7 @@ GET m=SphinxQL
 
 * [x] CSS only, JS-less interface
 * [x] Unique host ident icons
-* [x] Content genre tabs (#1)
+* [x] Content MIME tabs (#1)
 * [x] Page index explorer
   + [x] Meta
   + [x] Snaps history
@@ -225,8 +225,14 @@ GET m=SphinxQL
 * [x] help
 * [x] crawl
 * [x] clean
-* [x] snap
-  + [x] reindex
+* [x] hostPageSnap
+  + [x] repair
+      + [x] _sync DB-FS relations_
+        + [x] _FTP_
+        + [ ] _localhost (not tested)_
+      + [x] _delete FS missed in the DB_
+        + [x] _FTP_
+        + [ ] _localhost_
 * [x] hostPageDom
   + [x] generate
   + [x] truncate

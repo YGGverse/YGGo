@@ -84,9 +84,28 @@ class Ftp {
     return false;
   }
 
-  public function list(string $path) {
+  public function nlist(string $path) {
 
     return ftp_nlist($this->_connection, $path);
+  }
+
+  public function nlistr(string $path) {
+
+    $result = [];
+
+    foreach ($this->nlist($path) as $line) {
+
+      if (ftp_size($this->_connection, $line) == -1) {
+
+        $result = array_merge($result, $this->nlistr($line));
+
+      } else{
+
+        $result[] = $line;
+      }
+    }
+
+    return $result;
   }
 
   public function close() {
