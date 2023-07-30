@@ -201,7 +201,7 @@ switch ($argv[1]) {
                   $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
                   $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
 
-                  CLI::warning(sprintf(_('delete snap index: #%s file not found in the any of storage;'), $hostPageSnap->hostPageSnapId));
+                  CLI::warning(sprintf(_('delete snap index: #%s timestamp: %s as not found in file storages;'), $hostPageSnap->hostPageSnapId, $hostPageSnap->timeAdded));
 
                   $db->commit();
 
