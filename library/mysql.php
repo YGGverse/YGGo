@@ -528,11 +528,11 @@ class MySQL {
     return $query->fetch();
   }
 
-  public function findHostPageSnapByTimeAdded(int $hostPageSnapId, int $timeAdded) {
+  public function findHostPageSnapByTimeAdded(int $hostPageId, int $timeAdded) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageSnapId` = ? AND `timeAdded` = ? LIMIT 1');
+    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND `timeAdded` = ? LIMIT 1');
 
-    $query->execute([$hostPageSnapId, $timeAdded]);
+    $query->execute([$hostPageId, $timeAdded]);
 
     return $query->fetch();
   }

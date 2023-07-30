@@ -240,7 +240,7 @@ switch ($argv[1]) {
 
                     if (false !== preg_match(sprintf('!/hp/([\d/]+)/([\d]+)\.zip$!ui', $storage->directory), $hostPageSnapFilename, $matches)) {
 
-                      if (!empty($matches[1]) && // hostPageSnapId
+                      if (!empty($matches[1]) && // hostPageId
                           !empty($matches[2])) { // timeAdded
 
                         if (!$db->findHostPageSnapByTimeAdded($matches[1], $matches[2])) {
