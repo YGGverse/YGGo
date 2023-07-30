@@ -62,8 +62,6 @@ switch ($argv[1]) {
         // Scan for new files/storages
         CLI::notice(_('scan database registry for missed snap files...'));
 
-        $hostPageSnapsTrashQueue = [];
-
         foreach ($db->getHosts() as $host) {
 
           foreach ($db->getHostPages($host->hostId) as $hostPage) {
@@ -107,6 +105,7 @@ switch ($argv[1]) {
                       }
 
                     break;
+
                     case 'ftp':
 
                       $ftp = new Ftp();
@@ -139,49 +138,35 @@ switch ($argv[1]) {
                 }
               }
 
-              // Snap FS relation does not exist, add registry item to the delete queue
+              // Files not exists
               if (!$snapFilesExists) {
 
-                $hostPageSnapsTrashQueue[] = $hostPageSnap->hostPageSnapId;
+                // Delete snap from registry
+                try {
 
-                CLI::danger(sprintf(_('trash snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
+                  $db->beginTransaction();
+
+                  foreach ($db->getHostPageSnapStorages($hostPageSnapId) as $hostPageSnapStorage) {
+
+                    $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
+                  }
+
+                  $db->deleteHostPageSnapStorages($hostPageSnapId);
+                  $db->deleteHostPageSnap($hostPageSnapId);
+
+                  CLI::danger(sprintf(_('delete snap index: #%s file: %s not found in the any of storage;'), $hostPageSnap->hostPageSnapId, $filename));
+
+                  $db->commit();
+
+                } catch(Exception $e) {
+
+                  $db->rollBack();
+
+                  var_dump($e);
+                }
               }
             }
           }
-        }
-
-        if ($hostPageSnapsTrashQueue && isset($argv[3]) && $argv[3] == 'purge') {
-
-          CLI::notice(_('snap index deletion queue begin...'));
-
-          foreach ($hostPageSnapsTrashQueue as $hostPageSnapId) {
-
-            try {
-
-              $db->beginTransaction();
-
-              CLI::warning(sprintf(_('delete snap index: #%s;'), $hostPageSnapId));
-
-              // Clear queued snap registry
-              foreach ($db->getHostPageSnapStorages($hostPageSnapId) as $hostPageSnapStorage) {
-
-                $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
-              }
-
-              $db->deleteHostPageSnapStorages($hostPageSnapId);
-              $db->deleteHostPageSnap($hostPageSnapId);
-
-              $db->commit();
-
-            } catch(Exception $e) {
-
-              $db->rollBack();
-
-              var_dump($e);
-            }
-          }
-
-          CLI::success(_('snap index trash queue deleted!'));
         }
 
         CLI::notice(_('optimize database tables...'));
@@ -359,7 +344,7 @@ CLI::default('available options:');
 CLI::default('  help                             - this message');
 CLI::default('  crawl                            - execute crawler step in the crontab queue');
 CLI::default('  clean                            - execute cleaner step in the crontab queue');
-CLI::default('  snap reindex [purge]             - sync DB/FS relations. optionally delete unrelated DB/FS items');
+CLI::default('  snap reindex                     - sync DB/FS relations');
 CLI::default('  hostPage rank reindex            - generate rank indexes in hostPage table');
 CLI::default('  hostPageDom generate [selectors] - make hostPageDom index based on related hostPage.data field');
 CLI::default('  hostPageDom truncate             - flush hostPageDom table');
