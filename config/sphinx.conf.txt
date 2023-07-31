@@ -14,14 +14,18 @@ source hostPage : common
   sql_query   = \
     SELECT `hostPage`.`hostPageId`, \
            `hostPage`.`uri`, \
+           REPLACE(`hostPage`.`uri`, '.', ' '), \
+           REPLACE(`hostPage`.`uri`, '-', ' '), \
+           REPLACE(`hostPage`.`uri`, '_', ' '), \
+           REPLACE(`hostPage`.`uri`, '/', ' '), \
            `hostPage`.`rank`, \
            `host`.`name`, \
            IF (`host`.`port` IS NOT NULL, \
-            CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`), \
-            CONCAT(`host`.`scheme`, '://', `host`.`name`)) AS `hostURL`, \
-          IF (`host`.`port` IS NOT NULL, \
-            CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`), \
-            CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)) AS `hostPageURL`, \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`), \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`)) AS `hostURL`, \
+           IF (`host`.`port` IS NOT NULL, \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`), \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)) AS `hostPageURL`, \
            REGEXP_REPLACE(`hostPage`.`mime`, '^([A-z-]+)/[A-z-]+.*', '$1') AS `mime`, \
           (SELECT GROUP_CONCAT(CONCAT_WS(' ', `hostPageDescription`.`title`, \
                                               `hostPageDescription`.`description`, \
@@ -34,9 +38,6 @@ source hostPage : common
 
   sql_attr_uint   = rank
   sql_attr_string = mime
-  sql_attr_string = uri
-  sql_attr_string = hostURL
-  sql_attr_string = hostPageURL
 }
 
 index hostPage
