@@ -236,7 +236,7 @@ define('CRAWL_PAGE_SECONDS_OFFSET', 60*60*24*30*12);
  * or the crawler can stuck in queue
  *
  */
-define('CRAWL_PAGE_HOME_SECONDS_OFFSET', 60*60*24*7);
+define('CRAWL_PAGE_HOME_SECONDS_OFFSET', 60*60*24*7*30);
 
 /*
  * Index pages match MIME types
