@@ -113,7 +113,7 @@ class Filter {
         'ZONESPAN',
         'PARAGRAPH',
 
-        '\\', '/', '~', '@', '!', '"', '(', ')', '|', '?', '%', '-', '>', '<', ':', ';'
+        '\\', '/', '~', '@', '!', '"', '(', ')', '|', '?', '%', '-', '>', '<', ':', ';', '^', '$'
       ];
 
       foreach ($operators as $operator) {
@@ -122,7 +122,17 @@ class Filter {
     }
 
     // Apply query semantics
-    $query = str_replace(' ', ' | ', $query);
+
+    // Long queries
+    // @TODO seems that queries longer than 68 chars cropping
+    if (mb_strlen($query) > 68) {
+
+      $query = sprintf('%s*', substr($query, 0, 67));
+
+    } else {
+
+      $query = sprintf('"%s" | (%s)', $query, str_replace(' ', ' | ', $query));
+    }
 
     return trim($query);
   }
