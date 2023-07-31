@@ -685,8 +685,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
             // Insert compressed snap data into the tmp storage
             if (true === $zip->addFromString('DATA', $content) &&
                 true === $zip->addFromString('META', sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
-                                                     sprintf('TIMESTAMP: %s', time()) . PHP_EOL .
-                                                     sprintf('SOURCE: %s',    Filter::url($queueHostPage->hostPageURL)))) {
+                                                     sprintf('SOURCE: %s',    Filter::url($queueHostPage->hostPageURL)) . PHP_EOL .
+                                                     sprintf('TIMESTAMP: %s', time()))) {
             }
           }
 
