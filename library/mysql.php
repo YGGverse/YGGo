@@ -528,15 +528,6 @@ class MySQL {
     return $query->fetch();
   }
 
-  public function findHostPageSnapByTimeAdded(int $hostPageId, int $timeAdded) {
-
-    $query = $this->_db->prepare('SELECT * FROM `hostPageSnap` WHERE `hostPageId` = ? AND `timeAdded` = ? LIMIT 1');
-
-    $query->execute([$hostPageId, $timeAdded]);
-
-    return $query->fetch();
-  }
-
   public function addHostPageSnapDownload(int $hostPageSnapStorageId, string $crc32ip, int $timeAdded) {
 
     $query = $this->_db->prepare('INSERT INTO `hostPageSnapDownload` (`hostPageSnapStorageId`,

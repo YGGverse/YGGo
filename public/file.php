@@ -52,37 +52,36 @@ switch ($type) {
     // Get snap details from DB
     if ($hostPageSnap = $db->getHostPageSnap(!empty($_GET['hps']) ? (int) $_GET['hps'] : 0)) {
 
-      // Get file
-      $snapFile = 'hp/' . chunk_split($hostPageSnap->hostPageId, 1, '/') . $hostPageSnap->timeAdded . '.zip';
+      // Prepare filenames
+      $hostPageSnapPath = 'hps/' . substr(trim(chunk_split($hostPageSnap->hostPageSnapId, 1, '/'), '/'), 0, -1);
+      $hostPageSnapFile = $hostPageSnapPath . substr($hostPageSnap->hostPageSnapId, -1) . '.zip';
 
       // Get snap file
-      foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
+      foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
 
-        foreach ($storages as $i => $storage) {
+        foreach ($storages as $location => $storage) {
 
           // Generate storage id
-          $crc32name = crc32(sprintf('%s.%s', $name, $i));
+          $crc32name = crc32(sprintf('%s.%s', $node, $location));
 
           if ($hostPageSnapStorage = $db->findHostPageSnapStorageByCRC32Name($hostPageSnap->hostPageSnapId, $crc32name)) {
 
-            switch ($name) {
+            switch ($node) {
 
               case 'localhost':
 
                 // Download local snap in higher priority if possible
-                if (file_exists($storage->directory . $snapFile) &&
-                    is_readable($storage->directory . $snapFile)) {
+                if (file_exists($storage->directory . $hostPageSnapFile) &&
+                    is_readable($storage->directory . $hostPageSnapFile)) {
 
                     // Register snap download
                     $db->addHostPageSnapDownload($hostPageSnapStorage->hostPageSnapStorageId, $crc32ip, time());
 
                     // Return snap file
                     header('Content-Type: application/zip');
-                    header(sprintf('Content-Length: %s', $snapSize));
-                    header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
-                                                                                        $hostPageSnap->hostPageId,
-                                                                                        $hostPageSnap->timeAdded));
-                    readfile($storage->directory . $snapFile);
+                    header(sprintf('Content-Length: %s', filesize($storage->directory . $hostPageSnapFile)));
+                    header(sprintf('Content-Disposition: filename="snap.%s.zip"', $hostPageSnap->hostPageSnapId));
+                    readfile($storage->directory . $hostPageSnapFile);
 
                     exit;
                 }
@@ -99,12 +98,10 @@ switch ($type) {
 
                   // Return snap file
                   header('Content-Type: application/zip');
-                  header(sprintf('Content-Length: %s', $snapSize));
-                  header(sprintf('Content-Disposition: filename="snap.%s.%s.%s.zip"', $hostPageSnap->hostPageSnapId,
-                                                                                      $hostPageSnap->hostPageId,
-                                                                                      $hostPageSnap->timeAdded));
+                  header(sprintf('Content-Length: %s', $ftp->size($hostPageSnapFile)));
+                  header(sprintf('Content-Disposition: filename="snap.%s.zip"', $hostPageSnap->hostPageSnapId));
 
-                  $ftp->get($snapFile, 'php://output');
+                  $ftp->get($hostPageSnapFile, 'php://output');
 
                   $ftp->close();
 

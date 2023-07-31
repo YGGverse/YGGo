@@ -97,6 +97,12 @@ switch ($argv[1]) {
 
       case 'repair':
 
+        // @TODO
+        CLI::danger(_('this function upgraded but not tested after snaps refactor.'));
+        CLI::danger(_('make sure you have backups then remove this alert.'));
+        CLI::break();
+        exit;
+
         // Normalize & cleanup DB
         CLI::notice(_('scan database registry for missed snap files...'));
 
@@ -104,29 +110,31 @@ switch ($argv[1]) {
 
           foreach ($db->getHostPages($host->hostId) as $hostPage) {
 
-            $snapPath = chunk_split($hostPage->hostPageId, 1, '/');
-
             foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
+
+              // Prepare filenames
+              $hostPageSnapPath = 'hps/' . substr(trim(chunk_split($hostPageSnap->hostPageSnapId, 1, '/'), '/'), 0, -1);
+              $hostPageSnapFile = $hostPageSnapPath . substr($hostPageSnap->hostPageSnapId, -1) . '.zip';
 
               // Define variables
               $hostPageSnapStorageFilesExists = false;
 
               // Check file exists
-              foreach (json_decode(SNAP_STORAGE) as $hostPageSnapStorageName => $storages) {
+              foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
 
-                foreach ($storages as $i => $storage) {
+                foreach ($storages as $location => $storage) {
 
                   // Generate storage id
-                  $crc32name = crc32(sprintf('%s.%s', $hostPageSnapStorageName, $i));
+                  $crc32name = crc32(sprintf('%s.%s', $node, $location));
 
-                  switch ($hostPageSnapStorageName) {
+                  switch ($node) {
 
                     case 'localhost':
 
                       // @TODO implemented, not tested
-                      $hostPageSnapFilename = $storage->directory . $snapPath . $hostPageSnap->timeAdded . '.zip';
+                      $hostPageSnapFile = $storage->directory . $hostPageSnapFile;
 
-                      if (file_exists($hostPageSnapFilename)) {
+                      if (file_exists($hostPageSnapFile)) {
 
                         $hostPageSnapStorageFilesExists = true;
 
@@ -134,12 +142,12 @@ switch ($argv[1]) {
 
                           if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                            CLI::warning(sprintf(_('add index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                            CLI::warning(sprintf(_('add index hostPageSnapId #%s file: %s node: %s location: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFile, $node, $location));
                           }
 
                         } else {
 
-                          CLI::success(sprintf(_('skip related index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                          CLI::success(sprintf(_('skip related index hostPageSnapId #%s file: %s node: %s location: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFile, $node, $location));
                         }
                       }
 
@@ -151,9 +159,7 @@ switch ($argv[1]) {
 
                       if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
 
-                        $hostPageSnapFilename = 'hp/' . $snapPath . $hostPageSnap->timeAdded . '.zip';
-
-                        if ($ftp->size($hostPageSnapFilename)) {
+                        if ($ftp->size($hostPageSnapFile)) {
 
                           $hostPageSnapStorageFilesExists = true;
 
@@ -161,18 +167,18 @@ switch ($argv[1]) {
 
                             if ($db->addHostPageSnapStorage($hostPageSnap->hostPageSnapId, $crc32name, $hostPageSnap->timeAdded)) {
 
-                              CLI::warning(sprintf(_('add index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                              CLI::warning(sprintf(_('add index hostPageSnapId #%s file: %s node: %s location: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFile, $node, $location));
                             }
                           } else {
 
-                            CLI::success(sprintf(_('skip related index hostPageSnapId #%s file: %s storage: %s index: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                            CLI::success(sprintf(_('skip related index hostPageSnapId #%s file: %s node: %s location: %s;'), $hostPageSnap->hostPageSnapId, $hostPageSnapFile, $node, $location));
                           }
                         }
 
                       // Prevent snap deletion from registry on FTP connection lost
                       } else {
 
-                        CLI::danger(sprintf(_('could not connect to storage %s index %s. operation stopped to prevent the data lose.'), $hostPageSnapStorageName, $i));
+                        CLI::danger(sprintf(_('could not connect to storage %s location %s. operation stopped to prevent the data lose.'), $hostPageSnapStorageName, $location));
                         CLI::break();
                         exit;
                       }
@@ -218,11 +224,15 @@ switch ($argv[1]) {
         // Cleanup FS
         CLI::notice(_('scan storage for snap files missed in the DB...'));
 
-        foreach (json_decode(SNAP_STORAGE) as $hostPageSnapStorageName => $storages) {
+        // Copy files to each storage
+        foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
 
-          foreach ($storages as $i => $storage) {
+          foreach ($storages as $location => $storage) {
 
-            switch ($hostPageSnapStorageName) {
+            // Generate storage id
+            $crc32name = crc32(sprintf('%s.%s', $node, $location));
+
+            switch ($node) {
 
               case 'localhost':
 
@@ -236,27 +246,26 @@ switch ($argv[1]) {
 
                 if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
 
-                  foreach ($ftp->nlistr($storage->directory) as $hostPageSnapFilename) {
+                  foreach ($ftp->nlistr($storage->directory) as $filename) {
 
-                    if (false !== preg_match(sprintf('!/hp/([\d/]+)/([\d]+)\.zip$!ui', $storage->directory), $hostPageSnapFilename, $matches)) {
+                    if (false !== preg_match(sprintf('!/hps/([\d]+)\.zip$!ui', $storage->directory), $filename, $matches)) {
 
-                      if (!empty($matches[1]) && // hostPageId
-                          !empty($matches[2])) { // timeAdded
+                      if (!empty($matches[1])) { // hostPageSnapId
 
-                        if (!$db->findHostPageSnapByTimeAdded($matches[1], $matches[2])) {
+                        if (!$db->getHostPageSnap($matches[1])) {
 
-                          if ($ftp->delete($hostPageSnapFilename)) {
+                          if ($ftp->delete($filename)) {
 
-                            CLI::warning(sprintf(_('delete snap file: #%s from storage %s index %s not found in registry;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                            CLI::warning(sprintf(_('delete snap file: #%s from node %s location %s not found in registry;'), $filename, $node, $location));
 
                           } else {
 
-                            CLI::danger(sprintf(_('delete snap file: #%s from storage %s index %s not found in registry;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                            CLI::danger(sprintf(_('delete snap file: #%s from node %s location %s not found in registry;'), $filename, $node, $location));
                           }
 
                         } else {
 
-                          CLI::success(sprintf(_('skip snap file: #%s available in storage %s index %s;'), $hostPageSnapFilename, $hostPageSnapStorageName, $i));
+                          CLI::success(sprintf(_('skip snap file: #%s available in node %s location %s;'), $filename, $node, $location));
                         }
                       }
                     }

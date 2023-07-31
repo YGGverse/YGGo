@@ -93,8 +93,8 @@ define('MEMCACHED_PORT', 11211);
 define('SNAP_STORAGE', json_encode((object)
         [
                 'localhost' => [ // @TODO see https://github.com/YGGverse/YGGo#roadmap
-                        [
-                                'directory' => __DIR__ . '/../storage/snap/hp/',
+                        'storage-1' => [
+                                'directory' => __DIR__ . '/../storage/snap/hps/',
                                 'quota'     => [
                                         'mime' => false,
                                         'size' => 10000000024, // @TODO
@@ -104,12 +104,12 @@ define('SNAP_STORAGE', json_encode((object)
                                                         'seconds' => 60*60
                                                 ]
                                         ]
-                                ],
-                                // ...
-                        ]
+                                ]
+                        ],
+                        // ...
                 ],
                 'ftp'       => [
-                        [
+                        'storage-1' => [
                                 'port'      => 21,
                                 'host'      => '',
                                 'username'  => '',

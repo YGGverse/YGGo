@@ -95,23 +95,25 @@ try {
           $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
           // Delete host page snaps
-          $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
-
           foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
+            // Prepare filenames
+            $hostPageSnapPath = 'hps/' . substr(trim(chunk_split($hostPageSnap->hostPageSnapId, 1, '/'), '/'), 0, -1);
+            $hostPageSnapFile = $hostPageSnapPath . substr($hostPageSnap->hostPageSnapId, -1) . '.zip';
+
             // Delete snap files
-            foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
+            foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
 
-              foreach ($storages as $i => $storage) {
+              foreach ($storages as $location => $storage) {
 
-                // Generate storage id
-                $crc32name = crc32(sprintf('%s.%s', $name, $i));
-
-                switch ($name) {
+                switch ($node) {
 
                   case 'localhost':
 
-                    @unlink($storage->directory . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                    if (file_exists($storage->directory . $hostPageSnapFile)) {
+
+                      unlink($storage->directory . $hostPageSnapFile);
+                    }
 
                   break;
                   case 'ftp':
@@ -119,7 +121,8 @@ try {
                     $ftp = new Ftp();
 
                     if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
-                        $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+
+                      $ftp->delete($hostPageSnapFile);
                     }
 
                   break;
@@ -161,23 +164,25 @@ try {
         $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
         // Delete host page snaps
-        $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
-
         foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
+          // Prepare filenames
+          $hostPageSnapPath = 'hps/' . substr(trim(chunk_split($hostPageSnap->hostPageSnapId, 1, '/'), '/'), 0, -1);
+          $hostPageSnapFile = $hostPageSnapPath . substr($hostPageSnap->hostPageSnapId, -1) . '.zip';
+
           // Delete snap files
-          foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
+          foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
 
-            foreach ($storages as $i => $storage) {
+            foreach ($storages as $location => $storage) {
 
-              // Generate storage id
-              $crc32name = crc32(sprintf('%s.%s', $name, $i));
-
-              switch ($name) {
+              switch ($node) {
 
                 case 'localhost':
 
-                  @unlink($storage->directory . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+                  if (file_exists($storage->directory . $hostPageSnapFile)) {
+
+                    unlink($storage->directory . $hostPageSnapFile);
+                  }
 
                 break;
                 case 'ftp':
@@ -185,7 +190,8 @@ try {
                   $ftp = new Ftp();
 
                   if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
-                      $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+
+                    $ftp->delete($hostPageSnapFile);
                   }
 
                 break;
@@ -283,23 +289,25 @@ try {
     $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
 
     // Delete host page snaps
-    $snapFilePath = chunk_split($hostPage->hostPageId, 1, '/');
-
     foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
 
+      // Prepare filenames
+      $hostPageSnapPath = 'hps/' . substr(trim(chunk_split($hostPageSnap->hostPageSnapId, 1, '/'), '/'), 0, -1);
+      $hostPageSnapFile = $hostPageSnapPath . substr($hostPageSnap->hostPageSnapId, -1) . '.zip';
+
       // Delete snap files
-      foreach (json_decode(SNAP_STORAGE) as $name => $storages) {
+      foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
 
-        foreach ($storages as $i => $storage) {
+        foreach ($storages as $location => $storage) {
 
-          // Generate storage id
-          $crc32name = crc32(sprintf('%s.%s', $name, $i));
-
-          switch ($name) {
+          switch ($node) {
 
             case 'localhost':
 
-              @unlink($storage->directory . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+              if (file_exists($storage->directory . $hostPageSnapFile)) {
+
+                unlink($storage->directory . $hostPageSnapFile);
+              }
 
             break;
             case 'ftp':
@@ -307,7 +315,8 @@ try {
               $ftp = new Ftp();
 
               if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
-                  $ftp->delete('hp/' . $snapFilePath . $hostPageSnap->timeAdded . '.zip');
+
+                $ftp->delete($hostPageSnapFile);
               }
 
             break;

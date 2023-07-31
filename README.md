@@ -227,10 +227,10 @@ GET m=SphinxQL
   * [x] crawl
   * [x] clean
 * [x] hostPageSnap
-  + [x] repair
+  + [x] repair (not tested)
       + [x] _sync DB-FS relations_
         + [x] _FTP_
-        + [x] _localhost (not tested)_
+        + [x] _localhost_
       + [x] _delete FS missed in the DB_
         + [x] _FTP_
         + [ ] _localhost_
