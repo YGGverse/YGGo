@@ -79,34 +79,52 @@ class Filter {
 
   static public function searchQuery(string $query, string $mode = 'default') {
 
+    // Prepare user-friendly search request (default mode)
+    // https://sphinxsearch.com/docs/current.html#extended-syntax
     if ($mode == 'default') {
 
-        // Remove single char words
-        $words = [];
-        foreach ((array) explode(' ', $query) as $word) {
+      // Remove extra separators
+      $query = preg_replace('/[\s]+/', ' ', $query);
 
-          if (mb_strlen($word) > 1) {
-            $words[] = $word;
-          }
+      $query = trim($query);
+
+      // Remove single char words
+      $words = [];
+      foreach ((array) explode(' ', $query) as $word) {
+
+        if (mb_strlen($word) > 1) {
+          $words[] = $word;
         }
+      }
 
-        if ($words) {
-          $query = implode(' ', $words);
-        }
+      if ($words) {
+        $query = implode(' ', $words);
+      }
 
-        // Remove SphinxQL special chars
-        $query = str_replace(['\\', '/', '~', '@', '!', '"', '(', ')'], ['\\\\', '\/', '\~', '\@', '\!', '\"', '\(', '\)'], $query);
+      // Quote reserved keyword operators
+      $operators = [
+        'MAYBE',
+        'AND',
+        'OR',
+        'NOT',
+        'SENTENCE',
+        'NEAR',
+        'ZONE',
+        'ZONESPAN',
+        'PARAGRAPH',
 
-        // Replace query separators to the MAYBE operator
-        $query = str_ireplace(['MAYBE'], ['__MAYBE__'], $query);
-        $query = preg_replace('/[\W\s]+/ui', '__SEPARATOR__', $query);
-        $query = trim($query, '__SEPARATOR__');
-        $query = str_ireplace(['__SEPARATOR__', '__MAYBE__'], [' MAYBE ', ' \MAYBE '], $query);
+        '\\', '/', '~', '@', '!', '"', '(', ')', '|', '?', '%', '-', '>', '<', ':', ';'
+      ];
+
+      foreach ($operators as $operator) {
+        $query = str_ireplace($operator, '\\' . $operator,  $query);
+      }
     }
 
-    $query = trim($query);
+    // Apply query semantics
+    $query = str_replace(' ', ' | ', $query);
 
-    return $query;
+    return trim($query);
   }
 
   static public function plural(int $number, array $texts) {
