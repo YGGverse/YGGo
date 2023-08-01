@@ -16,16 +16,6 @@ if (php_sapi_name() != 'cli') {
   exit;
 }
 
-// Lock multi-thread execution
-$semaphore = sem_get(crc32('crontab.crawler'), 1);
-
-if (false === sem_acquire($semaphore, true)) {
-
-  CLI::danger(_('process locked by another thread.'));
-  CLI::break();
-  exit;
-}
-
 // Stop CLI execution on cleaner process running
 $semaphore = sem_get(crc32('crontab.cleaner'), 1);
 
@@ -42,6 +32,16 @@ $semaphore = sem_get(crc32('crontab.crawler'), 1);
 if (false === sem_acquire($semaphore, true)) {
 
   CLI::danger(_('stop crontab.crawler is running in another thread.'));
+  CLI::break();
+  exit;
+}
+
+// Lock multi-thread execution
+$semaphore = sem_get(crc32('cli.yggo'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  CLI::danger(_('process locked by another thread.'));
   CLI::break();
   exit;
 }

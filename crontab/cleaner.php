@@ -1,5 +1,14 @@
 <?php
 
+// Stop cleaner on cli running
+$semaphore = sem_get(crc32('cli.yggo'), 1);
+
+if (false === sem_acquire($semaphore, true)) {
+
+  echo 'cli.yggo process running in another thread.' . PHP_EOL;
+  exit;
+}
+
 // Lock multi-thread execution
 $semaphore = sem_get(crc32('crontab.cleaner'), 1);
 
@@ -9,14 +18,6 @@ if (false === sem_acquire($semaphore, true)) {
   exit;
 }
 
-// Stop cleaner on cli running
-$semaphore = sem_get(crc32('cli.yggo'), 1);
-
-if (false === sem_acquire($semaphore, true)) {
-
-  echo 'cli.yggo process running in another thread.' . PHP_EOL;
-  exit;
-}
 
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
