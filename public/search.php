@@ -22,16 +22,8 @@ $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
 
 // Search request
-if (!empty($q)) {
-
-  $resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m), $t);
-  $results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
-
-} else {
-
-  $resultsTotal = 0;
-  $results      = [];
-}
+$resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m), $t);
+$results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
 
 // Mime list
 $hostPagesMime = $sphinx->searchHostPagesMime(Filter::searchQuery($q, $m));
