@@ -91,8 +91,18 @@ class Filter {
 
       $query = trim($query);
 
-      // Quote reserved keyword operators
+      // Return short or empty queries
+      if (mb_strlen($query) <= 1) {
+
+        return false;
+      }
+
+      // Lowercase query to deactivate reserved operators
+      $query = mb_strtolower($query);
+
+      // Quote other operators
       $operators = [
+        /* lowercased
         'MAYBE',
         'AND',
         'OR',
@@ -102,8 +112,8 @@ class Filter {
         'ZONE',
         'ZONESPAN',
         'PARAGRAPH',
-
-        '\\', '/', '~', '@', '!', '"', '(', ')', '[', ']', '|', '?', '%', '-', '>', '<', ':', ';', '^', '$'
+        */
+        '\\', '/', '~', '@', '!', '"', "'", '(', ')', '[', ']', '|', '?', '%', '-', '>', '<', ':', ';', '^', '$'
       ];
 
       foreach ($operators as $operator) {
@@ -131,13 +141,13 @@ class Filter {
 
           if (mb_strlen($word) > 1) {
 
-            $words[] = sprintf('%s*', $word);
+            $words[] = sprintf('(%s*)', $word);
           }
         }
 
-        $query = sprintf('@title %s | "%s" | %s', $query,
-                                                  $crc32query,
-                                                  implode(' | ', $words));
+        $query = sprintf('@title %s | "%s" | (%s)', $query,
+                                                    $crc32query,
+                                                    implode(' | ', $words));
       }
     }
 
