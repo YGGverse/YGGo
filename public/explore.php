@@ -222,14 +222,22 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           </a>
         </div>
         <div>
-          <p><?php echo $hostPage->mime ? _('MIME') : false ?></p>
-          <p><?php echo $hostPage->mime ?></p>
-          <p><?php echo $hostPage->size ? _('Size') : false ?></p>
-          <p><?php echo $hostPage->size ?></p>
-          <p><?php echo $hostPage->timeAdded ? _('Time added') : false ?></p>
-          <p><?php echo date('c', $hostPage->timeAdded) ?></p>
-          <p><?php echo $hostPage->timeUpdated ? _('Time updated') : false ?></p>
-          <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
+          <?php if (!empty($hostPage->mime)) { ?>
+            <p><?php echo _('MIME') ?></p>
+            <p><?php echo $hostPage->mime ?></p>
+          <?php } ?>
+          <?php if (!empty($hostPage->size)) { ?>
+            <p><?php echo _('Size') ?></p>
+            <p><?php echo $hostPage->size ?></p>
+          <?php } ?>
+          <?php if (!empty($hostPage->timeAdded)) { ?>
+            <p><?php echo _('Time added') ?></p>
+            <p><?php echo date('c', $hostPage->timeAdded) ?></p>
+          <?php } ?>
+          <?php if (!empty($hostPage->timeUpdated)) { ?>
+            <p><?php echo _('Time updated') ?></p>
+            <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
+          <?php } ?>
           <?php $totalHostPageSnaps = $db->getTotalHostPageSnaps($hp); ?>
           <p>
             <?php echo $totalHostPageSnaps ? Filter::plural($totalHostPageSnaps, [sprintf(_('%s snap'),  $totalHostPageSnaps),
