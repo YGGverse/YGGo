@@ -22,10 +22,16 @@ source hostPage : common
            `host`.`name`, \
            IF (`host`.`port` IS NOT NULL, \
                 CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`), \
-                CONCAT(`host`.`scheme`, '://', `host`.`name`)) AS `hostURL`, \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`)), \
+           CRC32 (IF (`host`.`port` IS NOT NULL, \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`), \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`))), \
            IF (`host`.`port` IS NOT NULL, \
                 CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`), \
-                CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)) AS `hostPageURL`, \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)), \
+           CRC32 (IF (`host`.`port` IS NOT NULL, \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`), \
+                CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`))), \
            REGEXP_REPLACE(`hostPage`.`mime`, '^([A-z-]+)/[A-z-]+.*', '$1') AS `mime`, \
           (SELECT GROUP_CONCAT(CONCAT_WS(' ', `hostPageDescription`.`title`, \
                                               `hostPageDescription`.`description`, \

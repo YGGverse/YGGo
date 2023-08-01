@@ -79,6 +79,9 @@ class Filter {
 
   static public function searchQuery(string $query, string $mode = 'default') {
 
+    // Create query CRC32
+    $crc32query = crc32($query);
+
     // Prepare user-friendly search request (default mode)
     // https://sphinxsearch.com/docs/current.html#extended-syntax
     if ($mode == 'default') {
@@ -87,19 +90,6 @@ class Filter {
       $query = preg_replace('/[\s]+/', ' ', $query);
 
       $query = trim($query);
-
-      // Remove single char words
-      $words = [];
-      foreach ((array) explode(' ', $query) as $word) {
-
-        if (mb_strlen($word) > 1) {
-          $words[] = $word;
-        }
-      }
-
-      if ($words) {
-        $query = implode(' ', $words);
-      }
 
       // Quote reserved keyword operators
       $operators = [
@@ -119,19 +109,44 @@ class Filter {
       foreach ($operators as $operator) {
         $query = str_ireplace($operator, '\\' . $operator,  $query);
       }
-    }
 
-    // Apply query semantics
+      // Apply separators
+      $query = str_replace(['-', '_', '/'], ' ', $query);
 
-    // Long queries
-    // @TODO seems that queries longer than 68 chars cropping
-    if (mb_strlen($query) > 68) {
+      // Apply query MATCH rules
+      $words = [];
 
-      $query = sprintf('%s*', substr($query, 0, 67));
+      // URL request
+      if (false !== strpos($query, '\:\ \ ')) {
 
-    } else {
+        $query = sprintf('"%s"', $crc32query);
 
-      $query = sprintf('"%s" | (%s)', $query, str_replace(' ', '* MAYBE ', $query) . '*');
+      // @TODO Queries longer than 68 chars unreachable in search index
+      } else if (mb_strlen($query) > 68) {
+
+        $query = sprintf('"%s" | (%s*)', $crc32query, substr($query, 0, 67));
+
+      // Default condition
+      } else {
+
+        // Remove single char words
+        foreach ((array) explode(' ', $query) as $word) {
+
+          if (mb_strlen($word) > 1) {
+
+            $words[] = sprintf('%s*', $word);
+          }
+        }
+
+        if ($words) {
+
+          $query = implode(' | ', $words);
+        }
+
+        $query = sprintf('"%s" | "%s" | %s', $query,
+                                             $crc32query,
+                                             $query);
+      }
     }
 
     return trim($query);
