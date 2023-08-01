@@ -13,7 +13,7 @@ class SphinxQL {
 
   public function searchHostPages(string $keyword, string $mime, int $start, int $limit, int $maxMatches) {
 
-    $query = $this->_sphinx->prepare('SELECT *, WEIGHT() + `rank` * 1000 AS `priority`
+    $query = $this->_sphinx->prepare('SELECT *, WEIGHT() + `rank` * IF (`rank` > 0, 1000, 1) AS `priority`
 
                                       FROM `hostPage`
 
