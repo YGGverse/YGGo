@@ -14,10 +14,7 @@ source hostPage : common
   sql_query   = \
     SELECT `hostPage`.`hostPageId`, \
            `hostPage`.`uri`, \
-           REPLACE(`hostPage`.`uri`, '.', ' '), \
-           REPLACE(`hostPage`.`uri`, '-', ' '), \
-           REPLACE(`hostPage`.`uri`, '_', ' '), \
-           REPLACE(`hostPage`.`uri`, '/', ' '), \
+           REPLACE(REPLACE(REPLACE(REPLACE(`hostPage`.`uri`, '/', ' '), '_', ' '), '-', ' '), '.', ' ') AS `hostPageURIKeywords`, \
            `hostPage`.`rank`, \
            `host`.`name`, \
            IF (`host`.`port` IS NOT NULL, \

@@ -11,9 +11,18 @@ class SphinxQL {
     $this->_sphinx->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
   }
 
+  public function searchHostPagesTotal(string $keyword, string $mime) {
+
+    $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE MATCH(?) AND `mime` = ?');
+
+    $query->execute([$keyword, $mime]);
+
+    return $query->fetch()->total;
+  }
+
   public function searchHostPages(string $keyword, string $mime, int $start, int $limit, int $maxMatches) {
 
-    $query = $this->_sphinx->prepare('SELECT *, WEIGHT() + `rank` * IF (`rank` > 0, 1000, 1) AS `priority`
+    $query = $this->_sphinx->prepare("SELECT *, WEIGHT() + `rank` * IF (`rank` > 0, 1000, 1) AS `priority`
 
                                       FROM `hostPage`
 
@@ -21,9 +30,9 @@ class SphinxQL {
 
                                       ORDER BY `priority` DESC, WEIGHT() DESC
 
-                                      LIMIT ' . (int) ($start >= $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . ',' . (int) $limit . '
+                                      LIMIT " . (int) ($start >= $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . "," . (int) $limit . "
 
-                                      OPTION `max_matches`=' . (int) ($maxMatches >= 1 ? $maxMatches : 1));
+                                      OPTION `max_matches`=" . (int) ($maxMatches >= 1 ? $maxMatches : 1));
 
     $query->execute([$keyword, $mime]);
 
@@ -64,14 +73,5 @@ class SphinxQL {
     $query->execute([$keyword]);
 
     return $query->fetchAll();
-  }
-
-  public function searchHostPagesTotal(string $keyword, string $mime) {
-
-    $query = $this->_sphinx->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE MATCH(?) AND `mime` = ?');
-
-    $query->execute([$keyword, $mime]);
-
-    return $query->fetch()->total;
   }
 }
