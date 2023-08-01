@@ -114,20 +114,17 @@ class Filter {
       $query = str_replace(['-', '_', '/'], ' ', $query);
 
       // Apply query MATCH rules
-      $words = [];
-
-      // URL request
-      if (false !== strpos($query, '\:\ \ ')) {
+      if (false !== strpos($query, '\:\ \ ')) { // URL request
 
         $query = sprintf('"%s"', $crc32query);
 
-      // @TODO Queries longer than 68 chars unreachable in search index
-      } else if (mb_strlen($query) > 68) {
+      } else if (mb_strlen($query) > 68) { // @TODO Queries longer than 68 chars unreachable in search index
 
         $query = sprintf('"%s" | (%s*)', $crc32query, substr($query, 0, 67));
 
-      // Default condition
-      } else {
+      } else { // Default condition
+
+        $words = [];
 
         // Remove single char words
         foreach ((array) explode(' ', $query) as $word) {
@@ -138,14 +135,9 @@ class Filter {
           }
         }
 
-        if ($words) {
-
-          $query = implode(' | ', $words);
-        }
-
-        $query = sprintf('"%s" | "%s" | %s', $query,
-                                             $crc32query,
-                                             $query);
+        $query = sprintf('@title %s | "%s" | %s', $query,
+                                                  $crc32query,
+                                                  implode(' | ', $words));
       }
     }
 

@@ -33,11 +33,15 @@ source hostPage : common
                 CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`), \
                 CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`))), \
            REGEXP_REPLACE(`hostPage`.`mime`, '^([A-z-]+)/[A-z-]+.*', '$1') AS `mime`, \
-          (SELECT GROUP_CONCAT(CONCAT_WS(' ', `hostPageDescription`.`title`, \
-                                              `hostPageDescription`.`description`, \
-                                              `hostPageDescription`.`keywords`)) \
+          (SELECT GROUP_CONCAT(`hostPageDescription`.`title`) \
            FROM  `hostPageDescription` \
-           WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `pageDescription` \
+           WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `title`, \
+          (SELECT GROUP_CONCAT(`hostPageDescription`.`description`) \
+           FROM  `hostPageDescription` \
+           WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `description`, \
+          (SELECT GROUP_CONCAT(`hostPageDescription`.`keywords`) \
+           FROM  `hostPageDescription` \
+           WHERE `hostPageDescription`.`hostPageId` = `hostPage`.`hostPageId`) AS `keywords` \
     FROM  `hostPage` \
     JOIN  `host` ON (`host`.`hostId` = `hostPage`.`hostId`) \
     WHERE `host`.`status` = '1' AND `hostPage`.`httpCode` = 200 AND `hostPage`.`timeBanned` IS NULL AND `hostPage`.`mime` IS NOT NULL \
