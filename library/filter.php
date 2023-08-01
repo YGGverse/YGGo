@@ -113,7 +113,7 @@ class Filter {
         'ZONESPAN',
         'PARAGRAPH',
 
-        '\\', '/', '~', '@', '!', '"', '(', ')', '|', '?', '%', '-', '>', '<', ':', ';', '^', '$'
+        '\\', '/', '~', '@', '!', '"', '(', ')', '[', ']', '|', '?', '%', '-', '>', '<', ':', ';', '^', '$'
       ];
 
       foreach ($operators as $operator) {
@@ -131,7 +131,7 @@ class Filter {
 
     } else {
 
-      $query = sprintf('"%s" | (%s)', $query, str_replace(' ', ' | ', $query));
+      $query = sprintf('"%s" | (%s)', $query, str_replace(' ', '* MAYBE ', $query) . '*');
     }
 
     return trim($query);
