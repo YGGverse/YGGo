@@ -799,7 +799,9 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
           if (false !== stripos($metaRobots, 'nofollow')) {
 
-            continue;
+            $db->commit();
+
+            continue 2;
           }
         }
       }
