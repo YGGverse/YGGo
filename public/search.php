@@ -339,7 +339,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
               <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
                 <?php echo _('explore'); ?>
               </a>
-              <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPageIdSourcesByHostPageIdTarget($result->id)) { ?>
+              <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPageToHostPageByHostPageIdTarget($result->id)) { ?>
                 <p>
                   <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
                                                                       sprintf(_('%s referrers'), $totalHostPageIdSources),
@@ -347,7 +347,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                                                                       ]) ?>
                 </p>
                 <?php $i = 1 ?>
-                <?php foreach ($db->getHostPageIdSourcesByHostPageIdTarget($result->id, 5) as $hostPageIdSource) { ?>
+                <?php foreach ($db->getHostPageToHostPageByHostPageIdTarget($result->id, 5) as $hostPageIdSource) { ?>
                   <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                     <?php $i++ ?>
                     <p>

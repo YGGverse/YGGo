@@ -465,7 +465,7 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function getTotalHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget) {
+  public function getTotalHostPageToHostPageByHostPageIdTarget(int $hostPageIdTarget) {
 
     $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ?');
 
@@ -474,7 +474,7 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function getHostPageIdSourcesByHostPageIdTarget(int $hostPageIdTarget, int $limit = 1000) {
+  public function getHostPageToHostPageByHostPageIdTarget(int $hostPageIdTarget, int $limit = 1000) {
 
     $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdTarget` = ? LIMIT ' . (int) $limit);
 
