@@ -362,13 +362,13 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     // Update page index anyway, with the current time and http code
     $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode(), $curl->getSizeDownload());
 
-    // This page has on 200 code
+    // This page not available
     if (200 != $curl->getCode()) {
 
       // Ban this page
       $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
-      // Try to receive target page location on page redirect available
+      // Try to receive target page location on page redirect available by following location
       $curl = new Curl($queueHostPage->hostPageURL, CRAWL_CURLOPT_USERAGENT, 10, true, true);
 
       // Update curl stats
@@ -1024,6 +1024,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
         // Skip magnet links
         if (false !== stripos($href, 'magnet:')) {
+
+          continue;
+        }
+
+        // Skip xmpp links
+        if (false !== stripos($href, 'xmpp:')) {
 
           continue;
         }
