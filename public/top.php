@@ -236,7 +236,6 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
           <tr>
             <th><?php echo _('#') ?></th>
             <th><?php echo _('Address') ?></th>
-            <th><?php echo _('Pages') ?></th>
             <th><?php echo _('PR') ?></th>
             <th><?php echo _('Actions') ?></th>
           </tr>
@@ -261,10 +260,6 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                     <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($topHostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
                     <?php echo htmlentities(urldecode($topHostPage->hostURL)) ?>
                   </a>
-                </td>
-                <td>
-                  <?php $totalHostPagesIndexed = $db->getTotalHostPagesIndexed($topHostPage->hostId) ?>
-                  <?php echo $totalHostPagesIndexed . ($totalHostPagesIndexed >= CRAWL_HOST_DEFAULT_PAGES_LIMIT ? '+' : false) ?>
                 </td>
                 <td>
                   <?php echo $topHostPage->rank ?>
