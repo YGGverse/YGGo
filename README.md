@@ -197,6 +197,8 @@ GET m=SphinxQL
 * [x] Debug log
 * [x] Index homepages and shorter URI with higher priority
 * [x] Collect target location links on page redirect available
+* [x] Collect referrer pages (redirects including)
+* [ ] Aliasing page URL with ending slash
 * [ ] Host page DOM elements collecting by CSS selectors
   * [ ] Custom settings for each host
 * [ ] XML Feeds support
