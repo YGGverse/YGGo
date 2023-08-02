@@ -253,14 +253,14 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
               </p>
             <?php } ?>
           <?php } ?>
-          <?php $totalHostPageIdSources = $db->getTotalHostPageToHostPageByHostPageIdTarget($hp); ?>
+          <?php $totalHostPageIdSources = $db->getTotalHostPagesToHostPageByHostPageIdTarget($hp); ?>
           <p>
             <?php echo $totalHostPageIdSources ? Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
                                                                                           sprintf(_('%s referrers'), $totalHostPageIdSources),
                                                                                           sprintf(_('%s referrers'), $totalHostPageIdSources)]) : false ?>
           </p>
           <?php if ($totalHostPageIdSources) { ?>
-            <?php foreach ($db->getHostPageToHostPageByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
+            <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
               <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                 <?php $hostPageDescription = $db->getLastPageDescription($hostPageIdSource->hostPageIdSource); ?>
                 <p>

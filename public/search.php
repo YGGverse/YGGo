@@ -108,7 +108,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       if ($hostStatus && // host enabled
           $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
           $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
-         !$db->getHostPage($hostId, crc32($hostPageURI->string))) {  // page not exists
+         !$db->findHostPageByCRC32URI($hostId, crc32($hostPageURI->string))) {  // page not exists
 
           $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
       }
@@ -339,7 +339,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
               <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
                 <?php echo _('explore'); ?>
               </a>
-              <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPageToHostPageByHostPageIdTarget($result->id)) { ?>
+              <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPagesToHostPageByHostPageIdTarget($result->id)) { ?>
                 <p>
                   <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
                                                                       sprintf(_('%s referrers'), $totalHostPageIdSources),
@@ -347,7 +347,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
                                                                       ]) ?>
                 </p>
                 <?php $i = 1 ?>
-                <?php foreach ($db->getHostPageToHostPageByHostPageIdTarget($result->id, 5) as $hostPageIdSource) { ?>
+                <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($result->id, 5) as $hostPageIdSource) { ?>
                   <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
                     <?php $i++ ?>
                     <p>

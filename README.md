@@ -198,7 +198,7 @@ GET m=SphinxQL
 * [x] Index homepages and shorter URI with higher priority
 * [x] Collect target location links on page redirect available
 * [x] Collect referrer pages (redirects including)
-* [ ] Aliasing page URL with ending slash
+* [x] URL aliasing support on PR calculation
 * [ ] Host page DOM elements collecting by CSS selectors
   * [ ] Custom settings for each host
 * [ ] XML Feeds support
@@ -225,23 +225,23 @@ GET m=SphinxQL
 ##### CLI
 
 * [x] help
-* [x] crontab
+* [x] db
+  * [x] optimize
+  [x] crontab
   * [x] crawl
   * [x] clean
+* [x] hostPage
+  + [x] rank
+    + [x] reindex
 * [x] hostPageSnap
-  + [x] repair (not tested)
-      + [x] _sync DB-FS relations_
-        + [x] _FTP_
-        + [x] _localhost_
-      + [x] _delete FS missed in the DB_
-        + [x] _FTP_
-        + [ ] _localhost_
+  + [x] repair
+    + [x] db
+    + [x] fs
+  + [ ] reindex
   + [ ] truncate
 * [x] hostPageDom
   + [x] generate
   + [x] truncate
-* [ ] hostPage
-  + [ ] add
 
 ##### Other
 

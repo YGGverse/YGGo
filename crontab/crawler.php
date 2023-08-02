@@ -332,7 +332,7 @@ foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_
           $linkHostURL->string == $host->hostURL && // this host links only
           $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
           $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
-         !$db->getHostPage($host->hostId, crc32($linkURI->string))) { // page does not exists
+         !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
 
           $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
       }
@@ -357,7 +357,32 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
     // Update page rank
-    $db->updateHostPageRank($queueHostPage->hostPageId, $db->getTotalExternalHostPageIdSourcesByHostPageIdTarget($queueHostPage->hostPageId)); // @TODO add library cover
+    // @TODO add common method
+
+    $hostPageRank = 0;
+
+    // Get referrers
+    foreach ($db->getHostPagesToHostPageByHostPageIdTarget($queueHostPage->hostPageId) as $hostPageToHostPageByHostPageIdTarget) {
+
+      // Get source page details
+      if ($hostPageSource = $db->getHostPage($hostPageToHostPageByHostPageIdTarget->hostPageIdSource)) {
+
+        // Increase PR on external referrer only
+        if ($hostPageSource->hostId != $queueHostPage->hostId) {
+
+          $hostPageRank++;
+        }
+
+        // Delegate page rank value from redirected pages
+        if (false !== strpos($hostPageSource->httpCode, '30')) {
+
+          $hostPageRank += $hostPageSource->rank;
+        }
+      }
+    }
+
+    // Update registry
+    $db->updateHostPageRank($queueHostPage->hostPageId, $hostPageRank);
 
     // Update page index anyway, with the current time and http code
     $hostPagesProcessed += $db->updateHostPageCrawlQueue($queueHostPage->hostPageId, time(), $curl->getCode(), $curl->getSizeDownload());
@@ -475,7 +500,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
                 $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
                 $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
 
-                if ($hostPage = $db->getHostPage($hostId, crc32($hostPageURI->string))) {
+                if ($hostPage = $db->findHostPageByCRC32URI($hostId, crc32($hostPageURI->string))) {
 
                   $hostPageId = $hostPage->hostPageId;
 
@@ -1139,7 +1164,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
               $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
               $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
 
-              if ($hostPage = $db->getHostPage($hostId, crc32($hostPageURI->string))) {
+              if ($hostPage = $db->findHostPageByCRC32URI($hostId, crc32($hostPageURI->string))) {
 
                 $hostPageId = $hostPage->hostPageId;
 

@@ -313,35 +313,70 @@ if (!empty($argv[1])) {
     break;
     case 'hostPage':
 
-      switch ($argv[2]) {
+      if (!empty($argv[2])) {
 
-        case 'rank':
+        switch ($argv[2]) {
 
-          if (empty($argv[3])) {
+          case 'rank':
 
-            switch ($argv[3]) {
+            if (!empty($argv[3])) {
 
-              case 'reindex':
+              switch ($argv[3]) {
 
-                foreach ($db->getHosts() as $host) {
+                case 'reindex':
 
-                  foreach ($db->getHostPages($host->hostId) as $hostPage) {
+                  CLI::notice(_('hostPage rank fields reindex begin...'));
 
-                    $db->updateHostPageRank($hostPage->hostPageId, $db->getTotalExternalHostPageIdSourcesByHostPageIdTarget($hostPage->hostPageId)); // @TODO add library cover
+                  foreach ($db->getHosts() as $host) {
+
+                    foreach ($db->getHostPages($host->hostId) as $hostPage) {
+
+                      // @TODO add common method
+
+                      $hostPageRank = 0;
+
+                      // Get referrers
+                      foreach ($db->getHostPagesToHostPageByHostPageIdTarget($hostPage->hostPageId) as $hostPageToHostPageByHostPageIdTarget) {
+
+                        // Get source page details
+                        if ($hostPageSource = $db->getHostPage($hostPageToHostPageByHostPageIdTarget->hostPageIdSource)) {
+
+                          // Increase PR on external referrer only
+                          if ($hostPageSource->hostId != $hostPage->hostId) {
+
+                            $hostPageRank++;
+                          }
+
+                          // Delegate page rank value from redirected pages
+                          if (false !== strpos($hostPageSource->httpCode, '30')) {
+
+                            $hostPageRank += $hostPageSource->rank;
+                          }
+                        }
+                      }
+
+                      // Update registry
+                      if ($db->updateHostPageRank($hostPage->hostPageId, $hostPageRank)) {
+
+                        CLI::warning(sprintf(_('update hostPage #%s rank from %s to %s;'), $hostPage->hostPageId, $hostPage->rank, $hostPageRank));
+
+                      } else {
+
+                        # CLI::success(sprintf(_('keep hostPage #%s rank %s;'), $hostPage->hostPageId, $hostPageRank));
+                      }
+                    }
                   }
-                }
 
-                CLI::success(_('hostPage rank successfully updated'));
-                exit;
+                  CLI::notice(_('hostPage rank fields successfully updated!'));
+                  CLI::break();
+                  exit;
 
-              break;
-              default:
-
-              CLI::danger(_('undefined action argument'));
+                break;
+              }
             }
-          }
 
-        break;
+          break;
+        }
       }
 
     break;
@@ -413,6 +448,7 @@ if (!empty($argv[1])) {
             }
 
             CLI::danger(_('CRAWL_HOST_PAGE_DOM_SELECTORS not provided in the configuration file'));
+            CLI::break();
             exit;
 
           break;
@@ -421,6 +457,7 @@ if (!empty($argv[1])) {
             $db->truncateHostPageDom();
 
             CLI::success(_('hostPageDom table successfully truncated'));
+            CLI::break();
             exit;
 
           break;
@@ -450,7 +487,8 @@ CLI::default('    crawl                - execute step in crawler queue');
 CLI::default('    clean                - execute step in cleaner queue');
 CLI::break();
 CLI::default('  hostPage               ');
-CLI::default('    rank                 - generate hostPage.rank fields');
+CLI::default('    rank                 ');
+CLI::default('      reindex            - reindex hostPage.rank fields');
 CLI::break();
 CLI::default('  hostPageSnap           ');
 CLI::default('    repair               ');
