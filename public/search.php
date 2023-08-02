@@ -339,39 +339,6 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
               <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
                 <?php echo _('explore'); ?>
               </a>
-              <?php if ($result->mime != 'text' && $totalHostPageIdSources = $db->getTotalHostPagesToHostPageByHostPageIdTarget($result->id)) { ?>
-                <p>
-                  <?php echo Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
-                                                                      sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                      sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                      ]) ?>
-                </p>
-                <?php $i = 1 ?>
-                <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($result->id, 5) as $hostPageIdSource) { ?>
-                  <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
-                    <?php $i++ ?>
-                    <p>
-                      <a href="<?php echo $hostPage->hostPageURL ?>">
-                        <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-                        <?php echo htmlentities(urldecode($hostPage->hostURL) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
-                      </a>
-                      <!--
-                      |
-                      <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $hostPage->hostPageId ?>">
-                        <?php echo _('explore'); ?>
-                      </a>
-                      -->
-                    </p>
-                  <?php } ?>
-                <?php } ?>
-                <?php if ($i < $totalHostPageIdSources) { ?>
-                  <p>
-                    <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>#referrers">
-                      <?php echo _('view all'); ?>
-                    </a>
-                  </p>
-                <?php } ?>
-              <?php } ?>
             </div>
           <?php } ?>
         <?php } ?>
