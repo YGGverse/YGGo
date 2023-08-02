@@ -322,6 +322,16 @@ define('CRAWL_HOST_DEFAULT_NSFW', false);
 define('CRAWL_SITEMAPS', true);
 
 /*
+ * Re-calculate page rank on page update
+ *
+ * When enabled, may enlarge execution time
+ *
+ * true|false
+ *
+ */
+define('CRAWL_PAGE_RANK_UPDATE', true);
+
+/*
  * Renew robots.txt index by timing offset provided
  *
  */

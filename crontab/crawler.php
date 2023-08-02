@@ -357,26 +357,29 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
     // Update page rank
-    // @TODO add common method
+    if (CRAWL_PAGE_RANK_UPDATE) {
 
-    $hostPageRank = 0;
+      // @TODO add common method
 
-    // Get referrers
-    foreach ($db->getHostPagesToHostPageByHostPageIdTarget($queueHostPage->hostPageId) as $hostPageToHostPageByHostPageIdTarget) {
+      $hostPageRank = 0;
 
-      // Get source page details
-      if ($hostPageSource = $db->getHostPage($hostPageToHostPageByHostPageIdTarget->hostPageIdSource)) {
+      // Get referrers
+      foreach ($db->getHostPagesToHostPageByHostPageIdTarget($queueHostPage->hostPageId) as $hostPageToHostPageByHostPageIdTarget) {
 
-        // Increase PR on external referrer only
-        if ($hostPageSource->hostId != $queueHostPage->hostId) {
+        // Get source page details
+        if ($hostPageSource = $db->getHostPage($hostPageToHostPageByHostPageIdTarget->hostPageIdSource)) {
 
-          $hostPageRank++;
-        }
+          // Increase PR on external referrer only
+          if ($hostPageSource->hostId != $queueHostPage->hostId) {
 
-        // Delegate page rank value from redirected pages
-        if (false !== strpos($hostPageSource->httpCode, '30')) {
+            $hostPageRank++;
+          }
 
-          $hostPageRank += $hostPageSource->rank;
+          // Delegate page rank value from redirected pages
+          if (false !== strpos($hostPageSource->httpCode, '30')) {
+
+            $hostPageRank += $hostPageSource->rank;
+          }
         }
       }
     }
