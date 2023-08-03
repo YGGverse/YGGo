@@ -48,7 +48,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
     if ($hostURL = Parser::hostURL($q)) {
 
       // Host exists
-      if ($host = $db->getHost(crc32($hostURL->string))) {
+      if ($host = $db->getHostByCRC32URL(crc32($hostURL->string))) {
 
         $hostStatus        = $host->status;
         $hostNsfw          = $host->nsfw;
