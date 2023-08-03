@@ -277,66 +277,6 @@ try {
   // Reset banned pages
   $hostPagesBansRemoved += $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
 
-  // Clean up banned pages extra data
-  foreach ($db->getHostPagesBanned() as $hostPage) {
-
-    // Delete host page descriptions
-    $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptions($hostPage->hostPageId);
-
-    // Delete host page DOMs
-    $hostPagesDomsDeleted += $db->deleteHostPageDoms($hostPage->hostPageId);
-
-    // Delete host page refs data
-    $hostPagesToHostPageDeleted += $db->deleteHostPageToHostPage($hostPage->hostPageId);
-
-    // Delete host page snaps
-    foreach ($db->getHostPageSnaps($hostPage->hostPageId) as $hostPageSnap) {
-
-      // Prepare filenames
-      $hostPageSnapPath = 'hps/' . substr(trim(chunk_split($hostPageSnap->hostPageSnapId, 1, '/'), '/'), 0, -1);
-      $hostPageSnapFile = $hostPageSnapPath . substr($hostPageSnap->hostPageSnapId, -1) . '.zip';
-
-      // Delete snap files
-      foreach (json_decode(SNAP_STORAGE) as $node => $storages) {
-
-        foreach ($storages as $location => $storage) {
-
-          switch ($node) {
-
-            case 'localhost':
-
-              if (file_exists($storage->directory . $hostPageSnapFile)) {
-
-                unlink($storage->directory . $hostPageSnapFile);
-              }
-
-            break;
-            case 'ftp':
-
-              $ftp = new Ftp();
-
-              if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
-
-                $ftp->delete($hostPageSnapFile);
-              }
-
-            break;
-          }
-
-          // Clean up DB registry
-          foreach ($db->getHostPageSnapStorages($hostPageSnap->hostPageSnapId) as $hostPageSnapStorage) {
-
-            $db->deleteHostPageSnapDownloads($hostPageSnapStorage->hostPageSnapStorageId);
-          }
-
-          $db->deleteHostPageSnapStorages($hostPageSnap->hostPageSnapId);
-
-          $hostPagesSnapDeleted += $db->deleteHostPageSnap($hostPageSnap->hostPageSnapId);
-        }
-      }
-    }
-  }
-
   // Delete page description history
   $hostPagesDescriptionsDeleted += $db->deleteHostPageDescriptionsByTimeAdded(time() - CLEAN_PAGE_DESCRIPTION_OFFSET);
 
