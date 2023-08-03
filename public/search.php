@@ -318,28 +318,30 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
-          <?php if ($hostPage = $db->getFoundHostPage($result->id)) { ?>
-            <div>
-              <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
-                <?php if (!empty($hostPageDescription->title)) { ?>
-                  <h2><?php echo $hostPageDescription->title ?></h2>
+          <?php if ($hostPage = $db->getHostPage($result->id)) { ?>
+            <?php if ($host = $db->getHost($hostPage->hostId)) { ?>
+              <div>
+                <?php if ($hostPageDescription = $db->getLastPageDescription($result->id)) { ?>
+                  <?php if (!empty($hostPageDescription->title)) { ?>
+                    <h2><?php echo $hostPageDescription->title ?></h2>
+                  <?php } ?>
+                  <?php if (!empty($hostPageDescription->description)) { ?>
+                    <span><?php echo $hostPageDescription->description ?></span>
+                  <?php } ?>
+                  <?php if (!empty($hostPageDescription->keywords)) { ?>
+                    <span><?php echo $hostPageDescription->keywords ?></span>
+                  <?php } ?>
                 <?php } ?>
-                <?php if (!empty($hostPageDescription->description)) { ?>
-                  <span><?php echo $hostPageDescription->description ?></span>
-                <?php } ?>
-                <?php if (!empty($hostPageDescription->keywords)) { ?>
-                  <span><?php echo $hostPageDescription->keywords ?></span>
-                <?php } ?>
-              <?php } ?>
-              <a href="<?php echo $hostPage->hostPageURL ?>">
-                <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-                <?php echo htmlentities(urldecode($hostPage->hostURL) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
-              </a>
-              |
-              <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
-                <?php echo _('explore'); ?>
-              </a>
-            </div>
+                <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
+                  <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($host->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+                  <?php echo htmlentities(urldecode($host->url) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
+                </a>
+                |
+                <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
+                  <?php echo _('explore'); ?>
+                </a>
+              </div>
+            <?php } ?>
           <?php } ?>
         <?php } ?>
         <?php if ($p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT <= $resultsTotal) { ?>

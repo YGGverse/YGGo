@@ -203,81 +203,83 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       </form>
     </header>
     <main>
-      <?php if ($hostPage = $db->getFoundHostPage($hp)) { ?>
-        <div>
-          <?php if ($hostPageDescription = $db->getLastPageDescription($hp)) { ?>
-            <?php if (!empty($hostPageDescription->title)) { ?>
-              <h2><?php echo htmlentities($hostPageDescription->title) ?></h2>
+      <?php if ($hostPage = $db->getHostPage($hp)) { ?>
+        <?php if ($host = $db->getHost($hostPage->hostId)) { ?>
+          <div>
+            <?php if ($hostPageDescription = $db->getLastPageDescription($hp)) { ?>
+              <?php if (!empty($hostPageDescription->title)) { ?>
+                <h2><?php echo htmlentities($hostPageDescription->title) ?></h2>
+              <?php } ?>
+              <?php if (!empty($hostPageDescription->description)) { ?>
+                <span><?php echo htmlentities($hostPageDescription->description) ?></span>
+              <?php } ?>
+              <?php if (!empty($hostPageDescription->keywords)) { ?>
+                <span><?php echo htmlentities($hostPageDescription->keywords) ?></span>
+              <?php } ?>
             <?php } ?>
-            <?php if (!empty($hostPageDescription->description)) { ?>
-              <span><?php echo htmlentities($hostPageDescription->description) ?></span>
+            <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
+              <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($host->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+              <?php echo htmlentities(urldecode($host->url . $hostPage->uri)) ?>
+            </a>
+          </div>
+          <div>
+            <?php if (!empty($hostPage->mime)) { ?>
+              <p><?php echo _('MIME') ?></p>
+              <p><?php echo $hostPage->mime ?></p>
             <?php } ?>
-            <?php if (!empty($hostPageDescription->keywords)) { ?>
-              <span><?php echo htmlentities($hostPageDescription->keywords) ?></span>
+            <?php if (!empty($hostPage->size)) { ?>
+              <p><?php echo _('Size') ?></p>
+              <p><?php echo $hostPage->size ?></p>
             <?php } ?>
-          <?php } ?>
-          <a href="<?php echo $hostPage->hostPageURL ?>">
-            <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-            <?php echo htmlentities(urldecode($hostPage->hostURL) . urldecode($hostPage->uri)) ?>
-          </a>
-        </div>
-        <div>
-          <?php if (!empty($hostPage->mime)) { ?>
-            <p><?php echo _('MIME') ?></p>
-            <p><?php echo $hostPage->mime ?></p>
-          <?php } ?>
-          <?php if (!empty($hostPage->size)) { ?>
-            <p><?php echo _('Size') ?></p>
-            <p><?php echo $hostPage->size ?></p>
-          <?php } ?>
-          <?php if (!empty($hostPage->timeAdded)) { ?>
-            <p><?php echo _('Time added') ?></p>
-            <p><?php echo date('c', $hostPage->timeAdded) ?></p>
-          <?php } ?>
-          <?php if (!empty($hostPage->timeUpdated)) { ?>
-            <p><?php echo _('Time updated') ?></p>
-            <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
-          <?php } ?>
-          <?php $totalHostPageSnaps = $db->getTotalHostPageSnaps($hp); ?>
-          <p>
-            <?php echo $totalHostPageSnaps ? Filter::plural($totalHostPageSnaps, [sprintf(_('%s snap'),  $totalHostPageSnaps),
-                                                                                  sprintf(_('%s snaps'), $totalHostPageSnaps),
-                                                                                  sprintf(_('%s snaps'), $totalHostPageSnaps)]) : false ?>
-          </p>
-          <?php if ($totalHostPageSnaps) { ?>
-            <?php foreach ($db->getHostPageSnaps($hp) as $hostPageSnap) { ?>
-              <p>
-                <a href="<?php echo WEBSITE_DOMAIN . '/file.php?type=snap&hps=' . $hostPageSnap->hostPageSnapId ?>">
-                  <?php echo date('c', $hostPageSnap->timeAdded) ?>
-                </a>
-              </p>
+            <?php if (!empty($hostPage->timeAdded)) { ?>
+              <p><?php echo _('Time added') ?></p>
+              <p><?php echo date('c', $hostPage->timeAdded) ?></p>
             <?php } ?>
-          <?php } ?>
-          <?php $totalHostPageIdSources = $db->getTotalHostPagesToHostPageByHostPageIdTarget($hp); ?>
-          <p>
-            <?php echo $totalHostPageIdSources ? Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
-                                                                                          sprintf(_('%s referrers'), $totalHostPageIdSources),
-                                                                                          sprintf(_('%s referrers'), $totalHostPageIdSources)]) : false ?>
-          </p>
-          <?php if ($totalHostPageIdSources) { ?>
-            <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
-              <?php if ($hostPage = $db->getFoundHostPage($hostPageIdSource->hostPageIdSource)) { ?>
-                <?php $hostPageDescription = $db->getLastPageDescription($hostPageIdSource->hostPageIdSource); ?>
+            <?php if (!empty($hostPage->timeUpdated)) { ?>
+              <p><?php echo _('Time updated') ?></p>
+              <p><?php echo date('c', $hostPage->timeUpdated) ?></p>
+            <?php } ?>
+            <?php $totalHostPageSnaps = $db->getTotalHostPageSnaps($hp); ?>
+            <p>
+              <?php echo $totalHostPageSnaps ? Filter::plural($totalHostPageSnaps, [sprintf(_('%s snap'),  $totalHostPageSnaps),
+                                                                                    sprintf(_('%s snaps'), $totalHostPageSnaps),
+                                                                                    sprintf(_('%s snaps'), $totalHostPageSnaps)]) : false ?>
+            </p>
+            <?php if ($totalHostPageSnaps) { ?>
+              <?php foreach ($db->getHostPageSnaps($hp) as $hostPageSnap) { ?>
                 <p>
-                  <a href="<?php echo $hostPage->hostPageURL ?>"
-                     title="<?php echo (!empty($hostPageDescription->title) ? $hostPageDescription->title : (!empty($hostPageDescription->description) ? $hostPageDescription->description : false)) ?>">
-                    <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($hostPage->name) ?>" alt="identicon" width="16" height="16" class="icon" />
-                    <?php echo htmlentities(urldecode($hostPage->hostURL) . (mb_strlen(urldecode($hostPage->uri)) > 32 ? '...' . mb_substr(urldecode($hostPage->uri), -32) : urldecode($hostPage->uri))) ?>
-                  </a>
-                  |
-                  <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $hostPage->hostPageId ?>">
-                    <?php echo _('explore'); ?>
+                  <a href="<?php echo WEBSITE_DOMAIN . '/file.php?type=snap&hps=' . $hostPageSnap->hostPageSnapId ?>">
+                    <?php echo date('c', $hostPageSnap->timeAdded) ?>
                   </a>
                 </p>
               <?php } ?>
             <?php } ?>
-          <?php } ?>
-        </div>
+            <?php $totalHostPageIdSources = $db->getTotalHostPagesToHostPageByHostPageIdTarget($hp); ?>
+            <p>
+              <?php echo $totalHostPageIdSources ? Filter::plural($totalHostPageIdSources, [sprintf(_('%s referrer'),  $totalHostPageIdSources),
+                                                                                            sprintf(_('%s referrers'), $totalHostPageIdSources),
+                                                                                            sprintf(_('%s referrers'), $totalHostPageIdSources)]) : false ?>
+            </p>
+            <?php if ($totalHostPageIdSources) { ?>
+              <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
+                <?php if ($hostPage = $db->getHostPage($hostPageIdSource->hostPageIdSource)) { ?>
+                  <?php if ($host = $db->getHost($hostPage->hostId)) { ?>
+                    <p>
+                      <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
+                        <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($host->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+                        <?php echo htmlentities(urldecode($host->url) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
+                      </a>
+                      |
+                      <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $hostPage->hostPageId ?>">
+                        <?php echo _('explore'); ?>
+                      </a>
+                    </p>
+                  <?php } ?>
+                <?php } ?>
+              <?php } ?>
+            <?php } ?>
+          </div>
+        <?php } ?>
       <?php } else { ?>
         <div style="text-align:center">
           <span><?php echo _('Not found') ?></span>

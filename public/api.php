@@ -1,7 +1,7 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.10);
+define('API_VERSION', 0.11);
 
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
@@ -44,11 +44,16 @@ if (API_ENABLED) {
 
         foreach ($sphinxResults as $i => $sphinxResult) {
 
-          if ($hostPage = $db->getFoundHostPage($sphinxResult->id)) {
+          if ($hostPage = $db->getHostPage($sphinxResult->id)) {
 
-            $dbResults[$i] = $hostPage;
+            if ($host = $db->getHost($hostPage->hostId)) {
 
-            $dbResults[$i]->weight = $sphinxResult->weight;
+              $dbResults[$i] = $hostPage;
+
+              $dbResults[$i]->url = $host->url . $hostPage->uri;
+
+              $dbResults[$i]->weight = $sphinxResult->weight;
+            }
           }
         }
 

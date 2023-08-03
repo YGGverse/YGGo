@@ -396,7 +396,7 @@ define('CRAWL_MANIFEST', true);
  * Manifest API version compatibility
  *
  */
-define('CRAWL_MANIFEST_API_VERSION', 0.10);
+define('CRAWL_MANIFEST_API_VERSION', 0.11);
 
 /*
  * Set default auto-crawl status for new manifest added

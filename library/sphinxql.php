@@ -22,13 +22,13 @@ class SphinxQL {
 
   public function searchHostPages(string $keyword, string $mime, int $start, int $limit, int $maxMatches) {
 
-    $query = $this->_sphinx->prepare("SELECT *, WEIGHT() + `rank` * IF (`rank` > 0, 1000, 1) AS `priority`
+    $query = $this->_sphinx->prepare("SELECT *, WEIGHT() + `rank` * IF (`rank` > 0, 1000, 1) AS `weight`
 
                                       FROM `hostPage`
 
                                       WHERE MATCH(?) AND `mime` = ?
 
-                                      ORDER BY `priority` DESC, WEIGHT() DESC
+                                      ORDER BY `weight` DESC, WEIGHT() DESC
 
                                       LIMIT " . (int) ($start >= $maxMatches ? ($maxMatches > 0 ? $maxMatches - 1 : 0) : $start) . "," . (int) $limit . "
 

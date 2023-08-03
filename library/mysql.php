@@ -295,41 +295,6 @@ class MySQL {
     return $query->fetch();
   }
 
-  public function getFoundHostPage(int $hostPageId) {
-
-    $query = $this->_db->prepare("SELECT `hostPage`.`hostPageId`,
-                                         `hostPage`.`uri`,
-                                         `hostPage`.`timeAdded`,
-                                         `hostPage`.`timeUpdated`,
-                                         `hostPage`.`mime`,
-                                         `hostPage`.`size`,
-
-                                         `host`.`scheme`,
-                                         `host`.`name`,
-                                         `host`.`port`,
-
-                                         IF (`host`.`port` IS NOT NULL,
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`)
-                                         ) AS `hostURL`,
-
-                                         IF (`host`.`port` IS NOT NULL,
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
-                                         ) AS `hostPageURL`
-
-                                         FROM `hostPage`
-                                         JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
-
-                                         WHERE `hostPage`.`hostPageId` = ?
-
-                                         LIMIT 1");
-
-    $query->execute([$hostPageId]);
-
-    return $query->fetch();
-  }
-
   public function addHostPage(int $hostId,
                               int $crc32uri,
                               string $uri,
