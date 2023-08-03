@@ -60,7 +60,7 @@ try {
   foreach ($db->getCleanerQueue(CLEAN_HOST_LIMIT, time() - CLEAN_HOST_SECONDS_OFFSET) as $host) {
 
     // Get robots.txt if exists
-    $curl = new Curl($host->hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+    $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;

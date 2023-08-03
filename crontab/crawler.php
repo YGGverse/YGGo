@@ -277,7 +277,7 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
 foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_SECONDS_OFFSET) as $host) {
 
   // Get robots.txt
-  $curl = new Curl($host->hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+  $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
   // Update curl stats
   $httpRequestsTotal++;
@@ -308,13 +308,13 @@ foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_
 
         // Replace relative paths
         $hostSitemapPath = trim($hostSitemapPath, '/');
-        $hostSitemapPath = str_replace($host->hostURL, '', $hostSitemapPath);
-        $hostSitemapPath = sprintf('%s%s', $host->hostURL, $hostSitemapPath);
+        $hostSitemapPath = str_replace($host->url, '', $hostSitemapPath);
+        $hostSitemapPath = sprintf('%s%s', $host->url, $hostSitemapPath);
 
     // Set default path when not exists
     } else {
 
-        $hostSitemapPath = sprintf('%s/sitemap.xml', $host->hostURL);
+        $hostSitemapPath = sprintf('%s/sitemap.xml', $host->url);
     }
 
     // Init sitemap data
@@ -329,7 +329,7 @@ foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_
 
       // Add host page
       if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
-          $linkHostURL->string == $host->hostURL && // this host links only
+          $linkHostURL->string == $host->url && // this host links only
           $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
           $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
          !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists

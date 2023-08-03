@@ -9,12 +9,8 @@ require_once(__DIR__ . '/../library/sphinxql.php');
 // Connect Sphinx search server
 $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
 
-// Connect Memcached
-$memcached = new Memcached();
-$memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
-
 // Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD, $memcached);
+$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
 // Define page basics
 $totalPages = $sphinx->getHostPagesTotal();

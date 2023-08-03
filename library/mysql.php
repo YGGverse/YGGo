@@ -3,18 +3,13 @@
 class MySQL {
 
   private PDO $_db;
-  private Memcached $_memcached;
 
-  public function __construct(string $host, int $port, string $database, string $username, string $password, Memcached $memcached = null) {
+  public function __construct(string $host, int $port, string $database, string $username, string $password) {
 
     $this->_db = new PDO('mysql:dbname=' . $database . ';host=' . $host . ';port=' . $port . ';charset=utf8', $username, $password, [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8']);
     $this->_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $this->_db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
     $this->_db->setAttribute(PDO::ATTR_TIMEOUT, 600);
-
-    if ($memcached) {
-      $this->_memcached = $memcached;
-    }
   }
 
   // System
@@ -96,7 +91,22 @@ class MySQL {
     return $query->fetchAll();
   }
 
-  public function getHost(int $crc32url) {
+  public function getHost(int $hostId) {
+
+    $query = $this->_db->prepare("SELECT *,
+                                         IF (`port` IS NOT NULL,
+                                                CONCAT(`scheme`, '://', `name`, ':', `port`),
+                                                CONCAT(`scheme`, '://', `name`)
+                                            ) AS `url`
+
+                                        FROM `host` WHERE `hostId` = ? LIMIT 1");
+
+    $query->execute([$hostId]);
+
+    return $query->fetch();
+  }
+
+  public function getHostByCRC32URL(int $crc32url) {
 
     $query = $this->_db->prepare('SELECT * FROM `host` WHERE `crc32url` = ? LIMIT 1');
 
@@ -204,53 +214,57 @@ class MySQL {
 
   public function getTopHostPages(int $limit = 100) {
 
-    if ($this->_memcached) {
+    // Get ID (to prevent memory over usage)
+    $query = $this->_db->query("SELECT `hostPage`.`hostPageId`
 
-      if ($result = $this->_memcached->get(sprintf('MySQL.getTopHostPages.%s', $limit))) {
+                                        FROM `hostPage`
+                                        JOIN `host` ON (`hostPage`.`hostId` = `host`.`hostId`)
 
-        return $result;
+                                        WHERE `host`.`status`         = '1'
+                                        AND   `hostPage`.`httpCode`   = 200
+                                        AND   `hostPage`.`rank`       > 0
+                                        AND   `hostPage`.`timeBanned` IS NULL
+                                        AND   `hostPage`.`mime`       IS NOT NULL
+
+                                        ORDER BY `rank` DESC
+
+                                        LIMIT " . (int) $limit);
+
+    // Get required page details
+    foreach ($query->fetchAll() as $top) {
+
+      $query = $this->_db->prepare("SELECT  `hostPage`.`hostId`,
+                                            `hostPage`.`hostPageId`,
+                                            `hostPage`.`uri`,
+                                            `hostPage`.`rank`,
+
+                                            `host`.`scheme`,
+                                            `host`.`name`,
+                                            `host`.`port`,
+
+                                            IF (`host`.`port` IS NOT NULL,
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`)
+                                            ) AS `hostURL`,
+
+                                            IF (`host`.`port` IS NOT NULL,
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
+                                            ) AS `hostPageURL`
+
+                                            FROM `hostPage`
+                                            JOIN `host` ON (`hostPage`.`hostId` = `host`.`hostId`)
+
+                                            WHERE `hostPage`.`hostPageId` = ?
+
+                                            LIMIT 1");
+
+      $query->execute([$top->hostPageId]);
+
+      if ($query->rowCount()) {
+
+        $result[] = $query->fetch();
       }
-    }
-
-    $query = $this->_db->query(" SELECT
-
-                                `hostPage`.`hostId`,
-                                `hostPage`.`hostPageId`,
-                                `hostPage`.`uri`,
-                                `hostPage`.`rank`,
-
-                                `host`.`scheme`,
-                                `host`.`name`,
-                                `host`.`port`,
-
-                                IF (`host`.`port` IS NOT NULL,
-                                    CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
-                                    CONCAT(`host`.`scheme`, '://', `host`.`name`)
-                                ) AS `hostURL`,
-
-                                IF (`host`.`port` IS NOT NULL,
-                                    CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
-                                    CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
-                                ) AS `hostPageURL`
-
-                                FROM `hostPage`
-                                JOIN `host` ON (`hostPage`.`hostId` = `host`.`hostId`)
-
-                                WHERE `host`.`status`         = '1'
-                                AND   `hostPage`.`httpCode`   = 200
-                                AND   `hostPage`.`rank`       > 0
-                                AND   `hostPage`.`timeBanned` IS NULL
-                                AND   `hostPage`.`mime`       IS NOT NULL
-
-                                ORDER BY `rank` DESC
-
-                                LIMIT " . (int) $limit);
-
-    $result = $query->fetchAll();
-
-    if ($this->_memcached) {
-
-      $this->_memcached->set(sprintf('MySQL.getTopHostPages.%s', $limit), $result, time() + 3600);
     }
 
     return $result;
@@ -582,20 +596,28 @@ class MySQL {
   // Cleaner tools
   public function getCleanerQueue(int $limit, int $timeFrom) {
 
-    $query = $this->_db->prepare("SELECT *, IF (`port` IS NOT NULL,
-                                              CONCAT(`scheme`, '://', `name`, ':', `port`),
-                                              CONCAT(`scheme`, '://', `name`)
-                                            ) AS `hostURL` FROM `host`
+    $result = [];
 
-                                            WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> ?
+    // Get ID (to prevent memory over usage)
+    $query = $this->_db->prepare("SELECT `hostId`
 
-                                            ORDER BY `hostId`
+                                          FROM `host`
 
-                                            LIMIT " . (int) $limit);
+                                          WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> ?
+
+                                          ORDER BY `hostId`
+
+                                          LIMIT " . (int) $limit);
 
     $query->execute([$timeFrom, 0]);
 
-    return $query->fetchAll();
+    // Get required page details
+    foreach ($query->fetchAll() as $host) {
+
+      $result[] = $this->getHost($host->hostId);
+    }
+
+    return (object) $result;
   }
 
   public function getHostPagesBanned() {
@@ -702,7 +724,13 @@ class MySQL {
                                           FROM `hostPage`
                                           JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                          WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?))
+                                          WHERE (
+                                            `hostPage`.`timeUpdated` IS NULL OR
+                                            `hostPage`.`timeUpdated` < ? OR (
+                                              `hostPage`.`uri` = '/' AND
+                                              `hostPage`.`timeUpdated` < ?
+                                              )
+                                            )
 
                                           AND  `host`.`status` <> ?
                                           AND  `hostPage`.`timeBanned` IS NULL");
@@ -714,32 +742,22 @@ class MySQL {
 
   public function getHostPageCrawlQueue(int $limit, int $hostPageTimeFrom, int $hostPageHomeTimeFrom) {
 
-    $query = $this->_db->prepare("SELECT `hostPage`.`hostId`,
-                                         `hostPage`.`hostPageId`,
-                                         `hostPage`.`uri`,
+    $result = [];
 
-                                         `host`.`scheme`,
-                                         `host`.`name`,
-                                         `host`.`port`,
-                                         `host`.`crawlPageLimit`,
-                                         `host`.`crawlMetaOnly`,
-                                         `host`.`robots`,
-                                         `host`.`robotsPostfix`,
-
-                                         IF (`host`.`port` IS NOT NULL,
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`)
-                                         ) AS `hostURL`,
-
-                                         IF (`host`.`port` IS NOT NULL,
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
-                                             CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
-                                         ) AS `hostPageURL`
+    // Get ID (to prevent memory over usage)
+    $query = $this->_db->prepare("SELECT `hostPage`.`hostPageId`
 
                                          FROM `hostPage`
                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
 
-                                         WHERE (`hostPage`.`timeUpdated` IS NULL OR `hostPage`.`timeUpdated` < ? OR (`hostPage`.`uri` = '/' AND `hostPage`.`timeUpdated` < ?))
+                                         WHERE (
+                                          `hostPage`.`timeUpdated` IS NULL OR
+                                          `hostPage`.`timeUpdated` < ?
+                                          OR (
+                                            `hostPage`.`uri` = '/' AND
+                                            `hostPage`.`timeUpdated` < ?
+                                            )
+                                          )
 
                                          AND  `host`.`status` <> ?
                                          AND  `hostPage`.`timeBanned` IS NULL
@@ -750,7 +768,45 @@ class MySQL {
 
     $query->execute([$hostPageTimeFrom, $hostPageHomeTimeFrom, 0]);
 
-    return $query->fetchAll();
+    // Get required page details
+    foreach ($query->fetchAll() as $queue) {
+
+      $query = $this->_db->prepare("SELECT  `hostPage`.`hostId`,
+                                            `hostPage`.`hostPageId`,
+                                            `hostPage`.`uri`,
+
+                                            `host`.`scheme`,
+                                            `host`.`name`,
+                                            `host`.`port`,
+                                            `host`.`crawlPageLimit`,
+                                            `host`.`crawlMetaOnly`,
+                                            `host`.`robots`,
+                                            `host`.`robotsPostfix`,
+
+                                            IF (`host`.`port` IS NOT NULL,
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`)
+                                            ) AS `hostURL`,
+
+                                            IF (`host`.`port` IS NOT NULL,
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`, `hostPage`.`uri`),
+                                                CONCAT(`host`.`scheme`, '://', `host`.`name`, `hostPage`.`uri`)
+                                            ) AS `hostPageURL`
+
+                                            FROM `hostPage`
+                                            JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+
+                                            WHERE `hostPage`.`hostPageId` = ? LIMIT 1");
+
+      $query->execute([$queue->hostPageId]);
+
+      if ($query->rowCount()) {
+
+        $result[] = $query->fetch();
+      }
+    }
+
+    return (object) $result;
   }
 
   public function updateHostPageCrawlQueue(int $hostPageId, int $timeUpdated, int $httpCode, int $size) {
@@ -764,22 +820,28 @@ class MySQL {
 
   public function getHostRobotsCrawlQueue(int $limit, int $timeFrom) {
 
-    $query = $this->_db->prepare("SELECT *, IF (`port` IS NOT NULL,
-                                             CONCAT(`scheme`, '://', `name`, ':', `port`),
-                                             CONCAT(`scheme`, '://', `name`)
-                                            ) AS `hostURL`
+    $result = [];
 
-                                            FROM `host`
+    // Get ID (to prevent memory over usage)
+    $query = $this->_db->prepare("SELECT `hostId`
 
-                                            WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
+                                          FROM `host`
 
-                                            ORDER BY RAND()
+                                          WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
 
-                                            LIMIT " . (int) $limit);
+                                          ORDER BY RAND()
+
+                                          LIMIT " . (int) $limit);
 
     $query->execute([$timeFrom, 0]);
 
-    return $query->fetchAll();
+    // Get required page details
+    foreach ($query->fetchAll() as $host) {
+
+      $result[] = $this->getHost($host->hostId);
+    }
+
+    return (object) $result;
   }
 
   public function getManifestCrawlQueue(int $limit, int $timeFrom) {
