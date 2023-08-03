@@ -261,8 +261,8 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                                                                                             sprintf(_('%s referrers'), $totalHostPageIdSources)]) : false ?>
             </p>
             <?php if ($totalHostPageIdSources) { ?>
-              <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($hp) as $hostPageIdSource) { ?>
-                <?php if ($hostPage = $db->getHostPage($hostPageIdSource->hostPageIdSource)) { ?>
+              <?php foreach ($db->getHostPagesToHostPageByHostPageIdTarget($hp) as $hostPagesToHostPageByHostPageIdTarget) { ?>
+                <?php if ($hostPage = $db->getHostPage($hostPagesToHostPageByHostPageIdTarget->hostPageIdSource)) { ?>
                   <?php if ($host = $db->getHost($hostPage->hostId)) { ?>
                     <p>
                       <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
