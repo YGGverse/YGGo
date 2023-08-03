@@ -1227,23 +1227,6 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 $executionTimeTotal    = microtime(true) - $timeStart;
 $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
-if (CRAWL_LOG_ENABLED) {
-
-  $db->addCrawlerLog(time(),
-                     $hostsAdded,
-                     $hostPagesProcessed,
-                     $hostPagesAdded,
-                     $hostPagesSnapAdded,
-                     $hostPagesBanned,
-                     $manifestsProcessed,
-                     $manifestsAdded,
-                     $httpRequestsTotal,
-                     $httpRequestsSizeTotal,
-                     $httpDownloadSizeTotal,
-                     $httpRequestsTimeTotal,
-                     $executionTimeTotal);
-}
-
 // Debug output
 echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 

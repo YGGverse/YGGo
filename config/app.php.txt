@@ -146,18 +146,6 @@ define('PROXY_CURLOPT_USERAGENT', 'YGGo Search Proxy ( https://github.com/YGGver
 // Crawl settings
 
 /*
- * Save crawler debug to `logCrawler` table
- *
- */
-define('CRAWL_LOG_ENABLED', true);
-
-/*
- * Auto clean `logCrawler` items older seconds offset
- *
- */
-define('CRAWL_LOG_SECONDS_OFFSET', 60*60*24*30);
-
-/*
  * Crawler / Bot User Agent name
  *
  * Shared to other hosts through CURL requests by crawler
@@ -412,41 +400,6 @@ define('CRAWL_MANIFEST_DEFAULT_STATUS', true);
 // Cleaner settings
 
 /*
- * Save cleaner debug to `logCleaner` table
- *
- */
-define('CLEAN_LOG_ENABLED', true);
-
-/*
- * Auto clean `logCleaner` items older seconds offset
- *
- */
-define('CLEAN_LOG_SECONDS_OFFSET', 60*60*24*30);
-
-/*
- * Hosts limit per crontab execution step (https://github.com/YGGverse/YGGo#crontab)
- *
- * This option works with CLEAN_HOST_SECONDS_OFFSET
- *
- * The value depends of CPU resources available
- *
- */
-define('CLEAN_HOST_LIMIT', 20);
-
-/*
- * Apply cleaning rules to page older than value provided
- *
- * This option works with CLEAN_HOST_LIMIT step queue
- *
- * Pay attention, that CLEAN_HOST_LIMIT + CLEAN_HOST_SECONDS_OFFSET pair
- * must have enough value to process all pages in the DB index
- *
- * or the cleaner can stuck in queue
- *
- */
-define('CLEAN_HOST_SECONDS_OFFSET', 60*60*24*30);
-
-/*
  * Remove page ban after following time
  *
  * This option used in crawler and search page
@@ -454,18 +407,6 @@ define('CLEAN_HOST_SECONDS_OFFSET', 60*60*24*30);
  *
  */
 define('CLEAN_PAGE_BAN_SECONDS_OFFSET', 60*60*24*30);
-
-/*
- * Remove page description history after following time
- *
- */
-define('CLEAN_PAGE_DESCRIPTION_OFFSET', 60*60*24*30*12*10);
-
-/*
- * Remove page DOM history after following time
- *
- */
-define('CLEAN_PAGE_DOM_OFFSET', 60*60*24*30*12*10);
 
 /*
  * Database tables optimization

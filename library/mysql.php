@@ -559,39 +559,6 @@ class MySQL {
   }
 
   // Cleaner tools
-  public function getCleanerQueue(int $limit, int $timeFrom) {
-
-    $result = [];
-
-    // Get ID (to prevent memory over usage)
-    $query = $this->_db->prepare("SELECT `hostId`
-
-                                          FROM `host`
-
-                                          WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `host`.`status` <> ?
-
-                                          ORDER BY `hostId`
-
-                                          LIMIT " . (int) $limit);
-
-    $query->execute([$timeFrom, 0]);
-
-    // Get required page details
-    foreach ($query->fetchAll() as $host) {
-
-      $result[] = $this->getHost($host->hostId);
-    }
-
-    return (object) $result;
-  }
-
-  public function getHostPagesBanned() {
-
-    $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeBanned` IS NOT NULL');
-
-    return $query->fetchAll();
-  }
-
   public function resetBannedHostPages(int $timeOffset) {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
@@ -601,87 +568,7 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function deleteHostPageDescriptionsByTimeAdded(int $timeOffset) {
-
-    $query = $this->_db->prepare('DELETE FROM `hostPageDescription` WHERE `timeAdded` < ' . (int) $timeOffset);
-
-    $query->execute();
-
-    return $query->rowCount();
-  }
-
-  public function addCleanerLog(int $timeAdded,
-                                int $hostsTotal,
-                                int $hostsUpdated,
-                                int $hostPagesDeleted,
-                                int $hostPagesDescriptionsDeleted,
-                                int $hostPagesDomsDeleted,
-                                int $hostPagesSnapDeleted,
-                                int $hostPagesToHostPageDeleted,
-                                int $hostPagesBansRemoved,
-                                int $manifestsTotal,
-                                int $manifestsDeleted,
-                                int $logsCleanerDeleted,
-                                int $logsCrawlerDeleted,
-                                int $httpRequestsTotal,
-                                int $httpRequestsSizeTotal,
-                                int $httpDownloadSizeTotal,
-                                float $httpRequestsTimeTotal,
-                                float $executionTimeTotal) {
-
-    $query = $this->_db->prepare('INSERT INTO `logCleaner` (`timeAdded`,
-                                                            `hostsTotal`,
-                                                            `hostsUpdated`,
-                                                            `hostPagesDeleted`,
-                                                            `hostPagesDescriptionsDeleted`,
-                                                            `hostPagesDomsDeleted`,
-                                                            `hostPagesSnapDeleted`,
-                                                            `hostPagesToHostPageDeleted`,
-                                                            `hostPagesBansRemoved`,
-                                                            `manifestsTotal`,
-                                                            `manifestsDeleted`,
-                                                            `logsCleanerDeleted`,
-                                                            `logsCrawlerDeleted`,
-                                                            `httpRequestsTotal`,
-                                                            `httpRequestsSizeTotal`,
-                                                            `httpDownloadSizeTotal`,
-                                                            `httpRequestsTimeTotal`,
-                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-
-    $query->execute([
-      $timeAdded,
-      $hostsTotal,
-      $hostsUpdated,
-      $hostPagesDeleted,
-      $hostPagesDescriptionsDeleted,
-      $hostPagesDomsDeleted,
-      $hostPagesSnapDeleted,
-      $hostPagesToHostPageDeleted,
-      $hostPagesBansRemoved,
-      $manifestsTotal,
-      $manifestsDeleted,
-      $logsCleanerDeleted,
-      $logsCrawlerDeleted,
-      $httpRequestsTotal,
-      $httpRequestsSizeTotal,
-      $httpDownloadSizeTotal,
-      $httpRequestsTimeTotal,
-      $executionTimeTotal
-    ]);
-
-    return $this->_db->lastInsertId();
-  }
-
-  public function deleteLogCleaner(int $timeOffset) {
-
-    $query = $this->_db->prepare('DELETE FROM `logCleaner` WHERE `timeAdded` < ' . (int) $timeOffset);
-
-    $query->execute();
-
-    return $query->rowCount();
-  }
-
-  // Crawl tools
+  // Crawler tools
   public function getHostPageCrawlQueueTotal(int $hostPageTimeFrom, int $hostPageHomeTimeFrom) {
 
     $query = $this->_db->prepare("SELECT COUNT(*) AS `total`
@@ -833,62 +720,6 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function addCrawlerLog(int $timeAdded,
-                                int $hostsAdded,
-                                int $hostPagesProcessed,
-                                int $hostPagesAdded,
-                                int $hostPagesSnapAdded,
-                                int $hostPagesBanned,
-                                int $manifestsProcessed,
-                                int $manifestsAdded,
-                                int $httpRequestsTotal,
-                                int $httpRequestsSizeTotal,
-                                int $httpDownloadSizeTotal,
-                                float $httpRequestsTimeTotal,
-                                float $executionTimeTotal) {
-
-    $query = $this->_db->prepare('INSERT INTO `logCrawler` (`timeAdded`,
-                                                            `hostsAdded`,
-                                                            `hostPagesProcessed`,
-                                                            `hostPagesAdded`,
-                                                            `hostPagesSnapAdded`,
-                                                            `hostPagesBanned`,
-                                                            `manifestsProcessed`,
-                                                            `manifestsAdded`,
-                                                            `httpRequestsTotal`,
-                                                            `httpRequestsSizeTotal`,
-                                                            `httpDownloadSizeTotal`,
-                                                            `httpRequestsTimeTotal`,
-                                                            `executionTimeTotal`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-
-    $query->execute([
-      $timeAdded,
-      $hostsAdded,
-      $hostPagesProcessed,
-      $hostPagesAdded,
-      $hostPagesSnapAdded,
-      $hostPagesBanned,
-      $manifestsProcessed,
-      $manifestsAdded,
-      $httpRequestsTotal,
-      $httpRequestsSizeTotal,
-      $httpDownloadSizeTotal,
-      $httpRequestsTimeTotal,
-      $executionTimeTotal
-    ]);
-
-    return $this->_db->lastInsertId();
-  }
-
-  public function deleteLogCrawler(int $timeOffset) {
-
-    $query = $this->_db->prepare('DELETE FROM `logCrawler` WHERE `timeAdded` < ' . (int) $timeOffset);
-
-    $query->execute();
-
-    return $query->rowCount();
-  }
-
   public function optimize() {
 
     $this->_db->query('OPTIMIZE TABLE `host`');
@@ -899,9 +730,6 @@ class MySQL {
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapStorage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapDownload`');
     $this->_db->query('OPTIMIZE TABLE `hostPageToHostPage`');
-
-    $this->_db->query('OPTIMIZE TABLE `logCleaner`');
-    $this->_db->query('OPTIMIZE TABLE `logCrawler`');
 
     $this->_db->query('OPTIMIZE TABLE `manifest`');
   }
