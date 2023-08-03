@@ -210,17 +210,8 @@ GET m=SphinxQL
 
 ##### Cleaner
 
-* [x] Deprecated DB items auto deletion / host settings update
-  + [x] Pages
-  + [x] Snaps
-    + [ ] Snap downloads
-  + [x] Manifests
-  + [x] Logs
-    + [x] Crawler
-    + [x] Cleaner
-* [x] Banned resources reset by timeout
+* [x] Banned pages reset by timeout
 * [x] DB tables optimization
-* [x] Debug log
 
 ##### CLI
 
