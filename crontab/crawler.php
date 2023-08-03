@@ -210,7 +210,7 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
       if (filter_var($hostURL, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $hostURL)) {
 
         // Host not exists
-        if (!$db->getHost(crc32($hostURL))) {
+        if (!$db->getHostByCRC32URL(crc32($hostURL))) {
 
           // Get robots.txt if exists
           $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
@@ -432,7 +432,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
             $hostPageURI = Parser::uri($url);
 
             // Host exists
-            if ($host = $db->getHost(crc32($hostURL->string))) {
+            if ($host = $db->getHostByCRC32URL(crc32($hostURL->string))) {
 
               $hostStatus        = $host->status;
               $hostNsfw          = $host->nsfw;
@@ -1098,7 +1098,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           $hostPageURI = Parser::uri($link['ref']);
 
           // Host exists
-          if ($host = $db->getHost(crc32($hostURL->string))) {
+          if ($host = $db->getHostByCRC32URL(crc32($hostURL->string))) {
 
             $hostStatus        = $host->status;
             $hostNsfw          = $host->nsfw;
