@@ -28,52 +28,6 @@ class MySQL {
     $this->_db->rollBack();
   }
 
-  // Manifest
-  public function getTotalManifests() {
-
-    $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `manifest`');
-
-    $query->execute();
-
-    return $query->fetch()->total;
-  }
-
-  public function getManifests() {
-
-    $query = $this->_db->prepare('SELECT * FROM `manifest`');
-
-    $query->execute();
-
-    return $query->fetchAll();
-  }
-
-  public function getManifest(int $crc32url) {
-
-    $query = $this->_db->prepare('SELECT * FROM `manifest` WHERE `crc32url` = ? LIMIT 1');
-
-    $query->execute([$crc32url]);
-
-    return $query->fetch();
-  }
-
-  public function addManifest(int $crc32url, string $url, string $status, int $timeAdded, mixed $timeUpdated = null) {
-
-    $query = $this->_db->prepare('INSERT INTO `manifest` (`crc32url`, `url`, `status`, `timeAdded`, `timeUpdated`) VALUES (?, ?, ?, ?, ?)');
-
-    $query->execute([$crc32url, $url, $status, $timeAdded, $timeUpdated]);
-
-    return $this->_db->lastInsertId();
-  }
-
-  public function deleteManifest(int $manifestId) {
-
-    $query = $this->_db->prepare('DELETE FROM `manifest` WHERE `manifestId` = ? LIMIT 1');
-
-    $query->execute([$manifestId]);
-
-    return $query->rowCount();
-  }
-
   // Host
   public function getAPIHosts(string $apiHostFields) {
 
@@ -175,7 +129,50 @@ class MySQL {
     return $query->rowCount();
   }
 
-  // Pages
+  // Host settings
+  public function getHostSetting(int $hostId, mixed $key) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? AND `key` = ? LIMIT 1');
+
+    $query->execute([$hostId, $key]);
+
+    return $query->rowCount() ? $query->fetch()->value : false;
+  }
+
+  public function getHostSettings(int $hostId) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ?');
+
+    $query->execute([$hostId]);
+
+    return $query->fetchAll();
+  }
+
+  public function setHostSetting(int $hostId, mixed $key, mixed $value, int $timeAdded = 0, int $timeUpdated = 0) {
+
+    $query = $this->_db->query('INSERT INTO `hostSetting` SET `hostId`   = ?
+                                                              `key`      = ?,
+                                                              `value`    = ?,
+                                                              `timeAdded = ?
+
+                                                          ON DUPLICATE KEY UPDATE `value`       = ?,
+                                                                                  `timeUpdated` = ?');
+
+    $query->execute([$hostId, $key, $value, ($timeAdded > 0 ? $timeAdded : time()), $value, ($timeUpdated > 0 ? $timeUpdated : time())]);
+
+    return $query->rowCount();
+  }
+
+  public function deleteHostSetting(int $hostSettingId) {
+
+    $query = $this->_db->query('DELETE FROM `hostSetting` WHERE `hostSettingId` = ?');
+
+    $query->execute([$hostSettingId]);
+
+    return $query->rowCount();
+  }
+
+  // Host pages
   public function getTotalHostPages(int $hostId) {
 
     $query = $this->_db->prepare('SELECT COUNT(*) AS `total` FROM `hostPage` WHERE `hostId` = ?');
@@ -696,30 +693,6 @@ class MySQL {
     return (object) $result;
   }
 
-  public function getManifestCrawlQueue(int $limit, int $timeFrom) {
-
-    $query = $this->_db->prepare('SELECT * FROM `manifest`
-
-                                           WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
-
-                                           ORDER BY RAND()
-
-                                           LIMIT ' . (int) $limit);
-
-    $query->execute([$timeFrom, 0]);
-
-    return $query->fetchAll();
-  }
-
-  public function updateManifestCrawlQueue(int $manifestId, int $timeUpdated, int $httpCode) {
-
-    $query = $this->_db->prepare('UPDATE `manifest` SET `timeUpdated` = ?, `httpCode` = ? WHERE `manifestId` = ? LIMIT 1');
-
-    $query->execute([$timeUpdated, $httpCode, $manifestId]);
-
-    return $query->rowCount();
-  }
-
   public function optimize() {
 
     $this->_db->query('OPTIMIZE TABLE `host`');
@@ -730,7 +703,5 @@ class MySQL {
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapStorage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapDownload`');
     $this->_db->query('OPTIMIZE TABLE `hostPageToHostPage`');
-
-    $this->_db->query('OPTIMIZE TABLE `manifest`');
   }
 }

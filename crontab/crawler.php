@@ -46,7 +46,6 @@ $httpRequestsTimeTotal = 0;
 
 $hostPagesProcessed    = 0;
 $manifestsProcessed    = 0;
-$manifestsAdded        = 0;
 $hostPagesAdded        = 0;
 $hostsAdded            = 0;
 $hostPagesBanned       = 0;
@@ -65,23 +64,82 @@ try {
   exit;
 }
 
-// Process manifests crawl queue
-foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFEST_SECONDS_OFFSET) as $queueManifest) {
+// Process robots crawl queue
+foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_SECONDS_OFFSET) as $host) {
 
-  $db->beginTransaction();
+  // Update robots
+  $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
-  try {
+  // Update curl stats
+  $httpRequestsTotal++;
+  $httpRequestsSizeTotal += $curl->getSizeRequest();
+  $httpDownloadSizeTotal += $curl->getSizeDownload();
+  $httpRequestsTimeTotal += $curl->getTotalTime();
 
-    $curl = new Curl($queueManifest->url, CRAWL_CURLOPT_USERAGENT);
+  // Sitemap provided in robots.txt
+  if (200 == $curl->getCode()) {
+
+    $hostRobots = $curl->getContent();
+
+  } else {
+
+    $hostRobots = $host->robots;
+  }
+
+  // Update host index
+  $db->updateHostRobots($host->hostId, $hostRobots, time());
+
+  // Process sitemaps when enabled
+  if (CRAWL_SITEMAPS) {
+
+    // Look for custom sitemap URL served in robots.txt
+    $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+
+    if ($hostSitemapPath = $robots->getSitemap()) {
+
+        // Replace relative paths
+        $hostSitemapPath = trim($hostSitemapPath, '/');
+        $hostSitemapPath = str_replace($host->url, '', $hostSitemapPath);
+        $hostSitemapPath = sprintf('%s%s', $host->url, $hostSitemapPath);
+
+    // Set default path when not exists
+    } else {
+
+        $hostSitemapPath = sprintf('%s/sitemap.xml', $host->url);
+    }
+
+    // Init sitemap data
+    $sitemap = new Sitemap($hostSitemapPath);
+
+    // Process collected sitemap links
+    foreach ($sitemap->getLinks() as $link => $attributes) {
+
+      // Parse formatted link
+      $linkURI     = Parser::uri($link);
+      $linkHostURL = Parser::hostURL($link);
+
+      // Add host page
+      if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
+          $linkHostURL->string == $host->url && // this host links only
+          $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
+          $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
+         !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
+
+          $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+      }
+    }
+  }
+
+  // Update manifest if available for this host
+  if ($manifestURL = $db->getHostSetting($host->hostId, 'MANIFEST_URL')) {
+
+    $curl = new Curl($manifestURL, CRAWL_CURLOPT_USERAGENT);
 
     // Update curl stats
     $httpRequestsTotal++;
     $httpRequestsSizeTotal += $curl->getSizeRequest();
     $httpDownloadSizeTotal += $curl->getSizeDownload();
     $httpRequestsTimeTotal += $curl->getTotalTime();
-
-    // Update manifest index anyway, with the current time and http code
-    $manifestsProcessed += $db->updateManifestCrawlQueue($queueManifest->manifestId, time(), $curl->getCode());
 
     // Skip processing non 200 code
     if (200 != $curl->getCode()) {
@@ -203,7 +261,7 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
       }
 
       $hostURL = $remoteManifestHost->scheme . '://' .
-                 $remoteManifestHost->name .
+                $remoteManifestHost->name .
                 (!empty($remoteManifestHost->port) ? ':' . $remoteManifestHost->port : false);
 
       // Validate formatted link
@@ -254,87 +312,6 @@ foreach ($db->getManifestCrawlQueue(CRAWL_MANIFEST_LIMIT, time() - CRAWL_MANIFES
           $hostPagesAdded++;
           $hostsAdded++;
         }
-      }
-    }
-
-    // Apply changes
-    $db->commit();
-
-  // Process update errors
-  } catch (Exception $e) {
-
-    // Debug std
-    var_dump($e);
-
-    // Skip item
-    $db->rollBack();
-
-    continue;
-  }
-}
-
-// Process robots crawl queue
-foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_SECONDS_OFFSET) as $host) {
-
-  // Get robots.txt
-  $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-  // Update curl stats
-  $httpRequestsTotal++;
-  $httpRequestsSizeTotal += $curl->getSizeRequest();
-  $httpDownloadSizeTotal += $curl->getSizeDownload();
-  $httpRequestsTimeTotal += $curl->getTotalTime();
-
-  // Sitemap provided in robots.txt
-  if (200 == $curl->getCode()) {
-
-    $hostRobots = $curl->getContent();
-
-  } else {
-
-    $hostRobots = $host->robots;
-  }
-
-  // Update host index
-  $db->updateHostRobots($host->hostId, $hostRobots, time());
-
-  // Process sitemaps when enabled
-  if (CRAWL_SITEMAPS) {
-
-    // Look for custom sitemap URL served in robots.txt
-    $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
-
-    if ($hostSitemapPath = $robots->getSitemap()) {
-
-        // Replace relative paths
-        $hostSitemapPath = trim($hostSitemapPath, '/');
-        $hostSitemapPath = str_replace($host->url, '', $hostSitemapPath);
-        $hostSitemapPath = sprintf('%s%s', $host->url, $hostSitemapPath);
-
-    // Set default path when not exists
-    } else {
-
-        $hostSitemapPath = sprintf('%s/sitemap.xml', $host->url);
-    }
-
-    // Init sitemap data
-    $sitemap = new Sitemap($hostSitemapPath);
-
-    // Process collected sitemap links
-    foreach ($sitemap->getLinks() as $link => $attributes) {
-
-      // Parse formatted link
-      $linkURI     = Parser::uri($link);
-      $linkHostURL = Parser::hostURL($link);
-
-      // Add host page
-      if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
-          $linkHostURL->string == $host->url && // this host links only
-          $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
-          $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
-         !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
-
-          $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
       }
     }
   }
@@ -720,9 +697,9 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     if (false !== stripos(Filter::mime($contentType), 'text/html')) {
 
       // Define variables
-      $metaDescription  = null;
-      $metaKeywords     = null;
-      $metaYggoManifest = null;
+      $metaDescription     = null;
+      $metaKeywords        = null;
+      $metaYggoManifestURL = null;
 
       // Parse page content
       $dom = new DomDocument();
@@ -782,7 +759,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
         // Grab meta yggo:manifest link when available
         if (@$meta->getAttribute('name') == 'yggo:manifest') {
-          $metaYggoManifest = Filter::url(@$meta->getAttribute('content'));
+          $metaYggoManifestURL = Filter::url(@$meta->getAttribute('content'));
         }
       }
 
@@ -835,18 +812,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       }
 
       // Update manifest registry
-      if (CRAWL_MANIFEST && !empty($metaYggoManifest) && filter_var($metaYggoManifest, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $metaYggoManifest)) {
+      if (CRAWL_MANIFEST &&
+          !empty($metaYggoManifestURL) &&
+          filter_var($metaYggoManifestURL, FILTER_VALIDATE_URL) &&
+          preg_match(CRAWL_URL_REGEXP, $metaYggoManifestURL)) {
 
-        $metaYggoManifestCRC32 = crc32($metaYggoManifest);
-
-        if (!$db->getManifest($metaYggoManifestCRC32)) {
-             $db->addManifest($metaYggoManifestCRC32,
-                              $metaYggoManifest,
-                              (string) CRAWL_MANIFEST_DEFAULT_STATUS,
-                              time());
-
-            $manifestsAdded++;
-        }
+          $manifestsProcessed += $db->setHostSetting($queueHostPage->hostId, 'MANIFEST_URL', $metaYggoManifestURL);
       }
 
       // Begin page links collection
@@ -1236,7 +1207,6 @@ echo 'Pages snaps added: ' . $hostPagesSnapAdded . PHP_EOL;
 echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;
 
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
-echo 'Manifests added: ' . $manifestsAdded . PHP_EOL;
 
 echo 'HTTP Requests total: ' . $httpRequestsTotal . PHP_EOL;
 echo 'HTTP Requests total size: ' . $httpRequestsSizeTotal . PHP_EOL;
