@@ -44,12 +44,15 @@ $httpRequestsSizeTotal = 0;
 $httpDownloadSizeTotal = 0;
 $httpRequestsTimeTotal = 0;
 
-$hostPagesProcessed    = 0;
-$manifestsProcessed    = 0;
-$hostPagesAdded        = 0;
 $hostsAdded            = 0;
 $hostPagesBanned       = 0;
 $hostPagesSnapAdded    = 0;
+
+$hostPagesProcessed    = 0;
+$hostPagesAdded        = 0;
+
+$manifestsProcessed    = 0;
+$sitemapsProcessed     = 0;
 
 // Connect database
 try {
@@ -111,21 +114,26 @@ foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_
     // Init sitemap data
     $sitemap = new Sitemap($hostSitemapPath);
 
-    // Process collected sitemap links
-    foreach ($sitemap->getLinks() as $link => $attributes) {
+    if ($sitemapLinks = $sitemap->getLinks()) {
 
-      // Parse formatted link
-      $linkURI     = Parser::uri($link);
-      $linkHostURL = Parser::hostURL($link);
+      $sitemapsProcessed++;
 
-      // Add host page
-      if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
-          $linkHostURL->string == $host->url && // this host links only
-          $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
-          $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
-         !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
+      // Process collected sitemap links
+      foreach ($sitemapLinks as $link => $attributes) {
 
-          $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+        // Parse formatted link
+        $linkURI     = Parser::uri($link);
+        $linkHostURL = Parser::hostURL($link);
+
+        // Add host page
+        if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
+            $linkHostURL->string == $host->url && // this host links only
+            $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
+            $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
+          !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
+
+            $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+        }
       }
     }
   }
@@ -1205,6 +1213,8 @@ echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
 echo 'Pages snaps added: ' . $hostPagesSnapAdded . PHP_EOL;
 echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;
+
+echo 'Sitemaps processed: ' . $sitemapsProcessed . PHP_EOL;
 
 echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
 
