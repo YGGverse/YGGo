@@ -667,7 +667,7 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function getHostRobotsCrawlQueue(int $limit, int $timeFrom) {
+  public function getHostCrawlQueue(int $limit, int $timeFrom) {
 
     $result = [];
 
@@ -693,9 +693,19 @@ class MySQL {
     return (object) $result;
   }
 
+  public function updateHostCrawlQueue(int $hostId, int $timeUpdated) {
+
+    $query = $this->_db->prepare('UPDATE `host` SET `timeUpdated` = ? WHERE `hostId` = ? LIMIT 1');
+
+    $query->execute([$timeUpdated, $hostId]);
+
+    return $query->rowCount();
+  }
+
   public function optimize() {
 
     $this->_db->query('OPTIMIZE TABLE `host`');
+    $this->_db->query('OPTIMIZE TABLE `hostSetting`');
     $this->_db->query('OPTIMIZE TABLE `hostPage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDescription`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDom`');

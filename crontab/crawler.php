@@ -44,11 +44,12 @@ $httpRequestsSizeTotal = 0;
 $httpDownloadSizeTotal = 0;
 $httpRequestsTimeTotal = 0;
 
+$hostsProcessed        = 0;
 $hostsAdded            = 0;
-$hostPagesBanned       = 0;
-$hostPagesSnapAdded    = 0;
 
 $hostPagesProcessed    = 0;
+$hostPagesBanned       = 0;
+$hostPagesSnapAdded    = 0;
 $hostPagesAdded        = 0;
 
 $manifestsProcessed    = 0;
@@ -67,261 +68,288 @@ try {
   exit;
 }
 
-// Process robots crawl queue
-foreach ($db->getHostRobotsCrawlQueue(CRAWL_ROBOTS_LIMIT, time() - CRAWL_ROBOTS_SECONDS_OFFSET) as $host) {
+// Process hosts crawl queue
+foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OFFSET) as $host) {
 
-  // Update robots
-  $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+  $db->beginTransaction();
 
-  // Update curl stats
-  $httpRequestsTotal++;
-  $httpRequestsSizeTotal += $curl->getSizeRequest();
-  $httpDownloadSizeTotal += $curl->getSizeDownload();
-  $httpRequestsTimeTotal += $curl->getTotalTime();
+  try {
 
-  // Sitemap provided in robots.txt
-  if (200 == $curl->getCode()) {
+    // Update host crawl queue
+    $hostsProcessed += $db->updateHostCrawlQueue($host->hostId);
 
-    $hostRobots = $curl->getContent();
+    // Crawl robots.txt
+    if (CRAWL_ROBOTS) {
 
-  } else {
+      // Update robots
+      $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
-    $hostRobots = $host->robots;
-  }
+      // Update curl stats
+      $httpRequestsTotal++;
+      $httpRequestsSizeTotal += $curl->getSizeRequest();
+      $httpDownloadSizeTotal += $curl->getSizeDownload();
+      $httpRequestsTimeTotal += $curl->getTotalTime();
 
-  // Update host index
-  $db->updateHostRobots($host->hostId, $hostRobots, time());
+      // Sitemap provided in robots.txt
+      if (200 == $curl->getCode()) {
 
-  // Process sitemaps when enabled
-  if (CRAWL_SITEMAPS) {
+        $hostRobots = $curl->getContent();
 
-    // Look for custom sitemap URL served in robots.txt
-    $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+      } else {
 
-    if ($hostSitemapPath = $robots->getSitemap()) {
+        $hostRobots = $host->robots;
+      }
 
-        // Replace relative paths
-        $hostSitemapPath = trim($hostSitemapPath, '/');
-        $hostSitemapPath = str_replace($host->url, '', $hostSitemapPath);
-        $hostSitemapPath = sprintf('%s%s', $host->url, $hostSitemapPath);
-
-    // Set default path when not exists
-    } else {
-
-        $hostSitemapPath = sprintf('%s/sitemap.xml', $host->url);
+      // Update host index
+      $db->updateHostRobots($host->hostId, $hostRobots, time());
     }
 
-    // Init sitemap data
-    $sitemap = new Sitemap($hostSitemapPath);
+    // Process sitemaps when enabled
+    if (CRAWL_SITEMAPS) {
 
-    if ($sitemapLinks = $sitemap->getLinks()) {
+      // Look for custom sitemap URL served in robots.txt
+      $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
 
-      $sitemapsProcessed++;
+      if ($hostSitemapPath = $robots->getSitemap()) {
 
-      // Process collected sitemap links
-      foreach ($sitemapLinks as $link => $attributes) {
+          // Replace relative paths
+          $hostSitemapPath = trim($hostSitemapPath, '/');
+          $hostSitemapPath = str_replace($host->url, '', $hostSitemapPath);
+          $hostSitemapPath = sprintf('%s%s', $host->url, $hostSitemapPath);
 
-        // Parse formatted link
-        $linkURI     = Parser::uri($link);
-        $linkHostURL = Parser::hostURL($link);
+      // Set default path when not exists
+      } else {
 
-        // Add host page
-        if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
-            $linkHostURL->string == $host->url && // this host links only
-            $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
-            $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
-          !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
+          $hostSitemapPath = sprintf('%s/sitemap.xml', $host->url);
+      }
 
-            $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+      // Init sitemap data
+      $sitemap = new Sitemap($hostSitemapPath);
+
+      if ($sitemapLinks = $sitemap->getLinks()) {
+
+        $sitemapsProcessed++;
+
+        // Process collected sitemap links
+        foreach ($sitemapLinks as $link => $attributes) {
+
+          // Parse formatted link
+          $linkURI     = Parser::uri($link);
+          $linkHostURL = Parser::hostURL($link);
+
+          // Add host page
+          if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
+              $linkHostURL->string == $host->url && // this host links only
+              $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
+              $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
+            !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
+
+              $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+          }
         }
       }
     }
-  }
 
-  // Update manifest if available for this host
-  if ($manifestURL = $db->getHostSetting($host->hostId, 'MANIFEST_URL')) {
+    // Update manifests
+    if (CRAWL_MANIFEST) {
+      if ($manifestURL = $db->getHostSetting($host->hostId, 'MANIFEST_URL')) {
 
-    $curl = new Curl($manifestURL, CRAWL_CURLOPT_USERAGENT);
+        $curl = new Curl($manifestURL, CRAWL_CURLOPT_USERAGENT);
 
-    // Update curl stats
-    $httpRequestsTotal++;
-    $httpRequestsSizeTotal += $curl->getSizeRequest();
-    $httpDownloadSizeTotal += $curl->getSizeDownload();
-    $httpRequestsTimeTotal += $curl->getTotalTime();
+        // Update curl stats
+        $httpRequestsTotal++;
+        $httpRequestsSizeTotal += $curl->getSizeRequest();
+        $httpDownloadSizeTotal += $curl->getSizeDownload();
+        $httpRequestsTimeTotal += $curl->getTotalTime();
 
-    // Skip processing non 200 code
-    if (200 != $curl->getCode()) {
+        // Skip processing non 200 code
+        if (200 != $curl->getCode()) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing without returned data
-    if (!$remoteManifest = $curl->getContent()) {
+        // Skip processing without returned data
+        if (!$remoteManifest = $curl->getContent()) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on json encoding error
-    if (!$remoteManifest = @json_decode($remoteManifest)) {
+        // Skip processing on json encoding error
+        if (!$remoteManifest = @json_decode($remoteManifest)) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on required fields missed
-    if (empty($remoteManifest->status) ||
-        empty($remoteManifest->result->config->crawlUrlRegexp) ||
-        empty($remoteManifest->result->api->version) ||
-        empty($remoteManifest->result->api->hosts)) {
+        // Skip processing on required fields missed
+        if (empty($remoteManifest->status) ||
+            empty($remoteManifest->result->config->crawlUrlRegexp) ||
+            empty($remoteManifest->result->api->version) ||
+            empty($remoteManifest->result->api->hosts)) {
 
-        $db->commit();
+            $db->commit();
 
-        continue;
-    }
+            continue;
+        }
 
-    // Skip processing on API version not compatible
-    if ($remoteManifest->result->api->version !== CRAWL_MANIFEST_API_VERSION) {
+        // Skip processing on API version not compatible
+        if ($remoteManifest->result->api->version !== CRAWL_MANIFEST_API_VERSION) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on host API not available
-    if (!$remoteManifest->result->api->hosts) {
+        // Skip processing on host API not available
+        if (!$remoteManifest->result->api->hosts) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on crawlUrlRegexp does not match CRAWL_URL_REGEXP condition
-    if ($remoteManifest->result->config->crawlUrlRegexp !== CRAWL_URL_REGEXP) {
+        // Skip processing on crawlUrlRegexp does not match CRAWL_URL_REGEXP condition
+        if ($remoteManifest->result->config->crawlUrlRegexp !== CRAWL_URL_REGEXP) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on host link does not match condition
-    if (false === preg_match(CRAWL_URL_REGEXP, $remoteManifest->result->api->hosts)) {
+        // Skip processing on host link does not match condition
+        if (false === preg_match(CRAWL_URL_REGEXP, $remoteManifest->result->api->hosts)) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Begin hosts collection
-    $curl = new Curl($remoteManifest->result->api->hosts, CRAWL_CURLOPT_USERAGENT);
+        // Begin hosts collection
+        $curl = new Curl($remoteManifest->result->api->hosts, CRAWL_CURLOPT_USERAGENT);
 
-    // Update curl stats
-    $httpRequestsTotal++;
-    $httpRequestsSizeTotal += $curl->getSizeRequest();
-    $httpDownloadSizeTotal += $curl->getSizeDownload();
-    $httpRequestsTimeTotal += $curl->getTotalTime();
+        // Update curl stats
+        $httpRequestsTotal++;
+        $httpRequestsSizeTotal += $curl->getSizeRequest();
+        $httpDownloadSizeTotal += $curl->getSizeDownload();
+        $httpRequestsTimeTotal += $curl->getTotalTime();
 
-    // Skip processing non 200 code
-    if (200 != $curl->getCode()) {
+        // Skip processing non 200 code
+        if (200 != $curl->getCode()) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing without returned data
-    if (!$remoteManifestHosts = $curl->getContent()) {
+        // Skip processing without returned data
+        if (!$remoteManifestHosts = $curl->getContent()) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on json encoding error
-    if (!$remoteManifestHosts = @json_decode($remoteManifestHosts)) {
+        // Skip processing on json encoding error
+        if (!$remoteManifestHosts = @json_decode($remoteManifestHosts)) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Skip processing on required fields missed
-    if (empty($remoteManifestHosts->status) ||
-        empty($remoteManifestHosts->result)) {
+        // Skip processing on required fields missed
+        if (empty($remoteManifestHosts->status) ||
+            empty($remoteManifestHosts->result)) {
 
-      $db->commit();
+          $db->commit();
 
-      continue;
-    }
+          continue;
+        }
 
-    // Begin hosts processing
-    foreach ($remoteManifestHosts->result as $remoteManifestHost) {
+        // Begin hosts processing
+        foreach ($remoteManifestHosts->result as $remoteManifestHost) {
 
-      // Skip processing on required fields missed
-      if (empty($remoteManifestHost->scheme) ||
-          empty($remoteManifestHost->name)) {
+          // Skip processing on required fields missed
+          if (empty($remoteManifestHost->scheme) ||
+              empty($remoteManifestHost->name)) {
 
-        continue;
-      }
-
-      $hostURL = $remoteManifestHost->scheme . '://' .
-                $remoteManifestHost->name .
-                (!empty($remoteManifestHost->port) ? ':' . $remoteManifestHost->port : false);
-
-      // Validate formatted link
-      if (filter_var($hostURL, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $hostURL)) {
-
-        // Host not exists
-        if (!$db->getHostByCRC32URL(crc32($hostURL))) {
-
-          // Get robots.txt if exists
-          $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-          // Update curl stats
-          $httpRequestsTotal++;
-          $httpRequestsSizeTotal += $curl->getSizeRequest();
-          $httpDownloadSizeTotal += $curl->getSizeDownload();
-          $httpRequestsTimeTotal += $curl->getTotalTime();
-
-          if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-            $hostRobots = $curl->getContent();
-          } else {
-            $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
+            continue;
           }
 
-          $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+          $hostURL = $remoteManifestHost->scheme . '://' .
+                    $remoteManifestHost->name .
+                    (!empty($remoteManifestHost->port) ? ':' . $remoteManifestHost->port : false);
 
-          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
-          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
-          $hostMetaOnly  = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
-          $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+          // Validate formatted link
+          if (filter_var($hostURL, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $hostURL)) {
 
-          $hostId = $db->addHost( $remoteManifestHosts->result->scheme,
-                                  $remoteManifestHosts->result->name,
-                                  $remoteManifestHosts->result->port,
-                                  crc32($hostURL),
-                                  time(),
-                                  null,
-                                  $hostPageLimit,
-                                  (string) $hostMetaOnly,
-                                  (string) $hostStatus,
-                                  (string) $hostNsfw,
-                                  $hostRobots,
-                                  $hostRobotsPostfix);
+            // Host not exists
+            if (!$db->getHostByCRC32URL(crc32($hostURL))) {
 
-          // Add web root host page to make host visible in the crawl queue
-          $db->addHostPage($hostId, crc32('/'), '/', time());
+              // Get robots.txt if exists
+              $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
-          // Increase counters
-          $hostPagesAdded++;
-          $hostsAdded++;
+              // Update curl stats
+              $httpRequestsTotal++;
+              $httpRequestsSizeTotal += $curl->getSizeRequest();
+              $httpDownloadSizeTotal += $curl->getSizeDownload();
+              $httpRequestsTimeTotal += $curl->getTotalTime();
+
+              if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
+                $hostRobots = $curl->getContent();
+              } else {
+                $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
+              }
+
+              $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
+
+              $hostStatus    = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
+              $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
+              $hostMetaOnly  = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
+              $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
+
+              $hostId = $db->addHost( $remoteManifestHosts->result->scheme,
+                                      $remoteManifestHosts->result->name,
+                                      $remoteManifestHosts->result->port,
+                                      crc32($hostURL),
+                                      time(),
+                                      null,
+                                      $hostPageLimit,
+                                      (string) $hostMetaOnly,
+                                      (string) $hostStatus,
+                                      (string) $hostNsfw,
+                                      $hostRobots,
+                                      $hostRobotsPostfix);
+
+              // Add web root host page to make host visible in the crawl queue
+              $db->addHostPage($hostId, crc32('/'), '/', time());
+
+              // Increase counters
+              $hostPagesAdded++;
+              $hostsAdded++;
+            }
+          }
         }
       }
     }
+
+    $db->commit();
+
+  // Process update errors
+  } catch (Exception $e) {
+
+    // Debug std
+    var_dump($e);
+
+    // Skip item
+    $db->rollBack();
+
+    continue;
   }
 }
 
@@ -1207,20 +1235,21 @@ $executionTimeTotal    = microtime(true) - $timeStart;
 $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
-echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
+echo 'Hosts processed: ' . $hostsProcessed . PHP_EOL;
+echo 'Hosts added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
 
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
 echo 'Pages snaps added: ' . $hostPagesSnapAdded . PHP_EOL;
-echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL;
+echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL . PHP_EOL;
 
-echo 'Sitemaps processed: ' . $sitemapsProcessed . PHP_EOL;
+echo 'Sitemaps processed: ' . $sitemapsProcessed . PHP_EOL . PHP_EOL;
 
-echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL;
+echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL . PHP_EOL;
 
 echo 'HTTP Requests total: ' . $httpRequestsTotal . PHP_EOL;
 echo 'HTTP Requests total size: ' . $httpRequestsSizeTotal . PHP_EOL;
 echo 'HTTP Download total size: ' . $httpDownloadSizeTotal . PHP_EOL;
-echo 'HTTP Requests total time: ' . $httpRequestsTimeTotal . PHP_EOL;
+echo 'HTTP Requests total time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
 
 echo 'Total time: ' . $executionTimeTotal . PHP_EOL . PHP_EOL;

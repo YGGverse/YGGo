@@ -270,7 +270,7 @@ define('CRAWL_HOST_DEFAULT_NSFW', false);
 /*
  * Collect sitemap index when available
  *
- * At this moment, works with CRAWL_ROBOTS_SECONDS_OFFSET/CRAWL_ROBOTS_LIMIT options enabled only
+ * At this moment, works with CRAWL_HOST_SECONDS_OFFSET/CRAWL_HOST_LIMIT options enabled only
  *
  * When sitemap path not provided in robots.txt, crawler scans default /sitemap.xml
  *
@@ -290,18 +290,23 @@ define('CRAWL_SITEMAPS', true);
 define('CRAWL_PAGE_RANK_UPDATE', true);
 
 /*
- * Renew robots.txt index by timing offset provided
+ * Renew hosts index by timing offset provided
  *
  */
-define('CRAWL_ROBOTS_SECONDS_OFFSET', 60*60*24*7);
+define('CRAWL_HOST_SECONDS_OFFSET', 60*60*24*7);
 
 /*
- * Hosts Robots.txt processing limit in the crawler.php queue
+ * Hosts hosts processing limit in the crawler.php queue
  *
  * Set 0 to disable
  *
  */
-define('CRAWL_ROBOTS_LIMIT', 1);
+define('CRAWL_HOST_LIMIT', 1);
+
+/*
+ * Crawl robots.txt
+ */
+define('CRAWL_ROBOTS', true); // true|false
 
 /*
  * Default robots.txt rules on remote file not exists
