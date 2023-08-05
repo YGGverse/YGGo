@@ -6,11 +6,13 @@ class Curl {
   private $_response;
 
   public function __construct(string $url,
-                              mixed $userAgent = false,
-                              int $connectTimeout = 10,
-                              bool $header = false,
-                              bool $followLocation = false,
-                              int $maxRedirects = 10) {
+                              mixed  $userAgent = false,
+                              int    $connectTimeout = 10,
+                              bool   $header = false,
+                              bool   $followLocation = false,
+                              int    $maxRedirects = 10,
+                              bool   $sslVerifyHost = false,
+                              bool   $sslVerifyPeer = false) {
 
     $this->_connection = curl_init($url);
 
@@ -26,6 +28,8 @@ class Curl {
     curl_setopt($this->_connection, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($this->_connection, CURLOPT_CONNECTTIMEOUT, $connectTimeout);  // skip resources with long time response
     curl_setopt($this->_connection, CURLOPT_TIMEOUT, $connectTimeout); // prevent infinitive connection on streaming resources detected @TODO
+    curl_setopt($this->_connection, CURLOPT_SSL_VERIFYHOST, $sslVerifyHost);
+    curl_setopt($this->_connection, CURLOPT_SSL_VERIFYPEER, $sslVerifyPeer);
     curl_setopt($this->_connection, CURLOPT_NOPROGRESS, false);
     curl_setopt($this->_connection, CURLOPT_PROGRESSFUNCTION, function(
       $downloadSize, $downloaded, $uploadSize, $uploaded
