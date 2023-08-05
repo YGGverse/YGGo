@@ -215,6 +215,8 @@ GET m=SphinxQL
 
 ##### CLI
 
+_*CLI interface still under construction, use it for your own risk!_
+
 * [x] help
 * [x] db
   * [x] optimize
