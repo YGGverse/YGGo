@@ -1037,7 +1037,7 @@ $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 // Debug output
 echo PHP_EOL;
 
-echo '---- ' . date('c') . ' ----' . PHP_EOL . PHP_EOL;
+echo '-- ' . date('c') . ' --' . PHP_EOL . PHP_EOL;
 
 echo '[hosts]' . PHP_EOL;
 echo '  processed: ' . $hostsProcessed . PHP_EOL;
@@ -1070,6 +1070,4 @@ echo '  insert: ' . $db->getDebug()->query->insert->total . PHP_EOL;
 echo '  update: ' . $db->getDebug()->query->update->total . PHP_EOL;
 echo '  delete: ' . $db->getDebug()->query->delete->total . PHP_EOL . PHP_EOL;
 
-echo PHP_EOL . PHP_EOL;
-
-echo '---- completed in ' . $executionTimeTotal . ' seconds ----' . PHP_EOL . PHP_EOL;
+echo '-- completed in ' . $executionTimeTotal . ' seconds --' . PHP_EOL . PHP_EOL;
