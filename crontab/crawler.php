@@ -1032,7 +1032,7 @@ $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
 echo 'Hosts processed: ' . $hostsProcessed . PHP_EOL;
-echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
+echo 'Hosts added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
 
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
