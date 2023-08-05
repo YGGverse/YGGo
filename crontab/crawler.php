@@ -121,7 +121,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
       if ($sitemapLink = $robots->getSitemap()) {
 
         // Replace relative paths
-        $sitemapURL = sprintf('%s/%s', $queueHost->url, trim(str_ireplace($hostCrawlQueue->url, '', $sitemapLink), '/'));
+        $sitemapURL = sprintf('%s/%s', $queueHost->url, trim(str_ireplace($queueHost->url, '', $sitemapLink), '/'));
 
       // Set default path
       } else {
