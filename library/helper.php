@@ -117,6 +117,12 @@ class Helper {
       }
     }
 
+    // URI correction
+    if (empty($link->page->uri)) {
+
+      $link->page->uri = '/';
+    }
+
     // Add host page if not exists
     if ($hostPage = $db->findHostPageByCRC32URI($hostId, crc32($link->page->uri))) {
 
