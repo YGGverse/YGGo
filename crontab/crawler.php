@@ -1036,28 +1036,28 @@ $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
 echo '[hosts]' . PHP_EOL;
-echo 'processed: ' . $hostsProcessed . PHP_EOL;
-echo 'added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
+echo '  processed: ' . $hostsProcessed . PHP_EOL;
+echo '  added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
 
 echo '[hosts pages]' . PHP_EOL;
-echo 'processed: ' . $hostPagesProcessed . PHP_EOL;
-echo 'added: ' . $hostPagesAdded . PHP_EOL;
-echo 'banned: ' . $hostPagesBanned . PHP_EOL . PHP_EOL;
+echo '  processed: ' . $hostPagesProcessed . PHP_EOL;
+echo '  added: ' . $hostPagesAdded . PHP_EOL;
+echo '  banned: ' . $hostPagesBanned . PHP_EOL . PHP_EOL;
 
 echo '[host page snaps]' . PHP_EOL;
-echo 'added: ' . $hostPagesSnapAdded . PHP_EOL . PHP_EOL;
+echo '  added: ' . $hostPagesSnapAdded . PHP_EOL . PHP_EOL;
 
 echo '[sitemaps]' . PHP_EOL;
-echo 'processed: ' . $sitemapsProcessed . PHP_EOL . PHP_EOL;
+echo '  processed: ' . $sitemapsProcessed . PHP_EOL . PHP_EOL;
 
 echo '[manifests]' . PHP_EOL;
-echo 'processed: ' . $manifestsProcessed . PHP_EOL . PHP_EOL;
+echo '  processed: ' . $manifestsProcessed . PHP_EOL . PHP_EOL;
 
 echo '[HTTP]' . PHP_EOL;
-echo 'Requests total:' . $httpRequestsTotal . PHP_EOL;
-echo 'Requests size: ' . $httpRequestsSizeTotal . PHP_EOL;
-echo 'Download size: ' . $httpDownloadSizeTotal . PHP_EOL;
-echo 'Requests time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
+echo '  requests total:' . $httpRequestsTotal . PHP_EOL;
+echo '  requests size: ' . $httpRequestsSizeTotal . PHP_EOL;
+echo '  download size: ' . $httpDownloadSizeTotal . PHP_EOL;
+echo '  requests time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
 
 echo '[MySQL]' . PHP_EOL;
 echo 'queries count:' . PHP_EOL;
