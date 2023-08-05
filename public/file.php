@@ -44,8 +44,16 @@ switch ($type) {
   case 'snap':
 
     // Connect database
-    $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+    try {
 
+      $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+    } catch(Exception $e) {
+
+      var_dump($e);
+
+      exit;
+    }
     // Init request
     $crc32ip = crc32(!empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
 

@@ -19,12 +19,29 @@ if (API_ENABLED) {
 
       if (API_SEARCH_ENABLED) {
 
-        // Connect database
-        $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
-
         // Connect Sphinx search server
-        $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+        try {
 
+          $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+
+        } catch(Exception $e) {
+
+          var_dump($e);
+
+          exit;
+        }
+
+        // Connect database
+        try {
+
+          $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+        } catch(Exception $e) {
+
+          var_dump($e);
+
+          exit;
+        }
 
         // Filter request data
         $type  = !empty($_GET['type']) ? Filter::url($_GET['type']) : 'text';
@@ -77,7 +94,16 @@ if (API_ENABLED) {
       if (API_HOSTS_ENABLED) {
 
         // Connect database
-        $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+        try {
+
+          $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+        } catch(Exception $e) {
+
+          var_dump($e);
+
+          exit;
+        }
 
         $response = [
           'status' => true,

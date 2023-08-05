@@ -26,7 +26,16 @@ require_once(__DIR__ . '/../config/app.php');
 require_once(__DIR__ . '/../library/mysql.php');
 
 // Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+try {
+
+  $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 // Reset banned hosts
 $hostsBansRemoved = $db->resetBannedHostPages(time() - CLEAN_HOST_PAGE_BAN_SECONDS_OFFSET);
