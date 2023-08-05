@@ -549,7 +549,7 @@ class MySQL {
   // Cleaner tools
   public function resetBannedHostPages(int $timeOffset) {
 
-    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
+    $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ?');
 
     $query->execute([$timeOffset]);
 
@@ -558,7 +558,7 @@ class MySQL {
 
   public function resetBannedHosts(int $timeOffset) {
 
-    $query = $this->_db->prepare('UPDATE `host` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
+    $query = $this->_db->prepare('UPDATE `host` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ?');
 
     $query->execute([$timeOffset]);
 
