@@ -1073,4 +1073,4 @@ echo '  delete: ' . $db->getDebug()->query->delete->total . PHP_EOL . PHP_EOL;
 echo '[time]' . PHP_EOL;
 echo $executionTimeTotal . PHP_EOL . PHP_EOL;
 
-echo '-----------------------------------' . PHP_EOL . PHP_EOL;
+echo '---- ' . date('c') . ' ----' . PHP_EOL . PHP_EOL;
