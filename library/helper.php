@@ -131,7 +131,7 @@ class Helper {
       }
 
       // Validate page limits for this host
-      if ($db->getTotalHostPages($hostId) > self::getHostSetting($db, $memcached, $hostId, 'PAGES_LIMIT', DEFAULT_HOST_PAGES_LIMIT)) {
+      if ($db->getTotalHostPages($hostId) >= self::getHostSetting($db, $memcached, $hostId, 'PAGES_LIMIT', DEFAULT_HOST_PAGES_LIMIT)) {
 
         return false;
       }
