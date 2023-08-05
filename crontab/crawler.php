@@ -1064,7 +1064,7 @@ echo '  download size: ' . $httpDownloadSizeTotal . PHP_EOL;
 echo '  requests time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
 
 echo '[MySQL]' . PHP_EOL;
-echo 'queries count:' . PHP_EOL;
+echo 'queries:' . PHP_EOL;
 echo '  select: ' . $db->getDebug()->query->select->total . PHP_EOL;
 echo '  insert: ' . $db->getDebug()->query->insert->total . PHP_EOL;
 echo '  update: ' . $db->getDebug()->query->update->total . PHP_EOL;
