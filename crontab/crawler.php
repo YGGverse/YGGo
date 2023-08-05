@@ -1035,21 +1035,37 @@ $executionTimeTotal    = microtime(true) - $timeStart;
 $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
-echo 'Hosts processed: ' . $hostsProcessed . PHP_EOL;
-echo 'Hosts added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
+echo '[hosts]' . PHP_EOL;
+echo 'processed: ' . $hostsProcessed . PHP_EOL;
+echo 'added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
 
-echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
-echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;
-echo 'Pages snaps added: ' . $hostPagesSnapAdded . PHP_EOL;
-echo 'Pages banned: ' . $hostPagesBanned . PHP_EOL . PHP_EOL;
+echo '[hosts pages]' . PHP_EOL;
+echo 'processed: ' . $hostPagesProcessed . PHP_EOL;
+echo 'added: ' . $hostPagesAdded . PHP_EOL;
+echo 'banned: ' . $hostPagesBanned . PHP_EOL . PHP_EOL;
 
-echo 'Sitemaps processed: ' . $sitemapsProcessed . PHP_EOL . PHP_EOL;
+echo '[host page snaps]' . PHP_EOL;
+echo 'added: ' . $hostPagesSnapAdded . PHP_EOL . PHP_EOL;
 
-echo 'Manifests processed: ' . $manifestsProcessed . PHP_EOL . PHP_EOL;
+echo '[sitemaps]' . PHP_EOL;
+echo 'processed: ' . $sitemapsProcessed . PHP_EOL . PHP_EOL;
 
-echo 'HTTP Requests total: ' . $httpRequestsTotal . PHP_EOL;
-echo 'HTTP Requests total size: ' . $httpRequestsSizeTotal . PHP_EOL;
-echo 'HTTP Download total size: ' . $httpDownloadSizeTotal . PHP_EOL;
-echo 'HTTP Requests total time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
+echo '[manifests]' . PHP_EOL;
+echo 'processed: ' . $manifestsProcessed . PHP_EOL . PHP_EOL;
 
-echo 'Total time: ' . $executionTimeTotal . PHP_EOL . PHP_EOL;
+echo '[HTTP]' . PHP_EOL;
+echo 'Requests total:' . $httpRequestsTotal . PHP_EOL;
+echo 'Requests size: ' . $httpRequestsSizeTotal . PHP_EOL;
+echo 'Download size: ' . $httpDownloadSizeTotal . PHP_EOL;
+echo 'Requests time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
+
+echo '[MySQL]' . PHP_EOL;
+echo 'queries count:' . PHP_EOL;
+echo '  select: ' . $db->getDebug()->query->select->total . PHP_EOL;
+echo '  insert: ' . $db->getDebug()->query->insert->total . PHP_EOL;
+echo '  update: ' . $db->getDebug()->query->update->total . PHP_EOL;
+echo '  delete: ' . $db->getDebug()->query->delete->total . PHP_EOL . PHP_EOL;
+
+echo 'execution time: ' . $executionTimeTotal . PHP_EOL . PHP_EOL;
+
+echo '-----------------------' . PHP_EOL . PHP_EOL;
