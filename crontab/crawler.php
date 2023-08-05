@@ -622,11 +622,15 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
 
       if ($title->length == 0) {
 
+        $metaTitle = null;
+
+        /*
         $hostPagesBanned += $db->updateHostPageTimeBanned($queueHostPage->hostPageId, time());
 
         $db->commit();
 
         continue;
+        */
 
       } else {
 
