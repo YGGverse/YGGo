@@ -1035,6 +1035,10 @@ $executionTimeTotal    = microtime(true) - $timeStart;
 $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
+echo PHP_EOL;
+
+echo '---- ' . date('c') . ' ----' . PHP_EOL . PHP_EOL;
+
 echo '[hosts]' . PHP_EOL;
 echo '  processed: ' . $hostsProcessed . PHP_EOL;
 echo '  added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
@@ -1066,6 +1070,7 @@ echo '  insert: ' . $db->getDebug()->query->insert->total . PHP_EOL;
 echo '  update: ' . $db->getDebug()->query->update->total . PHP_EOL;
 echo '  delete: ' . $db->getDebug()->query->delete->total . PHP_EOL . PHP_EOL;
 
-echo 'execution time: ' . $executionTimeTotal . PHP_EOL . PHP_EOL;
+echo '[time]' . PHP_EOL;
+echo $executionTimeTotal . PHP_EOL . PHP_EOL;
 
-echo '-----------------------' . PHP_EOL . PHP_EOL;
+echo '-----------------------------------' . PHP_EOL . PHP_EOL;
