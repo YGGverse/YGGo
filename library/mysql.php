@@ -180,7 +180,7 @@ class MySQL {
 
     $this->_debug->query->update->total++;
 
-    $query = $this->_db->query('UPDATE `hostSetting` SET    `value`       = ?,
+    $query = $this->_db->prepare('UPDATE `hostSetting` SET  `value`       = ?,
                                                             `timeUpdated` = ?
 
                                                       WHERE `hostSettingId` = ?
@@ -204,7 +204,7 @@ class MySQL {
 
     $this->_debug->query->delete->total++;
 
-    $query = $this->_db->query('DELETE FROM `hostSetting` WHERE `hostSettingId` = ?');
+    $query = $this->_db->prepare('DELETE FROM `hostSetting` WHERE `hostSettingId` = ?');
 
     $query->execute([$hostSettingId]);
 
