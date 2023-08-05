@@ -6,7 +6,16 @@ require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
 
 // Connect Sphinx search server
-$sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+try {
+
+  $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 $totalPages = $sphinx->getHostPagesTotal();
 

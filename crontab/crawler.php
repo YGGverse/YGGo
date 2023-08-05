@@ -24,9 +24,10 @@ require_once(__DIR__ . '/../library/ftp.php');
 require_once(__DIR__ . '/../library/curl.php');
 require_once(__DIR__ . '/../library/robots.php');
 require_once(__DIR__ . '/../library/sitemap.php');
+require_once(__DIR__ . '/../library/url.php');
 require_once(__DIR__ . '/../library/filter.php');
-require_once(__DIR__ . '/../library/parser.php');
 require_once(__DIR__ . '/../library/mysql.php');
+require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
 
 // Check disk quota
@@ -62,27 +63,38 @@ try {
 
 } catch(Exception $e) {
 
-  // Debug std
+  var_dump($e);
+
+  exit;
+}
+
+// Connect memcached
+try {
+
+  $memcached = new Memcached();
+  $memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
+
+} catch(Exception $e) {
+
   var_dump($e);
 
   exit;
 }
 
 // Process hosts crawl queue
-foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OFFSET) as $host) {
-
-  $db->beginTransaction();
+foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OFFSET) as $queueHost) {
 
   try {
 
-    // Update host crawl queue
-    $hostsProcessed += $db->updateHostCrawlQueue($host->hostId);
+    $db->beginTransaction();
 
-    // Crawl robots.txt
+    // Update host crawl queue
+    $hostsProcessed += $db->updateHostCrawlQueue($queueHost->hostId, time());
+
+    // Update host robots.txt settings from remote host
     if (CRAWL_ROBOTS) {
 
-      // Update robots
-      $curl = new Curl($host->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+      $curl = new Curl($queueHost->url . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
 
       // Update curl stats
       $httpRequestsTotal++;
@@ -90,61 +102,63 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
       $httpDownloadSizeTotal += $curl->getSizeDownload();
       $httpRequestsTimeTotal += $curl->getTotalTime();
 
-      // Sitemap provided in robots.txt
-      if (200 == $curl->getCode()) {
+      // Update robots.txt rules
+      if (200 == $curl->getCode() && false !== stripos(trim(mb_strtolower((string) $curl->getContentType())), 'text/plain')) {
 
-        $hostRobots = $curl->getContent();
-
-      } else {
-
-        $hostRobots = $host->robots;
+        Helper::setHostSetting($db, $memcached, $queueHost->hostId, 'ROBOTS_TXT', (string) $curl->getContent());
       }
-
-      // Update host index
-      $db->updateHostRobots($host->hostId, $hostRobots, time());
     }
 
     // Process sitemaps when enabled
     if (CRAWL_SITEMAPS) {
 
       // Look for custom sitemap URL served in robots.txt
-      $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($host->robotsPostfix ? (string) $host->robotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+      $robots = new Robots(
+        Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'ROBOTS_TXT', NULL) . PHP_EOL .
+        Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'ROBOTS_TXT_POSTFIX', DEFAULT_HOST_ROBOTS_TXT_POSTFIX)
+      );
 
-      if ($hostSitemapPath = $robots->getSitemap()) {
+      if ($sitemapLink = $robots->getSitemap()) {
 
-          // Replace relative paths
-          $hostSitemapPath = trim($hostSitemapPath, '/');
-          $hostSitemapPath = str_replace($host->url, '', $hostSitemapPath);
-          $hostSitemapPath = sprintf('%s%s', $host->url, $hostSitemapPath);
+        // Replace relative paths
+        $sitemapURL = sprintf('%s/%s', $queueHost->url, trim(str_ireplace($hostCrawlQueue->url, '', $sitemapLink), '/'));
 
-      // Set default path when not exists
+      // Set default path
       } else {
 
-          $hostSitemapPath = sprintf('%s/sitemap.xml', $host->url);
+        $sitemapURL = sprintf('%s/sitemap.xml', $queueHost->url);
       }
 
-      // Init sitemap data
-      $sitemap = new Sitemap($hostSitemapPath);
+      // Init sitemap
+      $sitemap = new Sitemap($sitemapURL);
 
       if ($sitemapLinks = $sitemap->getLinks()) {
 
         $sitemapsProcessed++;
 
         // Process collected sitemap links
-        foreach ($sitemapLinks as $link => $attributes) {
+        foreach ($sitemapLinks as $loc => $attributes) {
 
-          // Parse formatted link
-          $linkURI     = Parser::uri($link);
-          $linkHostURL = Parser::hostURL($link);
+          // Replace relative paths
+          $loc = sprintf('%s/%s', $queueHost->url, trim(str_ireplace($queueHost->url, '', $loc), '/'));
 
-          // Add host page
-          if (filter_var($link, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link) && // validate link format
-              $linkHostURL->string == $host->url && // this host links only
-              $robots->uriAllowed($linkURI->string) && // page allowed by robots.txt rules
-              $host->crawlPageLimit > $db->getTotalHostPages($host->hostId) && // pages quantity not reached host limit
-            !$db->findHostPageByCRC32URI($host->hostId, crc32($linkURI->string))) { // page does not exists
+          // Validate link
+          if (!$link = URL::parse($loc)) {
 
-              $hostPagesAdded += $db->addHostPage($host->hostId, crc32($linkURI->string), $linkURI->string, time());
+            continue;
+          }
+
+          // Collect this host links only
+          if ($link->host->url != $queueHost->url) {
+
+            continue;
+          }
+
+          // Register new link
+          if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $loc)) {
+
+            $hostsAdded     += count($linkToDBresult->new->hostId);
+            $hostPagesAdded += count($linkToDBresult->new->hostPageId);
           }
         }
       }
@@ -152,8 +166,11 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
 
     // Update manifests
     if (CRAWL_MANIFEST) {
-      if ($manifestURL = $db->getHostSetting($host->hostId, 'MANIFEST_URL')) {
 
+      // Host have manifest provided
+      if ($manifestURL = Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'MANIFEST_URL', NULL)) {
+
+        // Get remote manifest
         $curl = new Curl($manifestURL, CRAWL_CURLOPT_USERAGENT);
 
         // Update curl stats
@@ -165,15 +182,11 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
         // Skip processing non 200 code
         if (200 != $curl->getCode()) {
 
-          $db->commit();
-
           continue;
         }
 
         // Skip processing without returned data
         if (!$remoteManifest = $curl->getContent()) {
-
-          $db->commit();
 
           continue;
         }
@@ -181,26 +194,20 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
         // Skip processing on json encoding error
         if (!$remoteManifest = @json_decode($remoteManifest)) {
 
-          $db->commit();
-
           continue;
         }
 
         // Skip processing on required fields missed
         if (empty($remoteManifest->status) ||
-            empty($remoteManifest->result->config->crawlUrlRegexp) ||
+            empty($remoteManifest->result->config->DEFAULT_HOST_URL_REGEXP) ||
             empty($remoteManifest->result->api->version) ||
             empty($remoteManifest->result->api->hosts)) {
-
-            $db->commit();
 
             continue;
         }
 
         // Skip processing on API version not compatible
-        if ($remoteManifest->result->api->version !== CRAWL_MANIFEST_API_VERSION) {
-
-          $db->commit();
+        if ($remoteManifest->result->api->version !== API_VERSION) {
 
           continue;
         }
@@ -208,28 +215,24 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
         // Skip processing on host API not available
         if (!$remoteManifest->result->api->hosts) {
 
-          $db->commit();
+          continue;
+        }
+
+        // Skip processing on remote host URL does not match local condition
+        if ($remoteManifest->result->config->DEFAULT_HOST_URL_REGEXP !=
+            Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP)) {
 
           continue;
         }
 
-        // Skip processing on crawlUrlRegexp does not match CRAWL_URL_REGEXP condition
-        if ($remoteManifest->result->config->crawlUrlRegexp !== CRAWL_URL_REGEXP) {
-
-          $db->commit();
-
-          continue;
-        }
-
-        // Skip processing on host link does not match condition
-        if (false === preg_match(CRAWL_URL_REGEXP, $remoteManifest->result->api->hosts)) {
-
-          $db->commit();
+        // Skip processing on remote host link does not match local condition
+        if (false === preg_match(Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP),
+                                 $remoteManifest->result->api->hosts)) {
 
           continue;
         }
 
-        // Begin hosts collection
+        // Grab host URLs
         $curl = new Curl($remoteManifest->result->api->hosts, CRAWL_CURLOPT_USERAGENT);
 
         // Update curl stats
@@ -241,32 +244,23 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
         // Skip processing non 200 code
         if (200 != $curl->getCode()) {
 
-          $db->commit();
-
           continue;
         }
 
         // Skip processing without returned data
-        if (!$remoteManifestHosts = $curl->getContent()) {
-
-          $db->commit();
+        if (!$remoteManifest = $curl->getContent()) {
 
           continue;
         }
 
         // Skip processing on json encoding error
-        if (!$remoteManifestHosts = @json_decode($remoteManifestHosts)) {
-
-          $db->commit();
+        if (!$remoteManifestHosts = @json_decode($remoteManifest)) {
 
           continue;
         }
 
         // Skip processing on required fields missed
-        if (empty($remoteManifestHosts->status) ||
-            empty($remoteManifestHosts->result)) {
-
-          $db->commit();
+        if (empty($remoteManifestHosts->result)) {
 
           continue;
         }
@@ -275,64 +269,16 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
         foreach ($remoteManifestHosts->result as $remoteManifestHost) {
 
           // Skip processing on required fields missed
-          if (empty($remoteManifestHost->scheme) ||
-              empty($remoteManifestHost->name)) {
+          if (empty($remoteManifestHost->url)) {
 
             continue;
           }
 
-          $hostURL = $remoteManifestHost->scheme . '://' .
-                    $remoteManifestHost->name .
-                    (!empty($remoteManifestHost->port) ? ':' . $remoteManifestHost->port : false);
+          // Register new link
+          if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $remoteManifestHost->url)) {
 
-          // Validate formatted link
-          if (filter_var($hostURL, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $hostURL)) {
-
-            // Host not exists
-            if (!$db->getHostByCRC32URL(crc32($hostURL))) {
-
-              // Get robots.txt if exists
-              $curl = new Curl($hostURL . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-              // Update curl stats
-              $httpRequestsTotal++;
-              $httpRequestsSizeTotal += $curl->getSizeRequest();
-              $httpDownloadSizeTotal += $curl->getSizeDownload();
-              $httpRequestsTimeTotal += $curl->getTotalTime();
-
-              if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-                $hostRobots = $curl->getContent();
-              } else {
-                $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
-              }
-
-              $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-
-              $hostStatus    = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
-              $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
-              $hostMetaOnly  = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
-              $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-
-              $hostId = $db->addHost( $remoteManifestHosts->result->scheme,
-                                      $remoteManifestHosts->result->name,
-                                      $remoteManifestHosts->result->port,
-                                      crc32($hostURL),
-                                      time(),
-                                      null,
-                                      $hostPageLimit,
-                                      (string) $hostMetaOnly,
-                                      (string) $hostStatus,
-                                      (string) $hostNsfw,
-                                      $hostRobots,
-                                      $hostRobotsPostfix);
-
-              // Add web root host page to make host visible in the crawl queue
-              $db->addHostPage($hostId, crc32('/'), '/', time());
-
-              // Increase counters
-              $hostPagesAdded++;
-              $hostsAdded++;
-            }
+            $hostsAdded     += count($linkToDBresult->new->hostId);
+            $hostPagesAdded += count($linkToDBresult->new->hostPageId);
           }
         }
       }
@@ -354,7 +300,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
 }
 
 // Process pages crawl queue
-foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECONDS_OFFSET, time() - CRAWL_PAGE_HOME_SECONDS_OFFSET) as $queueHostPage) {
+foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET) as $queueHostPage) {
 
   $db->beginTransaction();
 
@@ -370,9 +316,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
     $httpRequestsTimeTotal += $curl->getTotalTime();
 
     // Update page rank
-    if (CRAWL_PAGE_RANK_UPDATE) {
-
-      // @TODO add common method
+    if (CRAWL_HOST_PAGE_RANK_UPDATE) {
 
       $hostPageRank = 0;
 
@@ -432,113 +376,32 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           $url = trim($match[1]);
 
           //Make relative links absolute
-          if (!parse_url($url, PHP_URL_HOST)) { // @TODO probably, case not in use
+          if (!parse_url($url, PHP_URL_HOST)) {
 
             $url = $queueHostPage->hostURL . '/' . trim(ltrim(str_replace(['./', '../'], '', $url), '/'), '.');
           }
 
-          // Validate formatted link
-          if (filter_var($url, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $url)) {
+          // Register new link
+          if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $url)) {
 
-            // Parse formatted link
-            $hostURL     = Parser::hostURL($url);
-            $hostPageURI = Parser::uri($url);
+            $hostsAdded     += count($linkToDBresult->new->hostId);
+            $hostPagesAdded += count($linkToDBresult->new->hostPageId);
 
-            // Host exists
-            if ($host = $db->getHostByCRC32URL(crc32($hostURL->string))) {
+            // Register referrer
+            if ($linkToDBresult->old->hostPageId) {
 
-              $hostStatus        = $host->status;
-              $hostNsfw          = $host->nsfw;
-              $hostPageLimit     = $host->crawlPageLimit;
-              $hostMetaOnly      = $host->crawlMetaOnly;
-              $hostId            = $host->hostId;
-              $hostRobots        = $host->robots;
-              $hostRobotsPostfix = $host->robotsPostfix;
+              foreach ($linkToDBresult->old->hostPageId as $hostPageIdTarget) {
 
-            // Register new host
-            } else {
-
-              // Get robots.txt if exists
-              $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-              // Update curl stats
-              $httpRequestsTotal++;
-              $httpRequestsSizeTotal += $curl->getSizeRequest();
-              $httpDownloadSizeTotal += $curl->getSizeDownload();
-              $httpRequestsTimeTotal += $curl->getTotalTime();
-
-              if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-                $hostRobots = $curl->getContent();
-              } else {
-                $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
-              }
-
-              $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-              $hostStatus        = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
-              $hostNsfw          = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
-              $hostMetaOnly      = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
-              $hostPageLimit     = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-
-              $hostId = $db->addHost( $hostURL->scheme,
-                                      $hostURL->name,
-                                      $hostURL->port,
-                                      crc32($hostURL->string),
-                                      time(),
-                                      null,
-                                      $hostPageLimit,
-                                      (string) $hostMetaOnly,
-                                      (string) $hostStatus,
-                                      (string) $hostNsfw,
-                                      $hostRobots,
-                                      $hostRobotsPostfix);
-
-              // Add web root host page to make host visible in the crawl queue
-              $db->addHostPage($hostId, crc32('/'), '/', time());
-
-              // Increase counters
-              $hostPagesAdded++;
-              $hostsAdded++;
-
-              // When page is root, skip next operations
-              if ($hostPageURI->string == '/') {
-
-                $db->commit();
-
-                continue;
+                $db->setHostPageToHostPage($queueHostPage->hostPageId, $hostPageIdTarget);
               }
             }
 
-            // Init robots parser
-            $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+            if ($linkToDBresult->new->hostPageId) {
 
-            // Save page info
-            if ($hostStatus && // host enabled
-                $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
-                $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
+              foreach ($linkToDBresult->new->hostPageId as $hostPageIdTarget) {
 
-                if ($hostPage = $db->findHostPageByCRC32URI($hostId, crc32($hostPageURI->string))) {
-
-                  $hostPageId = $hostPage->hostPageId;
-
-                } else {
-
-                  $hostPageId = $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
-
-                  // Apply referer meta description to the target page before indexing it
-                  if ($lastHostPageDescription = $db->getLastPageDescription($queueHostPage->hostPageId)) {
-
-                      $db->addHostPageDescription($hostPageId,
-                                                  $lastHostPageDescription->title,
-                                                  $lastHostPageDescription->description,
-                                                  $lastHostPageDescription->keywords,
-                                                  $hostMetaOnly ? null : ($lastHostPageDescription->data ? base64_encode($lastHostPageDescription->data) : null),
-                                                  time());
-                  }
-
-                  $hostPagesAdded++;
-                }
-
-                $db->addHostPageToHostPage($queueHostPage->hostPageId, $hostPageId);
+                $db->setHostPageToHostPage($queueHostPage->hostPageId, $hostPageIdTarget);
+              }
             }
           }
         }
@@ -567,7 +430,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
 
     // Check for MIME
     $hostPageInMime = false;
-    foreach ((array) explode(',', CRAWL_PAGE_MIME_INDEX) as $mime) {
+
+    foreach ((array) explode(',', Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGES_MIME', DEFAULT_HOST_PAGES_MIME)) as $mime) {
 
       // Ban page on MIME type not allowed in settings
       if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
@@ -622,8 +486,8 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           // Insert compressed snap data into the tmp storage
           if (true === $zip->addFromString('DATA', $content) &&
               true === $zip->addFromString('META', sprintf('MIME: %s',      Filter::mime($contentType)) . PHP_EOL .
-                                                    sprintf('SOURCE: %s',    Filter::url($queueHostPage->hostPageURL)) . PHP_EOL .
-                                                    sprintf('TIMESTAMP: %s', time()))) {
+                                                   sprintf('SOURCE: %s',    Filter::url($queueHostPage->hostPageURL)) . PHP_EOL .
+                                                   sprintf('TIMESTAMP: %s', time()))) {
           }
         }
 
@@ -802,18 +666,18 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       // Add queued page description if not exists
       $db->addHostPageDescription($queueHostPage->hostPageId,
                                   $metaTitle,
-                                  $metaDescription ? Filter::pageDescription($metaDescription) : null,
-                                  $metaKeywords    ? Filter::pageKeywords($metaKeywords) : null,
-                                  $content         ? ($queueHostPage->crawlMetaOnly ? null : base64_encode($content)) : null,
+                                  $metaDescription ?  Filter::pageDescription($metaDescription) : null,
+                                  $metaKeywords    ?  Filter::pageKeywords($metaKeywords) : null,
+                                  $content         ? (Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGES_DATA', DEFAULT_HOST_PAGES_DATA) ? base64_encode($content) : null) : null,
                                   time());
 
       // Collect page DOM elements data on enabled
-      if (CRAWL_HOST_PAGE_DOM_SELECTORS) {
+      if ($hostPageDomSelectors = Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) {
 
         // Begin selectors extraction
         $html = str_get_html($content);
 
-        foreach ((array) explode(',', CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
+        foreach ((array) explode(';', $hostPageDomSelectors) as $selector) {
 
           foreach($html->find($selector) as $element) {
 
@@ -822,12 +686,11 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
               $db->addHostPageDom($queueHostPage->hostPageId,
                                   time(),
                                   $selector,
-                                  trim(CRAWL_HOST_PAGE_DOM_STRIP_TAGS ? strip_tags(
-                                                                        preg_replace('/[\s]+/',
-                                                                                      ' ',
-                                                                                      str_replace(['<br />', '<br/>', '<br>', '</'],
-                                                                                                  [' ', ' ', ' ', ' </'],
-                                                                                                  $element->innertext))) : $element->innertext));
+                                  trim(Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGE_DOM_STRIP_TAGS', DEFAULT_HOST_PAGE_DOM_STRIP_TAGS) ? strip_tags( preg_replace('/[\s]+/',
+                                                                                                                                                                              ' ',
+                                                                                                                                                                              str_replace(['<br />', '<br/>', '<br>', '</'],
+                                                                                                                                                                                          [' ', ' ', ' ', ' </'],
+                                                                                                                                                                                          $element->innertext))) : $element->innertext));
             }
           }
         }
@@ -851,7 +714,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
       if (CRAWL_MANIFEST &&
           !empty($metaYggoManifestURL) &&
           filter_var($metaYggoManifestURL, FILTER_VALIDATE_URL) &&
-          preg_match(CRAWL_URL_REGEXP, $metaYggoManifestURL)) {
+          preg_match(DEFAULT_HOST_URL_REGEXP, $metaYggoManifestURL)) {
 
           $manifestsProcessed += $db->setHostSetting($queueHostPage->hostId, 'MANIFEST_URL', $metaYggoManifestURL);
       }
@@ -891,7 +754,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => Filter::pageKeywords($alt . ($title ? ',' . $title : '')),
           'data'        => null,
           'mime'        => null,
-          'ref'         => $src,
+          'href'        => $src,
         ];
       }
 
@@ -923,7 +786,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => null,
           'data'        => null,
           'mime'        => Filter::mime($type),
-          'ref'         => $src,
+          'href'        => $src,
         ];
       }
 
@@ -953,7 +816,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => null,
           'data'        => null,
           'mime'        => Filter::mime($type),
-          'ref'         => $src,
+          'href'        => $src,
         ];
       }
 
@@ -983,7 +846,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => null,
           'data'        => null,
           'mime'        => Filter::mime($type),
-          'ref'         => $src,
+          'href'        => $src,
         ];
       }
 
@@ -1002,7 +865,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => null,
           'data'        => null,
           'mime'        => null,
-          'ref'         => $src,
+          'href'        => $src,
         ];
       }
 
@@ -1021,7 +884,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => null,
           'data'        => null,
           'mime'        => null,
-          'ref'         => $href,
+          'href'        => $href,
         ];
       }
 
@@ -1084,115 +947,48 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_PAGE_LIMIT, time() - CRAWL_PAGE_SECOND
           'keywords'    => Filter::pageKeywords($title),
           'data'        => null,
           'mime'        => null,
-          'ref'         => $href,
+          'href'        => $href,
         ];
       }
 
       // Process links collected
       foreach ($links as $link) {
 
-        //Make relative links absolute
-        if (!parse_url($link['ref'], PHP_URL_HOST)) {
+        // Make relative links absolute
+        if (!parse_url($link['href'], PHP_URL_HOST)) {
 
-          $link['ref'] = $queueHostPage->hostURL . '/' . trim(ltrim(str_replace(['./', '../'], '', $link['ref']), '/'), '.');
+          $link['href'] = $queueHostPage->hostURL . '/' . trim(ltrim(str_replace(['./', '../'], '', $link['href']), '/'), '.');
         }
 
-        // Validate formatted link
-        if (filter_var($link['ref'], FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $link['ref'])) {
+        // Register new link
+        if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $link['href'])) {
 
-          // Parse formatted link
-          $hostURL     = Parser::hostURL($link['ref']);
-          $hostPageURI = Parser::uri($link['ref']);
+          // Increase new hosts counters
+          if ($linkToDBresult->new->hostId) {
 
-          // Host exists
-          if ($host = $db->getHostByCRC32URL(crc32($hostURL->string))) {
+            $hostsAdded += count($linkToDBresult->new->hostId);
+          }
 
-            $hostStatus        = $host->status;
-            $hostNsfw          = $host->nsfw;
-            $hostPageLimit     = $host->crawlPageLimit;
-            $hostMetaOnly      = $host->crawlMetaOnly;
-            $hostId            = $host->hostId;
-            $hostRobots        = $host->robots;
-            $hostRobotsPostfix = $host->robotsPostfix;
+          if ($linkToDBresult->new->hostPageId) {
 
-          // Register new host
-          } else {
+            $hostPagesAdded += count($linkToDBresult->new->hostPageId);
+          }
 
-            // Get robots.txt if exists
-            $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
+          // Register referrer
+          if ($linkToDBresult->old->hostPageId) {
 
-            // Update curl stats
-            $httpRequestsTotal++;
-            $httpRequestsSizeTotal += $curl->getSizeRequest();
-            $httpDownloadSizeTotal += $curl->getSizeDownload();
-            $httpRequestsTimeTotal += $curl->getTotalTime();
+            foreach ($linkToDBresult->old->hostPageId as $hostPageIdTarget) {
 
-            if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-              $hostRobots = $curl->getContent();
-            } else {
-              $hostRobots = CRAWL_ROBOTS_DEFAULT_RULES;
-            }
-
-            $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-            $hostStatus        = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
-            $hostNsfw          = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
-            $hostMetaOnly      = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
-            $hostPageLimit     = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-
-            $hostId = $db->addHost( $hostURL->scheme,
-                                    $hostURL->name,
-                                    $hostURL->port,
-                                    crc32($hostURL->string),
-                                    time(),
-                                    null,
-                                    $hostPageLimit,
-                                    (string) $hostMetaOnly,
-                                    (string) $hostStatus,
-                                    (string) $hostNsfw,
-                                    $hostRobots,
-                                    $hostRobotsPostfix);
-
-            // Add web root host page to make host visible in the crawl queue
-            $db->addHostPage($hostId, crc32('/'), '/', time());
-
-            // Increase counters
-            $hostPagesAdded++;
-            $hostsAdded++;
-
-            // When page is root, skip next operations
-            if ($hostPageURI->string == '/') {
-
-              continue;
+              $db->setHostPageToHostPage($queueHostPage->hostPageId, $hostPageIdTarget);
             }
           }
 
-          // Init robots parser
-          $robots = new Robots(($hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . ($hostRobotsPostfix ? (string) $hostRobotsPostfix : (string) CRAWL_ROBOTS_POSTFIX_RULES));
+          if ($linkToDBresult->new->hostPageId) {
 
-          // Save page info
-          if ($hostStatus && // host enabled
-              $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
-              $hostPageLimit > $db->getTotalHostPages($hostId)) { // pages quantity not reached host limit
+            foreach ($linkToDBresult->new->hostPageId as $hostPageIdTarget) {
 
-              if ($hostPage = $db->findHostPageByCRC32URI($hostId, crc32($hostPageURI->string))) {
-
-                $hostPageId = $hostPage->hostPageId;
-
-              } else {
-
-                $hostPageId = $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
-
-                $db->addHostPageDescription($hostPageId,
-                                            $link['title'],
-                                            $link['description'],
-                                            $link['keywords'],
-                                            $hostMetaOnly ? null : ($link['data'] ? base64_encode($link['data']) : null),
-                                            time());
-
-                $hostPagesAdded++;
-              }
-
-              $db->addHostPageToHostPage($queueHostPage->hostPageId, $hostPageId);
+              $db->setHostPageToHostPage($queueHostPage->hostPageId, $hostPageIdTarget);
+            }
           }
         }
       }
@@ -1236,7 +1032,7 @@ $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
 echo 'Hosts processed: ' . $hostsProcessed . PHP_EOL;
-echo 'Hosts added: ' . $hostsAdded . PHP_EOL . PHP_EOL;
+echo 'Hosts added: ' . $hostsAdded . PHP_EOL;
 
 echo 'Pages processed: ' . $hostPagesProcessed . PHP_EOL;
 echo 'Pages added: ' . $hostPagesAdded . PHP_EOL;

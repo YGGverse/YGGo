@@ -2,18 +2,48 @@
 
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
-require_once(__DIR__ . '/../library/curl.php');
-require_once(__DIR__ . '/../library/robots.php');
 require_once(__DIR__ . '/../library/filter.php');
-require_once(__DIR__ . '/../library/parser.php');
+require_once(__DIR__ . '/../library/url.php');
 require_once(__DIR__ . '/../library/mysql.php');
+require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
 
 // Connect Sphinx search server
-$sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+try {
+
+  $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 // Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+try {
+
+  $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
+
+// Connect memcached
+try {
+
+  $memcached = new Memcached();
+  $memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 // Filter request data
 $t = !empty($_GET['t']) ? Filter::url($_GET['t']) : 'text';
@@ -36,82 +66,34 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                                             sprintf(_('Over %s pages or enter the new one...'), $totalPages),
                                             sprintf(_('Over %s pages or enter the new one...'), $totalPages),
                                             ]);
+// Define alert message
+$alertMessages = [];
 
-// Crawl request
-if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
-
-  $db->beginTransaction();
+// Register new host/page on search request contains the link
+if (URL::is($q)) {
 
   try {
 
-    // Parse host info
-    if ($hostURL = Parser::hostURL($q)) {
+    $db->beginTransaction();
 
-      // Host exists
-      if ($host = $db->getHostByCRC32URL(crc32($hostURL->string))) {
+    if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $q)) {
 
-        $hostStatus        = $host->status;
-        $hostNsfw          = $host->nsfw;
-        $hostPageLimit     = $host->crawlPageLimit;
-        $hostMetaOnly      = $host->crawlMetaOnly;
-        $hostId            = $host->hostId;
-        $hostRobots        = $host->robots;
-        $hostRobotsPostfix = $host->robotsPostfix;
+      if (count($linkToDBresult->new->hostPageId)) {
 
-      // Register new host
+        $alertMessages[] = _('Link successfully registered in the crawl queue!');
+
       } else {
 
-        // Disk quota not reached
-        if (CRAWL_STOP_DISK_QUOTA_MB_LEFT < disk_free_space('/') / 1000000) {
+        if ($resultsTotal == 0) {
 
-          // Get robots.txt if exists
-          $curl = new Curl($hostURL->string . '/robots.txt', CRAWL_CURLOPT_USERAGENT);
-
-          if (200 == $curl->getCode() && false !== stripos($curl->getContent(), 'user-agent:')) {
-            $hostRobots = $curl->getContent();
-          } else {
-            $hostRobots = null;
-          }
-
-          $hostRobotsPostfix = CRAWL_ROBOTS_POSTFIX_RULES;
-
-          $hostStatus    = CRAWL_HOST_DEFAULT_STATUS ? 1 : 0;
-          $hostNsfw      = CRAWL_HOST_DEFAULT_NSFW ? 1 : 0;
-          $hostMetaOnly  = CRAWL_HOST_DEFAULT_META_ONLY ? 1 : 0;
-          $hostPageLimit = CRAWL_HOST_DEFAULT_PAGES_LIMIT;
-
-          $hostId = $db->addHost( $hostURL->scheme,
-                                  $hostURL->name,
-                                  $hostURL->port,
-                                  crc32($hostURL->string),
-                                  time(),
-                                  null,
-                                  $hostPageLimit,
-                                  (string) $hostMetaOnly,
-                                  (string) $hostStatus,
-                                  (string) $hostNsfw,
-                                  $hostRobots,
-                                  $hostRobotsPostfix);
-
-          // Add web root host page to make host visible in the crawl queue
-          $db->addHostPage($hostId, crc32('/'), '/', time());
+          $alertMessages[] = _('This link already registered in the crawl queue.');
         }
+
       }
 
-      // Parse page URI
-      $hostPageURI = Parser::uri($q);
+    } else {
 
-      // Init robots parser
-      $robots = new Robots((!$hostRobots ? (string) $hostRobots : (string) CRAWL_ROBOTS_DEFAULT_RULES) . PHP_EOL . (string) $hostRobotsPostfix);
-
-      // Save page info
-      if ($hostStatus && // host enabled
-          $robots->uriAllowed($hostPageURI->string) && // page allowed by robots.txt rules
-          $hostPageLimit > $db->getTotalHostPages($hostId) && // pages quantity not reached host limit
-         !$db->findHostPageByCRC32URI($hostId, crc32($hostPageURI->string))) {  // page not exists
-
-          $db->addHostPage($hostId, crc32($hostPageURI->string), $hostPageURI->string, time());
-      }
+      $alertMessages[] = _('Link address not supported on this host!');
     }
 
     $db->commit();
@@ -122,6 +104,12 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
 
     $db->rollBack();
   }
+}
+
+// Count pages in the crawl queue
+if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET)) {
+
+  $alertMessages[] = sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal);
 }
 
 ?>
@@ -313,8 +301,8 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       <?php if ($results) { ?>
         <div>
           <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
-          <?php if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_PAGE_SECONDS_OFFSET, time() - CRAWL_PAGE_HOME_SECONDS_OFFSET)) { ?>
-            <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
+          <?php foreach ($alertMessages as $alertMessage) { ?>
+            <span><?php echo $alertMessage ?></span>
           <?php } ?>
         </div>
         <?php foreach ($results as $result) { ?>
@@ -352,7 +340,7 @@ if (filter_var($q, FILTER_VALIDATE_URL) && preg_match(CRAWL_URL_REGEXP, $q)) {
       <?php } else { ?>
         <div style="text-align:center">
           <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
-          <?php if ($q && $queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_PAGE_SECONDS_OFFSET, time() - CRAWL_PAGE_HOME_SECONDS_OFFSET)) { ?>
+          <?php if ($q && $queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET)) { ?>
             <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
           <?php } ?>
         </div>

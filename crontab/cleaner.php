@@ -28,8 +28,11 @@ require_once(__DIR__ . '/../library/mysql.php');
 // Connect database
 $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
 
+// Reset banned hosts
+$hostsBansRemoved = $db->resetBannedHostPages(time() - CLEAN_HOST_PAGE_BAN_SECONDS_OFFSET);
+
 // Reset banned pages
-$hostPagesBansRemoved = $db->resetBannedHostPages(time() - CLEAN_PAGE_BAN_SECONDS_OFFSET);
+$hostPagesBansRemoved = $db->resetBannedHosts(time() - CLEAN_HOST_BAN_SECONDS_OFFSET);
 
 // Optimize tables
 if (CLEAN_DB_TABLES_OPTIMIZATION) {
@@ -45,6 +48,7 @@ if (CLEAN_DB_TABLES_OPTIMIZATION) {
 }
 
 // Debug
+echo 'Host bans removed: ' . $hostsBansRemoved . PHP_EOL;
 echo 'Host page bans removed: ' . $hostPagesBansRemoved . PHP_EOL;
 
 echo 'Total time: ' . microtime(true) - $timeStart . PHP_EOL . PHP_EOL;

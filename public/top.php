@@ -7,10 +7,28 @@ require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
 
 // Connect Sphinx search server
-$sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+try {
+
+  $sphinx = new SphinxQL(SPHINX_HOST, SPHINX_PORT);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 // Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+try {
+
+  $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 // Define page basics
 $totalPages = $sphinx->getHostPagesTotal();
@@ -271,7 +289,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       <?php } else { ?>
         <div style="text-align:center">
           <span><?php echo _('Not found') ?></span>
-          <?php if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_PAGE_SECONDS_OFFSET, time() - CRAWL_PAGE_HOME_SECONDS_OFFSET)) { ?>
+          <?php if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_PAGE_SECONDS_OFFSET)) { ?>
             <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
           <?php } ?>
         </div>

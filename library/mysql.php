@@ -60,7 +60,7 @@ class MySQL {
     return $query->fetch();
   }
 
-  public function getHostByCRC32URL(int $crc32url) {
+  public function findHostByCRC32URL(int $crc32url) {
 
     $query = $this->_db->prepare('SELECT * FROM `host` WHERE `crc32url` = ? LIMIT 1');
 
@@ -78,87 +78,74 @@ class MySQL {
     return $query->fetch()->total;
   }
 
-  public function addHost(string $scheme,
-                          string $name,
-                          mixed $port,
-                          int $crc32url,
-                          int $timeAdded,
-                          mixed $timeUpdated,
-                          int $crawlPageLimit,
-                          string $crawlMetaOnly,
-                          string $status,
-                          string $nsfw,
-                          mixed $robots,
-                          mixed $robotsPostfix) {
+  public function addHost(string $scheme, string $name, mixed $port, int $crc32url, int $timeAdded) {
 
     $query = $this->_db->prepare('INSERT INTO `host` (`scheme`,
                                                       `name`,
                                                       `port`,
                                                       `crc32url`,
-                                                      `timeAdded`,
-                                                      `timeUpdated`,
-                                                      `crawlPageLimit`,
-                                                      `crawlMetaOnly`,
-                                                      `status`,
-                                                      `nsfw`,
-                                                      `robots`,
-                                                      `robotsPostfix`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                                                      `timeAdded`) VALUES (?, ?, ?, ?, ?)');
 
-    $query->execute([ $scheme,
-                      $name,
-                      $port,
-                      $crc32url,
-                      $timeAdded,
-                      $timeUpdated,
-                      $crawlPageLimit,
-                      $crawlMetaOnly,
-                      $status,
-                      $nsfw,
-                      $robots,
-                      $robotsPostfix]);
+    $query->execute([$scheme, $name, $port, $crc32url, $timeAdded]);
 
     return $this->_db->lastInsertId();
   }
 
-  public function updateHostRobots(int $hostId, mixed $robots, int $timeUpdated) {
+  // Host settings
+  public function findHostSettingValue(int $hostId, string $key) {
 
-    $query = $this->_db->prepare('UPDATE `host` SET `robots` = ?, `timeUpdated` = ? WHERE `hostId` = ? LIMIT 1');
+    $query = $this->_db->prepare('SELECT `value` FROM `hostSetting` WHERE `hostId` = ? AND `key` = ? LIMIT 1');
 
-    $query->execute([$robots, $timeUpdated, $hostId]);
+    $query->execute([$hostId, $key]);
+
+    return $query->rowCount() ? json_decode($query->fetch()->value) : false;
+  }
+
+  public function findHostSetting(int $hostId, string $key) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostSetting` WHERE `hostId` = ? AND `key` = ? LIMIT 1');
+
+    $query->execute([$hostId, $key]);
+
+    return $query->fetch();
+  }
+
+  public function addHostSetting(int $hostId, string $key, mixed $value, int $timeAdded) {
+
+    $query = $this->_db->prepare('INSERT INTO `hostSetting` (`hostId`, `key`, `value`, `timeAdded`) VALUES (?, ?, ?, ?)');
+
+    $value = json_encode($value);
+
+    $query->execute(
+      [
+        $hostId,
+        $key,
+        $value,
+        $timeAdded
+      ]
+    );
 
     return $query->rowCount();
   }
 
-  // Host settings
-  public function getHostSetting(int $hostId, mixed $key) {
+  public function updateHostSetting(int $hostSettingId, mixed $value, int $timeUpdated) {
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ? AND `key` = ? LIMIT 1');
+    $query = $this->_db->query('UPDATE `hostSetting` SET    `value`       = ?,
+                                                            `timeUpdated` = ?
 
-    $query->execute([$hostId, $key]);
+                                                      WHERE `hostSettingId` = ?
 
-    return $query->rowCount() ? $query->fetch()->value : false;
-  }
+                                                      LIMIT 1');
 
-  public function getHostSettings(int $hostId) {
+    $value = json_encode($value);
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPage` WHERE `hostId` = ?');
-
-    $query->execute([$hostId]);
-
-    return $query->fetchAll();
-  }
-
-  public function setHostSetting(int $hostId, mixed $key, mixed $value, int $timeAdded = 0, int $timeUpdated = 0) {
-
-    $query = $this->_db->query('INSERT INTO `hostSetting` SET `hostId`   = ?
-                                                              `key`      = ?,
-                                                              `value`    = ?,
-                                                              `timeAdded = ?
-
-                                                          ON DUPLICATE KEY UPDATE `value`       = ?,
-                                                                                  `timeUpdated` = ?');
-
-    $query->execute([$hostId, $key, $value, ($timeAdded > 0 ? $timeAdded : time()), $value, ($timeUpdated > 0 ? $timeUpdated : time())]);
+    $query->execute(
+      [
+        $value,
+        $timeUpdated,
+        $hostSettingId
+      ]
+    );
 
     return $query->rowCount();
   }
@@ -212,20 +199,16 @@ class MySQL {
   public function getTopHostPages(int $limit = 100) {
 
     // Get ID (to prevent memory over usage)
-    $query = $this->_db->query("SELECT `hostPage`.`hostPageId`
+    $query = $this->_db->query("SELECT `hostPageId` FROM `hostPage`
 
-                                        FROM `hostPage`
-                                        JOIN `host` ON (`hostPage`.`hostId` = `host`.`hostId`)
+                                                    WHERE `httpCode`   = 200
+                                                    AND   `rank`       > 0
+                                                    AND   `timeBanned` IS NULL
+                                                    AND   `mime`       IS NOT NULL
 
-                                        WHERE `host`.`status`         = '1'
-                                        AND   `hostPage`.`httpCode`   = 200
-                                        AND   `hostPage`.`rank`       > 0
-                                        AND   `hostPage`.`timeBanned` IS NULL
-                                        AND   `hostPage`.`mime`       IS NOT NULL
+                                                    ORDER BY `rank` DESC
 
-                                        ORDER BY `rank` DESC
-
-                                        LIMIT " . (int) $limit);
+                                                    LIMIT " . (int) $limit);
 
     // Get required page details
     foreach ($query->fetchAll() as $top) {
@@ -387,12 +370,11 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function addHostPageToHostPage(int $hostPageIdSource, int $hostPageIdTarget) {
+  public function setHostPageToHostPage(int $hostPageIdSource, int $hostPageIdTarget) {
 
     $query = $this->_db->prepare('INSERT IGNORE `hostPageToHostPage` (`hostPageIdSource`, `hostPageIdTarget`) VALUES (?, ?)');
 
     $query->execute([$hostPageIdSource, $hostPageIdTarget]);
-
   }
 
   public function deleteHostPageToHostPage(int $hostPageId) {
@@ -420,6 +402,15 @@ class MySQL {
     $query->execute([$hostPageIdTarget]);
 
     return $query->fetchAll();
+  }
+
+  public function getHostPageToHostPage(int $hostPageIdSource, int $hostPageIdTarget) {
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageToHostPage` WHERE `hostPageIdSource` = ? AND `hostPageIdTarget` = ? LIMIT 1');
+
+    $query->execute([$hostPageIdSource, $hostPageIdTarget]);
+
+    return $query->fetch();
   }
 
   public function addHostPageSnap(int $hostPageId, int $timeAdded) {
@@ -560,62 +551,46 @@ class MySQL {
 
     $query = $this->_db->prepare('UPDATE `hostPage` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
 
-    $query->execute();
+    $query->execute([$timeOffset]);
+
+    return $query->rowCount();
+  }
+
+  public function resetBannedHosts(int $timeOffset) {
+
+    $query = $this->_db->prepare('UPDATE `host` SET `timeBanned` = NULL WHERE `timeBanned` IS NOT NULL AND `timeBanned` < ' . (int) $timeOffset);
+
+    $query->execute([$timeOffset]);
 
     return $query->rowCount();
   }
 
   // Crawler tools
-  public function getHostPageCrawlQueueTotal(int $hostPageTimeFrom, int $hostPageHomeTimeFrom) {
+  public function getHostPageCrawlQueueTotal(int $timeFrom) {
 
-    $query = $this->_db->prepare("SELECT COUNT(*) AS `total`
+    $query = $this->_db->prepare("SELECT COUNT(*) AS `total` FROM  `hostPage`
 
-                                          FROM `hostPage`
-                                          JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+                                                             WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ?) AND `hostPage`.`timeBanned` IS NULL");
 
-                                          WHERE (
-                                            `hostPage`.`timeUpdated` IS NULL OR
-                                            `hostPage`.`timeUpdated` < ? OR (
-                                              `hostPage`.`uri` = '/' AND
-                                              `hostPage`.`timeUpdated` < ?
-                                              )
-                                            )
-
-                                          AND  `host`.`status` <> ?
-                                          AND  `hostPage`.`timeBanned` IS NULL");
-
-    $query->execute([$hostPageTimeFrom, $hostPageHomeTimeFrom, 0]);
+    $query->execute([$timeFrom]);
 
     return $query->fetch()->total;
   }
 
-  public function getHostPageCrawlQueue(int $limit, int $hostPageTimeFrom, int $hostPageHomeTimeFrom) {
+  public function getHostPageCrawlQueue(int $limit, int $timeFrom) {
 
     $result = [];
 
     // Get ID (to prevent memory over usage)
-    $query = $this->_db->prepare("SELECT `hostPage`.`hostPageId`
+    $query = $this->_db->prepare("SELECT `hostPageId` FROM `hostPage`
 
-                                         FROM `hostPage`
-                                         JOIN `host` ON (`host`.`hostId` = `hostPage`.`hostId`)
+                                                      WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ?) AND `timeBanned` IS NULL
 
-                                         WHERE (
-                                          `hostPage`.`timeUpdated` IS NULL OR
-                                          `hostPage`.`timeUpdated` < ?
-                                          OR (
-                                            `hostPage`.`uri` = '/' AND
-                                            `hostPage`.`timeUpdated` < ?
-                                            )
-                                          )
+                                                      ORDER BY LENGTH(`uri`) ASC, RAND()
 
-                                         AND  `host`.`status` <> ?
-                                         AND  `hostPage`.`timeBanned` IS NULL
+                                                      LIMIT " . (int) $limit);
 
-                                         ORDER BY LENGTH(`hostPage`.`uri`) ASC, RAND()
-
-                                         LIMIT " . (int) $limit);
-
-    $query->execute([$hostPageTimeFrom, $hostPageHomeTimeFrom, 0]);
+    $query->execute([$timeFrom]);
 
     // Get required page details
     foreach ($query->fetchAll() as $queue) {
@@ -627,10 +602,6 @@ class MySQL {
                                             `host`.`scheme`,
                                             `host`.`name`,
                                             `host`.`port`,
-                                            `host`.`crawlPageLimit`,
-                                            `host`.`crawlMetaOnly`,
-                                            `host`.`robots`,
-                                            `host`.`robotsPostfix`,
 
                                             IF (`host`.`port` IS NOT NULL,
                                                 CONCAT(`host`.`scheme`, '://', `host`.`name`, ':', `host`.`port`),
@@ -676,13 +647,13 @@ class MySQL {
 
                                           FROM `host`
 
-                                          WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ? ) AND `status` <> ?
+                                          WHERE (`timeUpdated` IS NULL OR `timeUpdated` < ?) AND `timeBanned` IS NULL
 
                                           ORDER BY RAND()
 
                                           LIMIT " . (int) $limit);
 
-    $query->execute([$timeFrom, 0]);
+    $query->execute([$timeFrom]);
 
     // Get required page details
     foreach ($query->fetchAll() as $host) {

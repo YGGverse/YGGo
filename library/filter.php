@@ -2,11 +2,6 @@
 
 class Filter {
 
-  static public function string(mixed $data) {
-
-    return (string) $data;
-  }
-
   static public function url(mixed $url) {
 
     $url = (string) $url;
@@ -52,29 +47,6 @@ class Filter {
     $keywords = trim($keywords);
 
     return $keywords;
-  }
-
-  static public function pageData(mixed $data) {
-
-    $data = (string) $data;
-
-    $filterDataPre = [
-      '/<script.*?\/script>/s',
-      '/<style.*?\/style>/s'
-    ];
-
-    $filterDataPost = [
-      '/[\s]{2,}/',
-    ];
-
-    $data = preg_replace($filterDataPre, ' ', $data);
-
-    $data = html_entity_decode($data);
-    $data = strip_tags($data);
-
-    $data = preg_replace($filterDataPost, ' ', $data);
-
-    return $data;
   }
 
   static public function searchQuery(string $query, string $mode = 'default') {

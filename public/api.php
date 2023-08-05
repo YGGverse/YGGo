@@ -1,14 +1,11 @@
 <?php
 
 // Current version
-define('API_VERSION', 0.12);
+define('API_VERSION', 0.13);
 
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
-require_once(__DIR__ . '/../library/curl.php');
-require_once(__DIR__ . '/../library/robots.php');
 require_once(__DIR__ . '/../library/filter.php');
-require_once(__DIR__ . '/../library/parser.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
 
@@ -107,17 +104,9 @@ if (API_ENABLED) {
           'status' => true,
           'result' => [
             'config' => [
-              'websiteDomain'                  => WEBSITE_DOMAIN,
-              'crawlUrlRegexp'                 => CRAWL_URL_REGEXP,
-              'crawlHostDefaultNsfw'           => CRAWL_HOST_DEFAULT_NSFW,
-              'crawlHostDefaultPagesLimit'     => CRAWL_HOST_DEFAULT_PAGES_LIMIT,
-              'crawlHostDefaultStatus'         => CRAWL_HOST_DEFAULT_STATUS,
-              'crawlHostDefaultMetaOnly'       => CRAWL_HOST_DEFAULT_META_ONLY,
-              'crawlHostPageSecondsOffset'     => CRAWL_PAGE_SECONDS_OFFSET,
-              'crawlHostPageHomeSecondsOffset' => CRAWL_PAGE_HOME_SECONDS_OFFSET,
-              'crawlHostPageMimeIndex'         => CRAWL_PAGE_MIME_INDEX,
-              'crawlRobotsDefaultRules'        => CRAWL_ROBOTS_DEFAULT_RULES,
-              'crawlRobotsPostfixRules'        => CRAWL_ROBOTS_POSTFIX_RULES,
+              'WEBSITE_DOMAIN'          => WEBSITE_DOMAIN,
+              'DEFAULT_HOST_URL_REGEXP' => DEFAULT_HOST_URL_REGEXP,
+              // @TODO
             ],
             'api' => [
               'version'  => (string) API_VERSION,

@@ -390,7 +390,7 @@ if (!empty($argv[1])) {
 
             $selectors = [];
 
-            foreach ((array) explode(';', !empty($argv[3]) ? $argv[3] : (string) CRAWL_HOST_PAGE_DOM_SELECTORS) as $selector) {
+            foreach ((array) explode(';', !empty($argv[3]) ? $argv[3] : (string) $db->getHostSetting($hostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) as $selector) {
 
               if (!empty($selector)) {
 
@@ -428,12 +428,11 @@ if (!empty($argv[1])) {
                             $db->addHostPageDom($hostPage->hostPageId,
                                                 time(),
                                                 $selector,
-                                                trim(CRAWL_HOST_PAGE_DOM_STRIP_TAGS ? strip_tags(
-                                                                                      preg_replace('/[\s]+/',
-                                                                                                    ' ',
-                                                                                                    str_replace(['<br />', '<br/>', '<br>', '</'],
-                                                                                                                [' ', ' ', ' ', ' </'],
-                                                                                                                $element->innertext))) : $element->innertext));
+                                                trim((bool) $db->getHostSetting($hostPage->hostId, 'PAGES_DOM_STRIP_TAGS', DEFAULT_HOST_PAGES_DOM_STRIP_TAGS) ? strip_tags(preg_replace('/[\s]+/',
+                                                                                                                                                                                        ' ',
+                                                                                                                                                                                        str_replace(['<br />', '<br/>', '<br>', '</'],
+                                                                                                                                                                                                    [' ', ' ', ' ', ' </'],
+                                                                                                                                                                                                    $element->innertext))) : $element->innertext));
                           }
                         }
                       }
@@ -447,7 +446,7 @@ if (!empty($argv[1])) {
               exit;
             }
 
-            CLI::danger(_('CRAWL_HOST_PAGE_DOM_SELECTORS not provided in the configuration file'));
+            CLI::danger(_('DEFAULT_HOST_PAGES_DOM_SELECTORS not provided in the configuration file'));
             CLI::break();
             exit;
 

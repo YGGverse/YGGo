@@ -86,7 +86,7 @@ GET action=hosts - required
 
 ##### Application manifest
 
-Returns node information for other nodes that have same `CRAWL_MANIFEST_API_VERSION` and `CRAWL_URL_REGEXP` conditions.
+Returns node information for other nodes that have same `CRAWL_MANIFEST_API_VERSION` and `DEFAULT_HOST_URL_REGEXP` conditions.
 
 Could be enabled or disabled by `API_MANIFEST_ENABLED` option
 
