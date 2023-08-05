@@ -223,6 +223,11 @@ _*CLI interface still under construction, use it for your own risk!_
   [x] crontab
   * [x] crawl
   * [x] clean
+* [ ] hostSetting
+  + [ ] get
+  + [ ] set
+  + [ ] delete
+  + [ ] flush
 * [x] hostPage
   + [x] rank
     + [x] reindex
