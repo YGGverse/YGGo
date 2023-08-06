@@ -2,7 +2,7 @@
 
 _Проект присвячується захисникам міста Бахмут_
 
-Written by inspiration to explore [Yggdrasil](https://yggdrasil-network.github.io) ecosystem, because of last [YaCy](https://yacy.net/) node there was discontinued.
+Written by inspiration to explore [Yggdrasil](https://github.com/yggdrasil-network) ecosystem, because of last [YaCy](https://yacy.net/) node there was discontinued.
 This engine also could be useful for crawling regular websites, small business resources, local networks.
 
 The project goal - simple interface, clear architecture and lightweight server requirement.
@@ -207,6 +207,11 @@ GET m=SphinxQL
   + [ ] Atom
 * [ ] Palette image index / filter
 * [ ] Crawl queue balancer, that depends of CPU available
+* [x] Networks integration
+  + [x] [yggdrasil](https://github.com/yggdrasil-network)
+    + [x] [YGGstate](https://github.com/YGGverse/YGGstate) (unlimited nodes)
+      + [x] DB
+      + [ ] API
 
 ##### Cleaner
 
@@ -272,6 +277,7 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 #### See also
 
 * [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
+* [YGGstate - Yggdrasil Network Analytics](https://github.com/YGGverse/YGGstate)
 
 #### Feedback
 

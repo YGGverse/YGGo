@@ -31,6 +31,7 @@ require_once(__DIR__ . '/../library/url.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/helper.php');
+require_once(__DIR__ . '/../library/yggstate.php');
 require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
 
 // Check disk quota
@@ -82,6 +83,49 @@ try {
   var_dump($e);
 
   exit;
+}
+
+// Check YGGstate connections to discover new hosts
+if (CRAWL_YGGSTATE) {
+
+  foreach (json_decode(CRAWL_YGGSTATE) as $server => $nodes) {
+
+    foreach ($nodes as $i => $node) {
+
+      switch ($server) {
+
+        case 'db':
+
+          try {
+
+            if (!$memcached->get(sprintf('Crontab.crawler.YGGstate.%s.%s.timeout', $server, $i))) {
+
+              $yggStateDB = new YGGstate($node->host, $node->port, $node->database, $node->username, $node->password);
+
+              foreach ($yggStatePeers = $yggStateDB->getPeersByMinLastUptime($node->peer_min_last_uptime) as $yggStatePeer) {
+
+                // Register new host
+                if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, sprintf('http://[%s]/', $yggStatePeer->address))) {
+
+                  $hostsAdded     += count($linkToDBresult->new->hostId);
+                  $hostPagesAdded += count($linkToDBresult->new->hostPageId);
+                }
+              }
+
+              $memcached->set(sprintf('Crontab.crawler.YGGstate.%s.%s.timeout', $server, $i), true, time() + $node->timeout);
+            }
+
+          } catch(Exception $e) {
+
+            var_dump($e);
+
+            continue 2;
+          }
+
+        break;
+      }
+    }
+  }
 }
 
 // Process hosts crawl queue

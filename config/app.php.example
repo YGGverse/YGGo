@@ -320,6 +320,39 @@ define('CRAWL_MANIFEST', true);
  */
 define('CRAWL_MANIFEST_API_VERSION', 0.13);
 
+
+// Integrations
+
+/*
+ * Crawl YGGstate for peers to descover new hosts
+ *
+ * Yggdrasil networks only
+ *
+ * Read more:
+ * https://github.com/YGGverse/YGGstate
+ *
+ */
+define('CRAWL_YGGSTATE', json_encode((object)
+        [
+                'db' =>
+                [
+                        [
+                                // Conditions
+                                'peer_min_last_uptime' => 60*60*24, // skip short-term connections, seconds
+                                'timeout'              => 60*60*24, // these calls running in crontab/crawler qeue, prevent remote server abuse
+
+                                // Connection
+                                'port'     => 3306,
+                                'host'     => '',
+                                'database' => '',
+                                'username' => '',
+                                'password' => '',
+                        ],
+                        // ...
+                ],
+        ])
+);
+
 /*
  * Remove host ban after following time
  *
