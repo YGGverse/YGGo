@@ -210,7 +210,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
         }
 
         // Skip processing on API version not compatible
-        if ($remoteManifest->result->api->version !== API_VERSION) {
+        if ($remoteManifest->result->api->version !== CRAWL_MANIFEST_API_VERSION) {
 
           continue;
         }
