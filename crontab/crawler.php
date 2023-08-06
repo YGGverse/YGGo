@@ -18,6 +18,9 @@ if (false === sem_acquire($semaphore, true)) {
   exit;
 }
 
+// Begin debug output
+echo '-- ' . date('c') . ' --' . PHP_EOL . PHP_EOL;
+
 // Load system dependencies
 require_once(__DIR__ . '/../config/app.php');
 require_once(__DIR__ . '/../library/ftp.php');
@@ -553,24 +556,38 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
 
                   if (!$snapMimeValid) continue 2;
 
-                  // Copy tmp snap file to the permanent storage
-                  $ftp = new Ftp();
+                  $attempt = 1;
 
-                  if ($ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
+                  do {
 
-                    $ftp->mkdir($hostPageSnapPath, true);
+                    // Copy tmp snap file to the permanent storage
+                    $ftp = new Ftp();
 
-                    if ($ftp->copy($hostPageSnapFilenameTmp, $hostPageSnapFile)) {
+                    // Remote host connected well...
+                    if ($connection = $ftp->connect($storage->host, $storage->port, $storage->username, $storage->password, $storage->directory, $storage->timeout, $storage->passive)) {
 
-                      // Register storage name
-                      if ($db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time())) {
+                      $ftp->mkdir($hostPageSnapPath, true);
 
-                        $snapFilesExists = true;
+                      if ($ftp->copy($hostPageSnapFilenameTmp, $hostPageSnapFile)) {
+
+                        // Register storage name
+                        if ($db->addHostPageSnapStorage($hostPageSnapId, $crc32name, time())) {
+
+                          $snapFilesExists = true;
+                        }
                       }
+
+                      $ftp->close();
+
+                    // On remote connection lost, repeat attempt after 60 seconds...
+                    } else {
+
+                      echo sprintf(_('[attempt: %s] wait for remote storage %s id %s connection...'), $attempt++, $node, $location) . PHP_EOL;
+
+                      sleep(60);
                     }
 
-                    $ftp->close();
-                  }
+                  } while ($connection === false);
 
                 break;
               }
@@ -1035,9 +1052,7 @@ $executionTimeTotal    = microtime(true) - $timeStart;
 $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
-echo PHP_EOL;
-
-echo '-- ' . date('c') . ' --' . PHP_EOL . PHP_EOL;
+echo 'Crawl queue completed:' . PHP_EOL;
 
 echo '[hosts]' . PHP_EOL;
 echo '  processed: ' . $hostsProcessed . PHP_EOL;
