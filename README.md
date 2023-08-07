@@ -38,7 +38,11 @@ sphinxsearch
 #### Installation
 
 * `git clone https://github.com/YGGverse/YGGo.git`
+* `cd YGGo`
 * `composer install`
+
+### Setup
+* Server configuration `/example/environment`
 * The web root dir is `/src/public`
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
