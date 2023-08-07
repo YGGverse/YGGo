@@ -1,5 +1,8 @@
 <?php
 
+// @TODO deprecated, replace by the common library
+// https://github.com/YGGverse/parser-php
+
 class URL {
 
   public static function is(string $url) : bool {
