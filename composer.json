@@ -1,0 +1,16 @@
+{
+    "name": "yggverse/yggo",
+    "description": "YGGo! Distributed Web Search Engine",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "yggverse/parser": ">=0.1.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Yggverse\\Yggo\\": "src/"
+        }
+    },
+    "minimum-stability": "alpha"
+}

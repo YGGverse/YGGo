@@ -1,7 +1,8 @@
 <?php
 
-require_once(__DIR__ . '/../library/url.php');
 require_once(__DIR__ . '/../library/robots.php');
+
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class Helper {
 
@@ -70,7 +71,7 @@ class Helper {
     }
 
     // Validate link URL
-    if (!$link = URL::parse($link)) {
+    if (!$link = Yggverse\Parser\Url::parse($link)) {
 
       return false;
     }

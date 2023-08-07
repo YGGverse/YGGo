@@ -1,7 +1,9 @@
-.vscode
+/.vscode/
+/vendor/
+
+/src/config/app.php
+
+/database/yggo.mwb.bak
+
 .ftpignore
-
-config/app.php
-config/sphinx.conf
-
-database/yggo.mwb.bak
+composer.lock

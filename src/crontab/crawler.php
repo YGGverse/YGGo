@@ -27,12 +27,13 @@ require_once(__DIR__ . '/../library/ftp.php');
 require_once(__DIR__ . '/../library/curl.php');
 require_once(__DIR__ . '/../library/robots.php');
 require_once(__DIR__ . '/../library/sitemap.php');
-require_once(__DIR__ . '/../library/url.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/yggstate.php');
 require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
+
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Check disk quota
 if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
@@ -190,7 +191,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
           $loc = sprintf('%s/%s', $queueHost->url, trim(str_ireplace($queueHost->url, '', $loc), '/'));
 
           // Validate link
-          if (!$link = URL::parse($loc)) {
+          if (!$link = Yggverse\Parser\Url::parse($loc)) {
 
             continue;
           }

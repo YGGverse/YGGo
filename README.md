@@ -37,12 +37,14 @@ sphinxsearch
 
 #### Installation
 
-* The web root dir is `/public`
+* `git clone https://github.com/YGGverse/YGGo.git`
+* `composer install`
+* The web root dir is `/src/public`
 * Deploy the database using [MySQL Workbench](https://www.mysql.com/products/workbench) project presented in the `/database` folder
 * Install [Sphinx Search Server](https://sphinxsearch.com)
 * Configuration examples presented at `/config` folder
-* Make sure `/storage/cache`, `/storage/tmp`, `/storage/snap` folders are writable
-* Set up the `/crontab` by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
+* Make sure `/src/storage/cache`, `/src/storage/tmp`, `/src/storage/snap` folders are writable
+* Set up the `/src/crontab` by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
 
 #### JSON API
 

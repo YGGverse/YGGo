@@ -1,0 +1,7 @@
+@reboot searchd
+@reboot indexer --all --rotate
+
+30 0 * * * indexer --all --rotate
+
+0 0 * * * /usr/bin/php /{PATH}/YGGo/src/crontab/cleaner.php >> /{PATH}/cleaner.log 2>&1
+* 1-23 * * * /usr/bin/php /{PATH}/YGGo/src/crontab/crawler.php >> /{PATH}/crawler.log 2>&1
