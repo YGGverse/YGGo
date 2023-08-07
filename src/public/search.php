@@ -6,6 +6,7 @@ require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Connect Sphinx search server
 try {
@@ -69,7 +70,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
 $alertMessages = [];
 
 // Register new host/page on search request contains the link
-if (URL::is($q)) {
+if (Yggverse\Parser\Url::is($q)) {
 
   try {
 

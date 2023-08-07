@@ -1,7 +1,6 @@
 <?php
 
 require_once(__DIR__ . '/../library/robots.php');
-
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 class Helper {
