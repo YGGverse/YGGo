@@ -66,10 +66,10 @@ class YGGstate {
     $query = $this->_db->prepare('SELECT * FROM `peer`
 
                                            HAVING (
-                                             SELECT `peerRemote`.`uptime`
-                                             FROM `peerRemote`
-                                             WHERE `peerRemote`.`peerId` = `peer`.`peerId`
-                                             ORDER BY `timeAdded` DESC
+                                             SELECT   `peerSession`.`uptime`
+                                             FROM     `peerSession`
+                                             WHERE    `peerSession`.`peerId` = `peer`.`peerId`
+                                             ORDER BY `peerSession`.`peerSessionId` DESC
                                              LIMIT 1
                                            ) >= ?');
 
