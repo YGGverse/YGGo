@@ -235,8 +235,9 @@ _*CLI interface still under construction, use it for your own risk!_
   * [x] crawl
   * [x] clean
 * [ ] hostSetting
-  + [ ] get
-  + [ ] set
+  + [x] get
+  + [x] set
+  + [ ] list
   + [ ] delete
   + [ ] flush
 * [x] hostPage

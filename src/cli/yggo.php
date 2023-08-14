@@ -101,6 +101,96 @@ if (!empty($argv[1])) {
       }
 
     break;
+    case 'hostSetting':
+
+        if (!empty($argv[2])) {
+
+          switch ($argv[2]) {
+
+            case 'set':
+
+              if (!empty($argv[3]) && !empty($argv[4]) && !empty($argv[5])) {
+
+                switch ($argv[4]) {
+
+                  case 'PAGES_LIMIT':
+
+                    if ($hostSetting = $db->findHostSetting((int) $argv[3], 'PAGES_LIMIT')) {
+
+                      if ($db->updateHostSetting($hostSetting->hostSettingId, (int) $argv[5], time())) {
+
+                        CLI::warning(sprintf(_('%s for hostId %s updated:'), $argv[4], $argv[3]));
+                        CLI::warning(
+                          sprintf(
+                            '%s > %s',
+                            $hostSetting->value,
+                            $argv[5],
+                          )
+                        );
+
+                        exit;
+                      }
+
+                    } else {
+
+                      if ($db->addHostSetting((int) $argv[3], 'PAGES_LIMIT', (int) $argv[5], time())) {
+
+                        CLI::warning(sprintf(_('%s for hostId %s added:'), $argv[4], $argv[3]));
+                        CLI::warning(
+                          sprintf(
+                            '%s > %s',
+                            $argv[4],
+                            $argv[5],
+                          )
+                        );
+
+                        exit;
+                      }
+                    }
+
+                  break;
+                  default:
+
+                    CLI::danger('unsupported host settings key');
+                }
+              }
+
+            break;
+
+            case 'get':
+
+              if (!empty($argv[3]) && !empty($argv[4])) {
+
+                if ($hostSetting = $db->findHostSetting((int) $argv[3], (string) $argv[4])) {
+
+                  CLI::success(sprintf(_('%s for hostId %s is:'), $argv[4], $argv[3]));
+                  CLI::success(
+                    is_array($hostSetting->value) ? print_r($hostSetting->value, true) : $hostSetting->value
+                  );
+
+                  exit;
+
+                } else {
+
+                  CLI::warning(
+                    sprintf(
+                      'setting %s for hostId %s not found!',
+                      $argv[4],
+                      $argv[3]
+                    )
+                  );
+
+                  exit;
+                }
+              }
+
+            break;
+          }
+        }
+
+      break;
+
+    break;
     case 'hostPageSnap':
 
       if (empty($argv[2])) {
@@ -488,6 +578,10 @@ CLI::break();
 CLI::default('  hostPage               ');
 CLI::default('    rank                 ');
 CLI::default('      reindex            - reindex hostPage.rank fields');
+CLI::break();
+CLI::default('  hostSetting                                                         ');
+CLI::default('    set [hostId] [key] [value] - set formatted value by hostId and key');
+CLI::default('    get [hostId] [key]         - get formatted value by hostId and key');
 CLI::break();
 CLI::default('  hostPageSnap           ');
 CLI::default('    repair               ');
