@@ -77,6 +77,8 @@ define('SPHINX_PORT', 9306);
 // Memcached
 define('MEMCACHED_HOST', 'localhost');
 define('MEMCACHED_PORT', 11211);
+define('MEMCACHED_NAMESPACE', 'YGGo');
+define('MEMCACHED_TIMEOUT', 300);
 
 // Snaps
 

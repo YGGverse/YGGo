@@ -33,10 +33,25 @@ try {
 }
 
 // Connect memcached
+// @TODO
+// legacy, upgrade to yggverse/cache instead
+// https://github.com/YGGverse/cache-php
 try {
 
   $memcached = new Memcached();
   $memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
+
+// Connect Yggverse\Cache\Memory
+try {
+
+  $memory = new Yggverse\Cache\Memory(MEMCACHED_HOST, MEMCACHED_PORT, MEMCACHED_NAMESPACE, MEMCACHED_TIMEOUT + time());
 
 } catch(Exception $e) {
 
@@ -52,15 +67,18 @@ $q = !empty($_GET['q']) ? Filter::url($_GET['q']) : '';
 $p = !empty($_GET['p']) ? (int) $_GET['p'] : 1;
 
 // Search request
-$resultsTotal = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m), $t);
-$results      = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
-
-// Mime list
-$hostPagesMime = $sphinx->searchHostPagesMime(Filter::searchQuery($q, $m));
+if (empty($q)) {
+  $resultsTotal  = 0;
+  $results       = [];
+  $hostPagesMime = [];
+} else {
+  $resultsTotal  = $sphinx->searchHostPagesTotal(Filter::searchQuery($q, $m), $t);
+  $results       = $sphinx->searchHostPages(Filter::searchQuery($q, $m), $t, $p * WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT - WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT, $resultsTotal);
+  $hostPagesMime = $sphinx->searchHostPagesMime(Filter::searchQuery($q, $m));
+}
 
 // Define page basics
 $totalPages = $sphinx->getHostPagesTotal();
-
 
 $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'),  $totalPages),
                                             sprintf(_('Over %s pages or enter the new one...'), $totalPages),
@@ -107,7 +125,11 @@ if (Yggverse\Parser\Url::is($q)) {
 }
 
 // Count pages in the crawl queue
-if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET)) {
+$timeThisHour = strtotime(sprintf('%s-%s-%s %s:00', date('Y'), date('n'), date('d'), date('H')));
+
+if ($queueTotal = $memory->getByMethodCallback(
+  $db, 'getHostPageCrawlQueueTotal', [$timeThisHour - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET], $timeThisHour + 3600
+)) {
 
   $alertMessages[] = sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal);
 }
@@ -340,9 +362,17 @@ if ($queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_HOST_PAGE_QUEUE
       <?php } else { ?>
         <div style="text-align:center">
           <span><?php echo sprintf(_('Total found: %s'), $resultsTotal) ?></span>
-          <?php if ($q && $queueTotal = $db->getHostPageCrawlQueueTotal(time() - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET)) { ?>
-            <span><?php echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal) ?></span>
-          <?php } ?>
+          <span>
+            <?php
+              // Count pages in the crawl queue
+              if ($q && $queueTotal = $memory->getByMethodCallback(
+                $db, 'getHostPageCrawlQueueTotal', [$timeThisHour - CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET], $timeThisHour + 3600
+              )) {
+
+                echo sprintf(_('* Please wait for all pages crawl to complete (%s in queue).'), $queueTotal);
+              }
+            ?>
+          </span>
         </div>
       <?php } ?>
     </main>
