@@ -74,11 +74,10 @@ try {
   exit;
 }
 
-// Connect memcached
+// Connect Yggverse\Cache\Memory
 try {
 
-  $memcached = new Memcached();
-  $memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
+  $memory = new Yggverse\Cache\Memory(MEMCACHED_HOST, MEMCACHED_PORT, MEMCACHED_NAMESPACE, MEMCACHED_TIMEOUT + time());
 
 } catch(Exception $e) {
 
@@ -100,21 +99,21 @@ if (CRAWL_YGGSTATE) {
 
           try {
 
-            if (!$memcached->get(sprintf('Crontab.crawler.YGGstate.%s.%s.timeout', $server, $i))) {
+            if (!$memory->get(sprintf('Crontab.crawler.YGGstate.%s.%s.timeout', $server, $i))) {
 
               $yggStateDB = new YGGstate($node->host, $node->port, $node->database, $node->username, $node->password);
 
               foreach ($yggStatePeers = $yggStateDB->getPeersByMinLastUptime($node->peer_min_last_uptime) as $yggStatePeer) {
 
                 // Register new host
-                if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, sprintf('http://[%s]/', $yggStatePeer->address))) {
+                if ($linkToDBresult = Helper::addLinkToDB($db, $memory, sprintf('http://[%s]/', $yggStatePeer->address))) {
 
                   $hostsAdded     += count($linkToDBresult->new->hostId);
                   $hostPagesAdded += count($linkToDBresult->new->hostPageId);
                 }
               }
 
-              $memcached->set(sprintf('Crontab.crawler.YGGstate.%s.%s.timeout', $server, $i), true, time() + $node->timeout);
+              $memory->set(sprintf('Crontab.crawler.YGGstate.%s.%s.timeout', $server, $i), true, time() + $node->timeout);
             }
 
           } catch(Exception $e) {
@@ -154,7 +153,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
       // Update robots.txt rules
       if (200 == $curl->getCode() && false !== stripos(trim(mb_strtolower((string) $curl->getContentType())), 'text/plain')) {
 
-        Helper::setHostSetting($db, $memcached, $queueHost->hostId, 'ROBOTS_TXT', (string) $curl->getContent());
+        Helper::setHostSetting($db, $queueHost->hostId, 'ROBOTS_TXT', (string) $curl->getContent());
       }
     }
 
@@ -163,8 +162,8 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
 
       // Look for custom sitemap URL served in robots.txt
       $robots = new Robots(
-        Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'ROBOTS_TXT', NULL) . PHP_EOL .
-        Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'ROBOTS_TXT_POSTFIX', DEFAULT_HOST_ROBOTS_TXT_POSTFIX)
+        Helper::getHostSettingValue($db, $memory, $queueHost->hostId, 'ROBOTS_TXT', NULL) . PHP_EOL .
+        Helper::getHostSettingValue($db, $memory, $queueHost->hostId, 'ROBOTS_TXT_POSTFIX', DEFAULT_HOST_ROBOTS_TXT_POSTFIX)
       );
 
       if ($sitemapLink = $robots->getSitemap()) {
@@ -204,7 +203,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
           }
 
           // Register new link
-          if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $loc)) {
+          if ($linkToDBresult = Helper::addLinkToDB($db, $memory, $loc)) {
 
             $hostsAdded     += count($linkToDBresult->new->hostId);
             $hostPagesAdded += count($linkToDBresult->new->hostPageId);
@@ -217,7 +216,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
     if (CRAWL_MANIFEST) {
 
       // Host have manifest provided
-      if ($manifestURL = Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'MANIFEST_URL', NULL)) {
+      if ($manifestURL = Helper::getHostSettingValue($db, $memory, $queueHost->hostId, 'MANIFEST_URL', NULL)) {
 
         // Get remote manifest
         $curl = new Curl($manifestURL, CRAWL_CURLOPT_USERAGENT);
@@ -269,13 +268,13 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
 
         // Skip processing on remote host URL does not match local condition
         if ($remoteManifest->result->config->DEFAULT_HOST_URL_REGEXP !=
-            Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP)) {
+            Helper::getHostSettingValue($db, $memory, $queueHost->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP)) {
 
           continue;
         }
 
         // Skip processing on remote host link does not match local condition
-        if (false === preg_match(Helper::getHostSetting($db, $memcached, $queueHost->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP),
+        if (false === preg_match(Helper::getHostSettingValue($db, $memory, $queueHost->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP),
                                  $remoteManifest->result->api->hosts)) {
 
           continue;
@@ -324,7 +323,7 @@ foreach ($db->getHostCrawlQueue(CRAWL_HOST_LIMIT, time() - CRAWL_HOST_SECONDS_OF
           }
 
           // Register new link
-          if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $remoteManifestHost->url)) {
+          if ($linkToDBresult = Helper::addLinkToDB($db, $memory, $remoteManifestHost->url)) {
 
             $hostsAdded     += count($linkToDBresult->new->hostId);
             $hostPagesAdded += count($linkToDBresult->new->hostPageId);
@@ -431,7 +430,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
           }
 
           // Register new link
-          if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $url)) {
+          if ($linkToDBresult = Helper::addLinkToDB($db, $memory, $url)) {
 
             $hostsAdded     += count($linkToDBresult->new->hostId);
             $hostPagesAdded += count($linkToDBresult->new->hostPageId);
@@ -480,7 +479,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
     // Check for MIME
     $hostPageInMime = false;
 
-    foreach ((array) explode(',', Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGES_MIME', DEFAULT_HOST_PAGES_MIME)) as $mime) {
+    foreach ((array) explode(',', Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_MIME', DEFAULT_HOST_PAGES_MIME)) as $mime) {
 
       // Ban page on MIME type not allowed in settings
       if (false !== stripos(Filter::mime($contentType), Filter::mime($mime))) {
@@ -735,11 +734,11 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
                                   $metaTitle,
                                   $metaDescription ?  Filter::pageDescription($metaDescription) : null,
                                   $metaKeywords    ?  Filter::pageKeywords($metaKeywords) : null,
-                                  $content         ? (Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGES_DATA', DEFAULT_HOST_PAGES_DATA) ? base64_encode($content) : null) : null,
+                                  $content         ? (Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DATA', DEFAULT_HOST_PAGES_DATA) ? base64_encode($content) : null) : null,
                                   time());
 
       // Collect page DOM elements data on enabled
-      if ($hostPageDomSelectors = Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) {
+      if ($hostPageDomSelectors = Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) {
 
         // Begin selectors extraction
         $html = str_get_html($content);
@@ -753,7 +752,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
               $db->addHostPageDom($queueHostPage->hostPageId,
                                   time(),
                                   $selector,
-                                  trim(Helper::getHostSetting($db, $memcached, $queueHostPage->hostId, 'PAGE_DOM_STRIP_TAGS', DEFAULT_HOST_PAGE_DOM_STRIP_TAGS) ? strip_tags( preg_replace('/[\s]+/',
+                                  trim(Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGE_DOM_STRIP_TAGS', DEFAULT_HOST_PAGE_DOM_STRIP_TAGS) ? strip_tags( preg_replace('/[\s]+/',
                                                                                                                                                                               ' ',
                                                                                                                                                                               str_replace(['<br />', '<br/>', '<br>', '</'],
                                                                                                                                                                                           [' ', ' ', ' ', ' </'],
@@ -1028,7 +1027,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
         }
 
         // Register new link
-        if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $link['href'])) {
+        if ($linkToDBresult = Helper::addLinkToDB($db, $memory, $link['href'])) {
 
           // Increase new hosts counters
           if ($linkToDBresult->new->hostId) {

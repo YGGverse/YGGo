@@ -32,22 +32,6 @@ try {
   exit;
 }
 
-// Connect memcached
-// @TODO
-// legacy, upgrade to yggverse/cache instead
-// https://github.com/YGGverse/cache-php
-try {
-
-  $memcached = new Memcached();
-  $memcached->addServer(MEMCACHED_HOST, MEMCACHED_PORT);
-
-} catch(Exception $e) {
-
-  var_dump($e);
-
-  exit;
-}
-
 // Connect Yggverse\Cache\Memory
 try {
 
@@ -94,7 +78,7 @@ if (Yggverse\Parser\Url::is($q)) {
 
     $db->beginTransaction();
 
-    if ($linkToDBresult = Helper::addLinkToDB($db, $memcached, $q)) {
+    if ($linkToDBresult = Helper::addLinkToDB($db, $memory, $q)) {
 
       if (count($linkToDBresult->new->hostPageId)) {
 

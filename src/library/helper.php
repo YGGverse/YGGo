@@ -5,48 +5,42 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 class Helper {
 
-  public static function getHostSetting(MySQL $db,
-                                        Memcached $memcached,
+  public static function getHostSettingValue(MySQL $db,
+                                        Yggverse\Cache\Memory $memory,
                                         int $hostId,
                                         string $key,
                                         mixed $defaultValue) : mixed {
 
-    if ($value = $memcached->get(sprintf('Helper.getHostSetting.%s.%s', $hostId, $key))) {
+    if (false !== $value = $memory->getByMethodCallback(
+      $db, 'findHostSettingValue', [$hostId, $key], time() + 3600
+    )) {
 
       return $value;
+
+    } else {
+
+      return $defaultValue;
     }
-
-    if (!$value = $db->findHostSettingValue($hostId, $key)) {
-
-         $value = $defaultValue;
-    }
-
-    $memcached->set(sprintf('Helper.getHostSetting.%s.%s', $hostId, $key), $value, time() + 3600);
-
-    return $value;
   }
 
   public static function setHostSetting(MySQL $db,
-                                        Memcached $memcached,
                                         int $hostId,
                                         string $key,
                                         mixed $value) : int {
 
     if ($hostSetting = $db->findHostSetting($hostId, $key)) {
 
-      $rowsAffected = $db->updateHostSetting($hostSetting->hostSettingId, $value, time());
+      return $db->updateHostSetting($hostSetting->hostSettingId, $value, time());
 
     } else {
 
-      $rowsAffected = $db->addHostSetting($hostId, $key, $value, time());
+      return $db->addHostSetting($hostId, $key, $value, time());
     }
 
-    $memcached->set(sprintf('Helper.getHostSetting.%s.%s', $hostId, $key), $value, time() + 3600);
-
-    return $rowsAffected;
+    // @TODO update cache
   }
 
-  public static function addLinkToDB(MySQL $db, Memcached $memcached, string $link) : mixed {
+  public static function addLinkToDB(MySQL $db, Yggverse\Cache\Memory $memory, string $link) : mixed {
 
     // Define variables
     $result = (object)
@@ -79,7 +73,7 @@ class Helper {
     if ($host = $db->findHostByCRC32URL(crc32($link->host->url))) {
 
       // Make sure host URL compatible with this host rules before continue
-      if (!preg_match(self::getHostSetting($db, $memcached, $host->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP), $link->host->url)) {
+      if (!preg_match(self::getHostSettingValue($db, $memory, $host->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP), $link->host->url)) {
 
         return false;
       }
@@ -131,21 +125,21 @@ class Helper {
     } else {
 
       // Make sure host page URL compatible with this host rules before continue
-      if (!preg_match(self::getHostSetting($db, $memcached, $hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP), $link->page->url)) {
+      if (!preg_match(self::getHostSettingValue($db, $memory, $hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP), $link->page->url)) {
 
         return false;
       }
 
       // Validate page limits for this host
-      if ($db->getTotalHostPages($hostId) >= self::getHostSetting($db, $memcached, $hostId, 'PAGES_LIMIT', DEFAULT_HOST_PAGES_LIMIT)) {
+      if ($db->getTotalHostPages($hostId) >= self::getHostSettingValue($db, $memory, $hostId, 'PAGES_LIMIT', DEFAULT_HOST_PAGES_LIMIT)) {
 
         return false;
       }
 
       // Validate ROBOTS.TXT
       $robots = new Robots(
-        self::getHostSetting($db, $memcached, $hostId, 'ROBOTS_TXT', NULL) . PHP_EOL .
-        self::getHostSetting($db, $memcached, $hostId, 'ROBOTS_TXT_POSTFIX', DEFAULT_HOST_ROBOTS_TXT_POSTFIX)
+        self::getHostSettingValue($db, $memory, $hostId, 'ROBOTS_TXT', NULL) . PHP_EOL .
+        self::getHostSettingValue($db, $memory, $hostId, 'ROBOTS_TXT_POSTFIX', DEFAULT_HOST_ROBOTS_TXT_POSTFIX)
       );
 
       if (!$robots->uriAllowed($link->page->uri)) {
