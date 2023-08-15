@@ -1132,6 +1132,7 @@ echo '  update: ' . $db->getDebug()->query->update->total . PHP_EOL;
 echo '  delete: ' . $db->getDebug()->query->delete->total . PHP_EOL . PHP_EOL;
 
 echo '[Memory, Mb]' . PHP_EOL;
-echo '  total: ' . $executionMemoryTotal . PHP_EOL . PHP_EOL;
+echo '  complete: ' . $executionMemoryTotal . PHP_EOL;
+echo '  peak: ' . number_format(memory_get_peak_usage() / 1000000, 3) . PHP_EOL . PHP_EOL;
 
 echo '-- completed in ' . $executionTimeTotal . ' seconds --' . PHP_EOL . PHP_EOL;
