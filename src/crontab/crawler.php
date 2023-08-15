@@ -43,7 +43,8 @@ if (CRAWL_STOP_DISK_QUOTA_MB_LEFT > disk_free_space('/') / 1000000) {
 }
 
 // Debug
-$timeStart = microtime(true);
+$timeStart   = microtime(true);
+$memoryStart = memory_get_usage();
 
 $httpRequestsTotal     = 0;
 $httpRequestsSizeTotal = 0;
@@ -1094,6 +1095,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
 
 // Debug
 $executionTimeTotal    = microtime(true) - $timeStart;
+$executionMemoryTotal  = number_format((memory_get_usage() - $memoryStart) / 1000000, 3);
 $httpRequestsTimeTotal = $httpRequestsTimeTotal / 1000000;
 
 // Debug output
@@ -1124,10 +1126,12 @@ echo '  download size: ' . $httpDownloadSizeTotal . PHP_EOL;
 echo '  requests time: ' . $httpRequestsTimeTotal . PHP_EOL . PHP_EOL;
 
 echo '[MySQL]' . PHP_EOL;
-echo 'queries:' . PHP_EOL;
 echo '  select: ' . $db->getDebug()->query->select->total . PHP_EOL;
 echo '  insert: ' . $db->getDebug()->query->insert->total . PHP_EOL;
 echo '  update: ' . $db->getDebug()->query->update->total . PHP_EOL;
 echo '  delete: ' . $db->getDebug()->query->delete->total . PHP_EOL . PHP_EOL;
+
+echo '[Memory, Mb]' . PHP_EOL;
+echo '  total: ' . $executionMemoryTotal . PHP_EOL . PHP_EOL;
 
 echo '-- completed in ' . $executionTimeTotal . ' seconds --' . PHP_EOL . PHP_EOL;
