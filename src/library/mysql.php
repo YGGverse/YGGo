@@ -420,7 +420,6 @@ class MySQL {
                                          mixed $title,
                                          mixed $description,
                                          mixed $keywords,
-                                         mixed $data,
                                          int $timeAdded) {
 
     $this->_debug->query->insert->total++;
@@ -429,16 +428,14 @@ class MySQL {
                                                                       `title`,
                                                                       `description`,
                                                                       `keywords`,
-                                                                      `data`,
                                                                       `timeAdded`
-                                                                      ) VALUES (?, ?, ?, ?, ?, ?)');
+                                                                      ) VALUES (?, ?, ?, ?, ?)');
 
     $query->execute([
       $hostPageId,
       $title,
       $description,
       $keywords,
-      $data,
       $timeAdded,
     ]);
 

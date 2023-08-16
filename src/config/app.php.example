@@ -187,17 +187,6 @@ define('DEFAULT_HOST_PAGES_LIMIT', 100000);
 define('DEFAULT_HOST_PAGES_MIME', 'text/html,application/xhtml+xml,application/javascript,text/plain,text/css,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml,video/mp4,video/ogg,video/webm,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/aac,audio/aacp,audio/webm,audio/x-caf,audio/x-mpegurl,audio/flac,font/ttf');
 
 /*
- * Index only meta tags
- * or false to save meta tags + base64 encoded page content in the `hostPage`.`data` field
- *
- * Warning!
- * this option requires huge disk storage,
- * it's experimental feature, oriented for index operations
- *
- */
-define('DEFAULT_HOST_PAGES_DATA', false);
-
-/*
  * Generate hostPageDom table by CSS selectors
  *
  * Allows to build semantical search index (config/sphinx.conf.txt)

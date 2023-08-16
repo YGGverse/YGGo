@@ -736,7 +736,6 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
                                   $metaTitle,
                                   $metaDescription ?  Filter::pageDescription($metaDescription) : null,
                                   $metaKeywords    ?  Filter::pageKeywords($metaKeywords) : null,
-                                  $content         ? (Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DATA', DEFAULT_HOST_PAGES_DATA) ? base64_encode($content) : null) : null,
                                   time());
 
       // Collect page DOM elements data on enabled
