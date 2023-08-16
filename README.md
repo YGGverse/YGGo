@@ -276,18 +276,22 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 * @d47081: [BTC](https://www.blockchain.com/explorer/addresses/btc/bc1qngdf2kwty6djjqpk0ynkpq9wmlrmtm7e0c534y) | [LTC](https://live.blockcypher.com/ltc/address/LUSiqzKsfB1vBLvpu515DZktG9ioKqLyj7) | [XMR](835gSR1Uvka19gnWPkU2pyRozZugRZSPHDuFL6YajaAqjEtMwSPr4jafM8idRuBWo7AWD3pwFQSYRMRW9XezqrK4BEXBgXE) | [ZEPH](ZEPHsADHXqnhfWhXrRcXnyBQMucE3NM7Ng5ZVB99XwA38PTnbjLKpCwcQVgoie8EJuWozKgBiTmDFW4iY7fNEgSEWyAy4dotqtX) | [DOGE](https://dogechain.info/address/D5Sez493ibLqTpyB3xwQUspZvJ1cxEdRNQ) | Support our server by order [Linux VPS](https://www.yourserver.se/portal/aff.php?aff=610)
 
 #### License
+
 * Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
 * HTML parser [simple_html_dom](http://sourceforge.net/projects/simplehtmldom/)
 * Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 * CLI logo by [patorjk.com](https://patorjk.com/software/taag/#p=display&f=Slant&t=YGGo!)
 
+#### Feedback
+
+Feel free to [share](https://github.com/YGGverse/YGGo/issues) your ideas and bug reports!
+
+#### Community
+
+* [Mastodon](https://mastodon.social/@YGGverse)
+* [[matrix]](https://matrix.to/#/#YGGo:matrix.org)
+
 #### See also
 
 * [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
 * [YGGstate - Yggdrasil Network Analytics](https://github.com/YGGverse/YGGstate)
-
-#### Feedback
-
-Please, feel free to share your ideas and bug reports [here](https://github.com/YGGverse/YGGo/issues) or use sources for your own implementations.
-
-Have a good time!
