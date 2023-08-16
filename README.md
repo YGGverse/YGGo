@@ -278,7 +278,6 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 #### License
 
 * Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
-* HTML parser [simple_html_dom](http://sourceforge.net/projects/simplehtmldom/)
 * Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 * CLI logo by [patorjk.com](https://patorjk.com/software/taag/#p=display&f=Slant&t=YGGo!)
 

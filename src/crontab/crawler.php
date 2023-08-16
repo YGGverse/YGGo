@@ -31,7 +31,9 @@ require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/yggstate.php');
-require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
+
+// @TODO deprecated, use Symfony\Component\DomCrawler\Crawler instead
+// require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
@@ -738,6 +740,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
                                   time());
 
       // Collect page DOM elements data on enabled
+      /* @TODO deprecated, use Symfony\Component\DomCrawler\Crawler instead
       if ($hostPageDomSelectors = Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) {
 
         // Begin selectors extraction
@@ -761,6 +764,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
           }
         }
       }
+      */
 
       // Skip page links following with meta robots:nofollow attribute
       foreach (@$dom->getElementsByTagName('meta') as $meta) {

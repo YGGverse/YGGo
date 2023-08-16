@@ -314,15 +314,6 @@ class MySQL {
     return $result;
   }
 
-  public function getHostPagesByIndexed() {
-
-    $this->_debug->query->select->total++;
-
-    $query = $this->_db->query('SELECT * FROM `hostPage` WHERE `timeUpdated` IS NOT NULL AND `timeBanned` IS NULL');
-
-    return $query->fetchAll();
-  }
-
   public function getHostPagesByLimit(int $hostId, int $limit) {
 
     $this->_debug->query->select->total++;
@@ -632,7 +623,7 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function addHostPageDom(int $hostPageId, int $timeAdded, string $selector, string $value) {
+  public function addHostPageDom(int $hostPageId, string $selector, string $value, int $timeAdded) {
 
     $this->_debug->query->insert->total++;
 

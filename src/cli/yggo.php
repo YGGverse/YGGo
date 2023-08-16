@@ -6,13 +6,12 @@ require_once(__DIR__ . '/../library/cli.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/ftp.php');
-require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // CLI only to prevent https server connection timeout
 if (php_sapi_name() != 'cli') {
 
   CLI::danger(_('supported command line interface only'));
-  CLI::break();
   exit;
 }
 
@@ -22,7 +21,6 @@ $semaphore = sem_get(crc32('crontab.cleaner'), 1);
 if (false === sem_acquire($semaphore, true)) {
 
   CLI::danger(_('stop crontab.cleaner is running in another thread.'));
-  CLI::break();
   exit;
 }
 
@@ -32,7 +30,6 @@ $semaphore = sem_get(crc32('crontab.crawler'), 1);
 if (false === sem_acquire($semaphore, true)) {
 
   CLI::danger(_('stop crontab.crawler is running in another thread.'));
-  CLI::break();
   exit;
 }
 
@@ -42,7 +39,6 @@ $semaphore = sem_get(crc32('cli.yggo'), 1);
 if (false === sem_acquire($semaphore, true)) {
 
   CLI::danger(_('process locked by another thread.'));
-  CLI::break();
   exit;
 }
 
@@ -202,7 +198,6 @@ if (!empty($argv[1])) {
             // @TODO
             CLI::danger(_('this function upgraded but not tested after snaps refactor.'));
             CLI::danger(_('make sure you have backups then remove this alert.'));
-            CLI::break();
             exit;
 
             switch ($argv[3]) {
@@ -285,7 +280,6 @@ if (!empty($argv[1])) {
                               } else {
 
                                 CLI::danger(sprintf(_('could not connect to storage %s location %s. operation stopped to prevent the data lose.'), $hostPageSnapStorageName, $location));
-                                CLI::break();
                                 exit;
                               }
 
@@ -458,7 +452,6 @@ if (!empty($argv[1])) {
                   }
 
                   CLI::notice(_('hostPage rank fields successfully updated!'));
-                  CLI::break();
                   exit;
 
                 break;
@@ -474,83 +467,138 @@ if (!empty($argv[1])) {
 
       if (empty($argv[2])) {
 
-        switch ($argv[2]) {
+        CLI::danger(_('action required'));
+        exit;
+      }
 
-          case 'generate':
+      switch ($argv[2]) {
 
-            $selectors = [];
+        case 'generate':
 
-            foreach ((array) explode(';', !empty($argv[3]) ? $argv[3] : (string) $db->getHostSetting($hostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) as $selector) {
+          // Validate hostId
+          if (empty($argv[3])) {
 
-              if (!empty($selector)) {
+            CLI::danger(_('hostId required'));
+            exit;
+          }
 
-                $selectors[] = trim($selector);
-              }
+          if (!$db->getHost($argv[3])) {
+
+            CLI::danger(_('hostId not found'));
+            exit;
+          }
+
+          // Validate selector
+          if (empty($argv[4])) {
+
+            CLI::danger(_('CSS selector required'));
+            exit;
+          }
+
+          // Init variables
+          $hostPagesProcessedTotal = 0;
+          $hostPagesSkippedTotal   = 0;
+          $hostPageDomAddedTotal   = 0;
+
+          // Begin selectors extraction
+          foreach ($db->getHostPages($argv[3]) as $hostPage) {
+
+            $hostPagesProcessedTotal++;
+
+            if (false === stripos(Filter::mime($hostPage->mime), 'text/html')) {
+
+              CLI::warning(sprintf(_('not supported MIME type for hostPageId "%s", skipped'), $hostPage->hostPageId));
+
+              $hostPagesSkippedTotal++;
+
+              continue;
             }
 
-            if ($selectors) {
+            if (!$hostPageDescription = $db->getLastPageDescription($hostPage->hostPageId)) {
 
-              // Init variables
-              $hostPagesProcessedTotal = 0;
-              $hostPageDOMAddedTotal   = 0;
+              CLI::warning(sprintf(_('last hostPageId "%s" description empty, skipped'), $hostPage->hostPageId));
 
-              // Begin selectors extraction
-              foreach ($db->getHostPagesByIndexed() as $hostPage) {
+              $hostPagesSkippedTotal++;
 
-                if (false !== stripos(Filter::mime($hostPage->mime), 'text/html')) {
+              continue;
+            }
 
-                  if ($hostPageDescription = $db->getLastPageDescription($hostPage->hostPageId)) {
+            if (empty($hostPageDescription->data)) {
 
-                    $hostPagesProcessedTotal++;
+              CLI::warning(sprintf(_('empty hostPageDescription.data value for hostPageId "%s", skipped'), $hostPage->hostPageId));
 
-                    if (!empty($hostPageDescription->data)) {
+              $hostPagesSkippedTotal++;
 
-                      $html = str_get_html(base64_decode($hostPageDescription->data));
+              continue;
+            }
 
-                      foreach ($selectors as $selector) {
+            if (!$html = base64_decode($hostPageDescription->data)) {
 
-                        foreach($html->find($selector) as $element) {
+              CLI::danger(sprintf(_('could not decode base64 for hostPageDescription.data value for hostPageId "%s", skipped'), $hostPage->hostPageId));
 
-                          if (!empty($element->innertext)) {
+              $hostPagesSkippedTotal++;
 
-                            $hostPageDOMAddedTotal++;
+              continue;
+            }
 
-                            $db->addHostPageDom($hostPage->hostPageId,
-                                                time(),
-                                                $selector,
-                                                trim((bool) $db->getHostSetting($hostPage->hostId, 'PAGES_DOM_STRIP_TAGS', DEFAULT_HOST_PAGES_DOM_STRIP_TAGS) ? strip_tags(preg_replace('/[\s]+/',
-                                                                                                                                                                                        ' ',
-                                                                                                                                                                                        str_replace(['<br />', '<br/>', '<br>', '</'],
-                                                                                                                                                                                                    [' ', ' ', ' ', ' </'],
-                                                                                                                                                                                                    $element->innertext))) : $element->innertext));
-                          }
-                        }
-                      }
-                    }
-                  }
+            if (empty($html)) {
+
+              CLI::warning(sprintf(_('empty decoded hostPageDescription.data value for hostPageId "%s", skipped'), $hostPage->hostPageId));
+
+              $hostPagesSkippedTotal++;
+
+              continue;
+            }
+
+            // Init crawler
+            $crawler = new Symfony\Component\DomCrawler\Crawler();
+            $crawler->addHtmlContent($html);
+
+            $selector = trim($argv[4]);
+
+            if ($elements = $crawler->filter($selector)) {
+
+              foreach ($elements as $element) {
+
+                $value = trim($element->nodeValue);
+                $value = strip_tags($value, empty($argv[5]) ? null : $argv[5]);
+
+                if (empty($value)) {
+
+                  continue;
                 }
+
+                // Save selector value
+                $db->addHostPageDom(
+                  $hostPage->hostPageId,
+                  $selector,
+                  $value,
+                  time()
+                );
+
+                $hostPageDomAddedTotal++;
               }
-
-              CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
-              CLI::success(sprintf(_('Host page DOM elements added: %s'), $hostPageDOMAddedTotal));
-              exit;
             }
+          }
 
-            CLI::danger(_('DEFAULT_HOST_PAGES_DOM_SELECTORS not provided in the configuration file'));
-            CLI::break();
-            exit;
+          CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
+          CLI::success(sprintf(_('Host pages skipped: %s'), $hostPagesSkippedTotal));
+          CLI::success(sprintf(_('Host page DOM elements added: %s'), $hostPageDomAddedTotal));
+          exit;
 
-          break;
-          case 'truncate':
+        break;
+        case 'truncate':
 
-            $db->truncateHostPageDom();
+          $db->truncateHostPageDom();
 
-            CLI::success(_('hostPageDom table successfully truncated'));
-            CLI::break();
-            exit;
+          CLI::success(_('hostPageDom table successfully truncated'));
+          exit;
 
-          break;
-        }
+        break;
+        default:
+
+          CLI::danger(_('unknown action'));
+          exit;
       }
     break;
   }
@@ -566,32 +614,32 @@ CLI::default('/_/\____/\____/\____(_)'   );
 CLI::break();
 CLI::default('available options:');
 CLI::break();
-CLI::default('  help                   - this message');
+CLI::default('  help                           - this message');
 CLI::break();
-CLI::default('  db                     ');
-CLI::default('    optimize             - optimize all tables');
+CLI::default('  db                             ');
+CLI::default('    optimize                     - optimize all tables');
 CLI::break();
-CLI::default('  crontab                ');
-CLI::default('    crawl                - execute step in crawler queue');
-CLI::default('    clean                - execute step in cleaner queue');
+CLI::default('  crontab                        ');
+CLI::default('    crawl                        - execute step in crawler queue');
+CLI::default('    clean                        - execute step in cleaner queue');
 CLI::break();
-CLI::default('  hostPage               ');
-CLI::default('    rank                 ');
-CLI::default('      reindex            - reindex hostPage.rank fields');
+CLI::default('  hostPage                       ');
+CLI::default('    rank                         ');
+CLI::default('      reindex                    - reindex hostPage.rank fields');
 CLI::break();
 CLI::default('  hostSetting                                                         ');
-CLI::default('    set [hostId] [key] [value] - set formatted value by hostId and key');
-CLI::default('    get [hostId] [key]         - get formatted value by hostId and key');
+CLI::default('    set [hostId] [key] [value]   - set formatted value by hostId and key');
+CLI::default('    get [hostId] [key]           - get formatted value by hostId and key');
 CLI::break();
-CLI::default('  hostPageSnap           ');
-CLI::default('    repair               ');
-CLI::default('      db                 - scan database registry for new or deprecated snap files');
-CLI::default('      fs                 - check all storages for snap files not registered in hostPageSnapStorage, cleanup filesystem');
-CLI::default('    reindex              - search for host pages without snap records, add found pages to the crawl queue');
+CLI::default('  hostPageSnap                   ');
+CLI::default('    repair                       ');
+CLI::default('      db                         - scan database registry for new or deprecated snap files');
+CLI::default('      fs                         - check all storages for snap files not registered in hostPageSnapStorage, cleanup filesystem');
+CLI::default('    reindex                      - search for host pages without snap records, add found pages to the crawl queue');
 CLI::break();
-CLI::default('  hostPageDom                      ');
-CLI::default('    generate [selectors] - make hostPageDom index based on related hostPage.data field');
-CLI::default('    truncate             - flush hostPageDom table');
+CLI::default('  hostPageDom                                     ');
+CLI::default('    generate [hostId] [selector] [allowed tags] - generate hostPageDom values based on indexed hostPage.data field');
+CLI::default('    truncate                                    - flush hostPageDom table');
 
 CLI::break();
 

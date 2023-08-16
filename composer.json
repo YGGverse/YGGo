@@ -5,7 +5,9 @@
     "require": {
         "php": ">=8.1",
         "yggverse/parser": ">=0.1.0",
-        "yggverse/cache": ">=0.3.0"
+        "yggverse/cache": ">=0.3.0",
+        "symfony/dom-crawler": "^6.3",
+        "symfony/css-selector": "^6.3"
     },
     "license": "MIT",
     "autoload": {
