@@ -198,21 +198,31 @@ define('DEFAULT_HOST_PAGES_MIME', 'text/html,application/xhtml+xml,application/j
 define('DEFAULT_HOST_PAGES_DATA', false);
 
 /*
- * Generates hostPageDom index based on hostPage.data field
+ * Generate hostPageDom table by CSS selectors
  *
- * Could be useful for building semantical index query (config/sphinx.conf.txt)
+ * Allows to build semantical search index (config/sphinx.conf.txt)
  *
- * At this moment feature available in the CLI only (cli/yggo.php)
- *
+ * Leave empty array to skip DOM elements crawling
  */
-define('DEFAULT_HOST_PAGES_DOM_SELECTORS', false); // ";" separated
+define('DEFAULT_HOST_PAGES_DOM_SELECTORS', json_encode((object)
+        [
+                'h1',
+                // ...
+        ]
+));
 
 /*
- * Strip HTML in the DEFAULT_HOST_PAGES_DOM_SELECTORS content
+ * Strip tags rules for DEFAULT_HOST_PAGES_DOM_SELECTORS condition
  *
+ * Leave empty array to strip all tags
  */
-define('DEFAULT_HOST_PAGE_DOM_STRIP_TAGS', false);
-
+define('DEFAULT_HOST_PAGES_DOM_SELECTORS_STRIP_TAGS_ALLOWED', json_encode((object)
+        [
+                '<p>',
+                '<br>',
+                // ...
+        ]
+));
 
 // Crawl queue
 
