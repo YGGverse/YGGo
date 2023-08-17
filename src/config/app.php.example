@@ -187,28 +187,20 @@ define('DEFAULT_HOST_PAGES_LIMIT', 100000);
 define('DEFAULT_HOST_PAGES_MIME', 'text/html,application/xhtml+xml,application/javascript,text/plain,text/css,image/webp,image/png,image/gif,image/jpeg,image/ico,image/svg+xml,video/mp4,video/ogg,video/webm,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/aac,audio/aacp,audio/webm,audio/x-caf,audio/x-mpegurl,audio/flac,font/ttf');
 
 /*
- * Generate hostPageDom table by CSS selectors
+ * Collect hostPageDom table by selectors
  *
- * Allows to build semantical search index (config/sphinx.conf.txt)
+ * Allows to build semantical search index (config/sphinx.conf.txt) or cache the document data
  *
+ * Supported for text/html MIME documents only
  * Leave empty array to skip DOM elements crawling
+ *
+ * Provide CSS selector as key and allowed tags as value for each selector, leave null to strip all childrent tags
+ * https://www.php.net/manual/en/function.strip-tags.php
+ *
  */
 define('DEFAULT_HOST_PAGES_DOM_SELECTORS', json_encode((object)
         [
-                'h1',
-                // ...
-        ]
-));
-
-/*
- * Strip tags rules for DEFAULT_HOST_PAGES_DOM_SELECTORS condition
- *
- * Leave empty array to strip all tags
- */
-define('DEFAULT_HOST_PAGES_DOM_SELECTORS_STRIP_TAGS_ALLOWED', json_encode((object)
-        [
-                '<p>',
-                '<br>',
+                'h1' => null,
                 // ...
         ]
 ));
