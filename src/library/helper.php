@@ -73,7 +73,7 @@ class Helper {
     if ($host = $db->findHostByCRC32URL(crc32($link->host->url))) {
 
       // Make sure host URL compatible with this host rules before continue
-      if (!preg_match(self::getHostSettingValue($db, $memory, $host->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP), $link->host->url)) {
+      if (!preg_match(self::getHostSettingValue($db, $memory, $host->hostId, 'URL_REGEXP', DEFAULT_HOST_URL_REGEXP), $link->page->url)) {
 
         return false;
       }
@@ -85,7 +85,7 @@ class Helper {
     } else {
 
       // Make sure link compatible with default host rules before create new host
-      if (!preg_match(DEFAULT_HOST_URL_REGEXP, $link->host->url)) {
+      if (!preg_match(DEFAULT_HOST_URL_REGEXP, $link->page->url)) {
 
         return false;
       }
