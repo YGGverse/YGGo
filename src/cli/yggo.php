@@ -583,6 +583,61 @@ if (!empty($argv[1])) {
           }
 
         break;
+        case 'delete':
+
+          // Validate hostId
+          if (empty($argv[3])) {
+
+            CLI::danger(_('hostId required'));
+            exit;
+          }
+
+          if (!$db->getHost($argv[3])) {
+
+            CLI::danger(_('hostId not found'));
+            exit;
+          }
+
+          // Validate selector source
+          if (empty($argv[4])) {
+
+            CLI::danger(_('CSS selector required'));
+            exit;
+          }
+
+          // Init variables
+          $hostPagesProcessedTotal = 0;
+          $hostPageDomDeletedTotal = 0;
+
+          try {
+
+            $db->beginTransaction();
+
+            // Begin selectors values processing by hostId
+            foreach ($db->getHostPages($argv[3]) as $hostPage) {
+
+              $hostPagesProcessedTotal++;
+
+              $hostPageDomDeletedTotal += $db->deleteHostPageDomBySelector($hostPage->hostPageId, $argv[4]);
+            }
+
+            $db->commit();
+
+            CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
+            CLI::success(sprintf(_('Host page DOM elements deleted: %s'), $hostPageDomDeletedTotal));
+
+            exit;
+
+          } catch(Exception $e) {
+
+            $db->rollBack();
+
+            var_dump($e);
+
+            exit;
+          }
+
+        break;
         case 'truncate':
 
           $db->truncateHostPageDom();
@@ -635,6 +690,7 @@ CLI::default('    reindex                      - search for host pages without s
 CLI::break();
 CLI::default('  hostPageDom                                            ');
 CLI::default('    parse [hostId] [selector source] [selector target] - parse new hostPageDom.selector target based on hostPageDom.selector source');
+CLI::default('    delete [hostId] [selector]                         - delete DOM records from hostPageDom table by hostId and selector name');
 CLI::default('    truncate                                           - flush hostPageDom table');
 
 CLI::break();

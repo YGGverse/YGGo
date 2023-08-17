@@ -629,13 +629,13 @@ class MySQL {
     $query->execute([$hostPageId, $timeAdded, $selector, $value]);
   }
 
-  public function deleteHostPageDoms(int $hostPageId) {
+  public function deleteHostPageDomBySelector(int $hostPageId, string $selector) {
 
     $this->_debug->query->delete->total++;
 
-    $query = $this->_db->prepare('DELETE FROM `hostPageDom` WHERE `hostPageId` = ?');
+    $query = $this->_db->prepare('DELETE FROM `hostPageDom` WHERE `hostPageId` = ? AND `selector` = ?');
 
-    $query->execute([$hostPageId]);
+    $query->execute([$hostPageId, $selector]);
 
     return $query->rowCount();
   }
