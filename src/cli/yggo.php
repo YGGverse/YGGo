@@ -543,7 +543,7 @@ if (!empty($argv[1])) {
 
                 foreach ($selectorTarget->childNodes as $node) {
 
-                  $value = trim($element->ownerDocument->saveHtml());
+                  $value = trim($node->ownerDocument->saveHtml());
 
                   if (empty($value)) {
 
