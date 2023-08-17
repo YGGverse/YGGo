@@ -473,7 +473,7 @@ if (!empty($argv[1])) {
 
       switch ($argv[2]) {
 
-        case 'generate':
+        case 'parse':
 
           // Validate hostId
           if (empty($argv[3])) {
@@ -488,10 +488,17 @@ if (!empty($argv[1])) {
             exit;
           }
 
-          // Validate selector
+          // Validate selector source
           if (empty($argv[4])) {
 
-            CLI::danger(_('CSS selector required'));
+            CLI::danger(_('CSS selector source required'));
+            exit;
+          }
+
+          // Validate selector target
+          if (empty($argv[5])) {
+
+            CLI::danger(_('CSS selector target required'));
             exit;
           }
 
@@ -500,91 +507,82 @@ if (!empty($argv[1])) {
           $hostPagesSkippedTotal   = 0;
           $hostPageDomAddedTotal   = 0;
 
-          // Begin selectors extraction
-          foreach ($db->getHostPages($argv[3]) as $hostPage) {
+          try {
 
-            $hostPagesProcessedTotal++;
+            $db->beginTransaction();
 
-            if (false === stripos(Filter::mime($hostPage->mime), 'text/html')) {
+            // Begin selectors values processing by hostId
+            foreach ($db->getHostPages($argv[3]) as $hostPage) {
 
-              CLI::warning(sprintf(_('not supported MIME type for hostPageId "%s", skipped'), $hostPage->hostPageId));
+              $hostPagesProcessedTotal++;
 
-              $hostPagesSkippedTotal++;
+              if (!$hostPageDomSelectorSource = $db->findLastHostPageDomBySelector($hostPage->hostPageId, $argv[4])) {
 
-              continue;
-            }
+                CLI::warning(sprintf(_('[selector source "%s"] not found for hostPageId "%s", skipped'), $argv[4], $hostPage->hostPageId));
 
-            if (!$hostPageDescription = $db->getLastPageDescription($hostPage->hostPageId)) {
+                $hostPagesSkippedTotal++;
 
-              CLI::warning(sprintf(_('last hostPageId "%s" description empty, skipped'), $hostPage->hostPageId));
+                continue;
+              }
 
-              $hostPagesSkippedTotal++;
+              if (empty($hostPageDomSelectorSource->value)) {
 
-              continue;
-            }
+                CLI::warning(sprintf(_('[selector source "%s"] value is empty for hostPageId "%s", skipped'), $argv[4], $hostPage->hostPageId));
 
-            if (empty($hostPageDescription->data)) {
+                $hostPagesSkippedTotal++;
 
-              CLI::warning(sprintf(_('empty hostPageDescription.data value for hostPageId "%s", skipped'), $hostPage->hostPageId));
+                continue;
+              }
 
-              $hostPagesSkippedTotal++;
+              // Init crawler
+              $crawler = new Symfony\Component\DomCrawler\Crawler();
+              $crawler->addHtmlContent($hostPageDomSelectorSource->value);
 
-              continue;
-            }
+              // Extract target selector data
+              foreach ($crawler->filter($argv[5]) as $selectorTarget) {
 
-            if (!$html = base64_decode($hostPageDescription->data)) {
+                foreach ($selectorTarget->childNodes as $node) {
 
-              CLI::danger(sprintf(_('could not decode base64 for hostPageDescription.data value for hostPageId "%s", skipped'), $hostPage->hostPageId));
+                  $value = trim($element->ownerDocument->saveHtml());
 
-              $hostPagesSkippedTotal++;
+                  if (empty($value)) {
 
-              continue;
-            }
+                    CLI::warning(sprintf(_('[selector target "%s"] value is empty for hostPageId "%s", skipped'), $argv[5], $hostPage->hostPageId));
 
-            if (empty($html)) {
+                    $hostPagesSkippedTotal++;
 
-              CLI::warning(sprintf(_('empty decoded hostPageDescription.data value for hostPageId "%s", skipped'), $hostPage->hostPageId));
+                    continue;
+                  }
 
-              $hostPagesSkippedTotal++;
+                  // Save selector value
+                  $db->addHostPageDom(
+                    $hostPage->hostPageId,
+                    $argv[5],
+                    $value,
+                    time()
+                  );
 
-              continue;
-            }
-
-            // Init crawler
-            $crawler = new Symfony\Component\DomCrawler\Crawler();
-            $crawler->addHtmlContent($html);
-
-            $selector = trim($argv[4]);
-
-            if ($elements = $crawler->filter($selector)) {
-
-              foreach ($elements as $element) {
-
-                $value = trim($element->nodeValue);
-                $value = strip_tags($value, empty($argv[5]) ? null : $argv[5]);
-
-                if (empty($value)) {
-
-                  continue;
+                  $hostPageDomAddedTotal++;
                 }
-
-                // Save selector value
-                $db->addHostPageDom(
-                  $hostPage->hostPageId,
-                  $selector,
-                  $value,
-                  time()
-                );
-
-                $hostPageDomAddedTotal++;
+                exit;
               }
             }
-          }
 
-          CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
-          CLI::success(sprintf(_('Host pages skipped: %s'), $hostPagesSkippedTotal));
-          CLI::success(sprintf(_('Host page DOM elements added: %s'), $hostPageDomAddedTotal));
-          exit;
+            $db->commit();
+
+            CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
+            CLI::success(sprintf(_('Host pages skipped: %s'), $hostPagesSkippedTotal));
+            CLI::success(sprintf(_('Host page DOM elements added: %s'), $hostPageDomAddedTotal));
+            exit;
+
+          } catch(Exception $e) {
+
+            $db->rollBack();
+
+            var_dump($e);
+
+            exit;
+          }
 
         break;
         case 'truncate':
@@ -637,9 +635,9 @@ CLI::default('      db                         - scan database registry for new 
 CLI::default('      fs                         - check all storages for snap files not registered in hostPageSnapStorage, cleanup filesystem');
 CLI::default('    reindex                      - search for host pages without snap records, add found pages to the crawl queue');
 CLI::break();
-CLI::default('  hostPageDom                                     ');
-CLI::default('    generate [hostId] [selector] [allowed tags] - generate hostPageDom values based on indexed hostPage.data field');
-CLI::default('    truncate                                    - flush hostPageDom table');
+CLI::default('  hostPageDom                                            ');
+CLI::default('    parse [hostId] [selector source] [selector target] - parse new hostPageDom.selector target based on hostPageDom.selector source');
+CLI::default('    truncate                                           - flush hostPageDom table');
 
 CLI::break();
 
