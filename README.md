@@ -49,6 +49,7 @@ sphinxsearch
 * Configuration examples presented at `/config` folder
 * Make sure `/src/storage/cache`, `/src/storage/tmp`, `/src/storage/snap` folders are writable
 * Set up the `/src/crontab` by following [example](https://github.com/YGGverse/YGGo/blob/main/config/crontab.txt)
+* To start crawler, add at least one initial URL using search form or CLI
 
 #### JSON API
 
@@ -241,6 +242,7 @@ _*CLI interface still under construction, use it for your own risk!_
   + [ ] delete
   + [ ] flush
 * [x] hostPage
+  + [x] add
   + [x] rank
     + [x] reindex
 * [x] hostPageSnap

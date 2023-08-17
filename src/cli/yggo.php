@@ -6,6 +6,7 @@ require_once(__DIR__ . '/../library/cli.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/ftp.php');
+require_once(__DIR__ . '/../library/helper.php');
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 // CLI only to prevent https server connection timeout
@@ -42,8 +43,29 @@ if (false === sem_acquire($semaphore, true)) {
   exit;
 }
 
-// Connect database
-$db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+// Connect DB
+try {
+
+  $db = new MySQL(DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD);
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
+
+// Connect Yggverse\Cache\Memory
+try {
+
+  $memory = new Yggverse\Cache\Memory(MEMCACHED_HOST, MEMCACHED_PORT, MEMCACHED_NAMESPACE, MEMCACHED_TIMEOUT + time());
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
 
 // CLI begin
 if (!empty($argv[1])) {
@@ -401,6 +423,65 @@ if (!empty($argv[1])) {
 
         switch ($argv[2]) {
 
+          case 'add':
+
+            if (empty($argv[3])) {
+
+              CLI::danger('URL required');
+
+              exit;
+            }
+
+            if (false === Yggverse\Parser\Url::is($argv[3])) {
+
+              CLI::danger('URL address invalid');
+
+              exit;
+            }
+
+            try {
+
+              $db->beginTransaction();
+
+              if ($linkToDBresult = Helper::addLinkToDB($db, $memory, $argv[3])) {
+
+                if (count($linkToDBresult->new->hostPageId)) {
+
+                  CLI::success('URL successfully registered in the crawler queue!');
+
+                  $db->commit();
+
+                  exit;
+
+                } else {
+
+                  CLI::warning('URL already registered in the crawler queue!');
+
+                   $db->rollBack();
+
+                  exit;
+                }
+
+              } else {
+
+                CLI::danger('URL address not supported by this host rules!');
+
+                $db->rollBack();
+
+                exit;
+              }
+
+            } catch(Exception $e){
+
+              var_dump($e);
+
+              $db->rollBack();
+
+              exit;
+            }
+
+          break;
+
           case 'rank':
 
             if (!empty($argv[3])) {
@@ -675,6 +756,7 @@ CLI::default('    crawl                        - execute step in crawler queue')
 CLI::default('    clean                        - execute step in cleaner queue');
 CLI::break();
 CLI::default('  hostPage                       ');
+CLI::default('    add [URL]                    - register new address in the crawl queue');
 CLI::default('    rank                         ');
 CLI::default('      reindex                    - reindex hostPage.rank fields');
 CLI::break();
