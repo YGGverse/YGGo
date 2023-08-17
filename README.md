@@ -251,6 +251,7 @@ _*CLI interface still under construction, use it for your own risk!_
   + [ ] truncate
 * [x] hostPageDom
   + [x] generate
+  + [x] delete
   + [x] truncate
 
 ##### Other
