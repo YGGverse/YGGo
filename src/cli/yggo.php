@@ -564,7 +564,6 @@ if (!empty($argv[1])) {
 
                   $hostPageDomAddedTotal++;
                 }
-                exit;
               }
             }
 
@@ -573,7 +572,6 @@ if (!empty($argv[1])) {
             CLI::success(sprintf(_('Host pages processed: %s'), $hostPagesProcessedTotal));
             CLI::success(sprintf(_('Host pages skipped: %s'), $hostPagesSkippedTotal));
             CLI::success(sprintf(_('Host page DOM elements added: %s'), $hostPageDomAddedTotal));
-            exit;
 
           } catch(Exception $e) {
 
