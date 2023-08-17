@@ -203,7 +203,7 @@ define('DEFAULT_HOST_PAGES_MIME', 'text/html,application/xhtml+xml,application/j
  */
 define('DEFAULT_HOST_PAGES_DOM_SELECTORS', json_encode((object)
         [
-                'html' => [
+                'h1' => [
                         'strip_tags' => [
                                 'enabled'      => false,
                                 'allowed_tags' => null
