@@ -640,17 +640,6 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function deleteHostPageDomsByTimeAdded(int $timeOffset) {
-
-    $this->_debug->query->delete->total++;
-
-    $query = $this->_db->prepare('DELETE FROM `hostPageDom` WHERE `timeAdded` < ' . (int) $timeOffset);
-
-    $query->execute();
-
-    return $query->rowCount();
-  }
-
   public function truncateHostPageDom() {
 
     $query = $this->_db->query('TRUNCATE `hostPageDom`');
