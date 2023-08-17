@@ -1,7 +1,7 @@
 <?php
 
 // Stop crawler on cli running
-$semaphore = sem_get(crc32('cli.yggo'), 1);
+$semaphore = sem_get(crc32('yggo.cli.yggo'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
@@ -10,7 +10,7 @@ if (false === sem_acquire($semaphore, true)) {
 }
 
 // Lock multi-thread execution
-$semaphore = sem_get(crc32('crontab.crawler'), 1);
+$semaphore = sem_get(crc32('yggo.crontab.crawler'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
