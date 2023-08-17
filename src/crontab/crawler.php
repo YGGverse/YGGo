@@ -997,55 +997,63 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
       // Process selectors configuration
       if ($hostPageDomSelectors = Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', json_decode(DEFAULT_HOST_PAGES_DOM_SELECTORS))) {
 
+        $hostPageDomId = $db->addHostPageDom(
+          $queueHostPage->hostPageId,
+          time()
+        );
+
         foreach ($hostPageDomSelectors as $selector => $settings) {
 
-          // Extract target selector data
-          foreach ($crawler->filter($selector) as $data) {
+          $hostPageDomSelectorId = $db->addHostPageDomSelector(
+            $hostPageDomId,
+            $selector
+          );
 
-            foreach ($data->childNodes as $node) {
+          // Extract selectors data
+          foreach ($crawler->filter($selector)->each(function($node) {
 
-              $value = trim($node->ownerDocument->saveHtml());
+            return $node->html();
 
-              // Apply selector settings
-              foreach ($settings as $key => $setting) {
+          }) as $value) {
 
-                switch ($key) {
+            foreach ($settings as $name => $setting) {
 
-                  case 'strip_tags':
+              // Apply value settings
+              switch ($name) {
 
-                    if (!isset($setting->enabled)) {
+                case 'strip_tags':
 
-                      continue 2;
-                    }
+                  if (!isset($setting->enabled)) {
 
-                    if (false === $setting->enabled) {
+                    break;
+                  }
 
-                      continue 2;
-                    }
+                  if (false === $setting->enabled) {
 
-                    if (!isset($setting->allowed_tags)) {
+                    break;
+                  }
 
-                      continue 2;
-                    }
+                  if (!isset($setting->allowed_tags)) {
 
-                    $value = strip_tags($value, $setting->allowed_tags);
+                    break;
+                  }
 
-                  break;
-                }
+                  $value = strip_tags($value, $setting->allowed_tags);
+
+                break;
               }
 
-              // Skip empty selector values save
+              $value = trim($value);
+
               if (empty($value)) {
 
                 continue;
               }
 
-              // Save selector value
-              $db->addHostPageDom(
-                $queueHostPage->hostPageId,
-                $selector,
-                $value,
-                time()
+              // Save selector data
+              $db->addHostPageDomSelectorData(
+                $hostPageDomSelectorId,
+                $value
               );
             }
           }

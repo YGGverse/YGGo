@@ -620,40 +620,37 @@ class MySQL {
     return $query->rowCount();
   }
 
-  public function addHostPageDom(int $hostPageId, string $selector, string $value, int $timeAdded) {
+  public function addHostPageDom(int $hostPageId, int $timeAdded) {
 
     $this->_debug->query->insert->total++;
 
-    $query = $this->_db->prepare('INSERT INTO `hostPageDom` SET `hostPageId` = ?, `timeAdded` = ?, `selector` = ?, `value` = ?');
+    $query = $this->_db->prepare('INSERT INTO `hostPageDom` SET `hostPageId` = ?, `timeAdded` = ?');
 
-    $query->execute([$hostPageId, $timeAdded, $selector, $value]);
+    $query->execute([$hostPageId, $timeAdded]);
+
+    return $this->_db->lastInsertId();
   }
 
-  public function deleteHostPageDomBySelector(int $hostPageId, string $selector) {
+  public function addHostPageDomSelector(int $hostPageDomId, string $name) {
 
-    $this->_debug->query->delete->total++;
+    $this->_debug->query->insert->total++;
 
-    $query = $this->_db->prepare('DELETE FROM `hostPageDom` WHERE `hostPageId` = ? AND `selector` = ?');
+    $query = $this->_db->prepare('INSERT INTO `hostPageDomSelector` SET `hostPageDomId` = ?, `name` = ?');
 
-    $query->execute([$hostPageId, $selector]);
+    $query->execute([$hostPageDomId, $name]);
 
-    return $query->rowCount();
+    return $this->_db->lastInsertId();
   }
 
-  public function findLastHostPageDomBySelector(int $hostPageId, string $selector) {
+  public function addHostPageDomSelectorData(int $hostPageDomSelectorId, string $value) {
 
-    $this->_debug->query->select->total++;
+    $this->_debug->query->insert->total++;
 
-    $query = $this->_db->prepare('SELECT * FROM `hostPageDom` WHERE `hostPageId` = ? AND `selector` = ? ORDER BY `timeAdded` DESC LIMIT 1');
+    $query = $this->_db->prepare('INSERT INTO `hostPageDomSelectorData` SET `hostPageDomSelectorId` = ?, `value` = ?');
 
-    $query->execute([$hostPageId, $selector]);
+    $query->execute([$hostPageDomSelectorId, $value]);
 
-    return $query->fetch();
-  }
-
-  public function truncateHostPageDom() {
-
-    $query = $this->_db->query('TRUNCATE `hostPageDom`');
+    return $this->_db->lastInsertId();
   }
 
   // Cleaner tools
@@ -806,6 +803,8 @@ class MySQL {
     $this->_db->query('OPTIMIZE TABLE `hostPage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDescription`');
     $this->_db->query('OPTIMIZE TABLE `hostPageDom`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageDomSelector`');
+    $this->_db->query('OPTIMIZE TABLE `hostPageDomSelectorData`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnap`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapStorage`');
     $this->_db->query('OPTIMIZE TABLE `hostPageSnapDownload`');
