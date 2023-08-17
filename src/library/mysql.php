@@ -640,6 +640,17 @@ class MySQL {
     return $query->rowCount();
   }
 
+  public function findLastHostPageDomBySelector(int $hostPageId, string $selector) {
+
+    $this->_debug->query->select->total++;
+
+    $query = $this->_db->prepare('SELECT * FROM `hostPageDom` WHERE `hostPageId` = ? AND `selector` = ? ORDER BY `timeAdded` DESC LIMIT 1');
+
+    $query->execute([$hostPageId, $selector]);
+
+    return $query->fetch();
+  }
+
   public function truncateHostPageDom() {
 
     $query = $this->_db->query('TRUNCATE `hostPageDom`');
