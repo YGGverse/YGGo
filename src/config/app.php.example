@@ -265,6 +265,14 @@ define('CRAWL_HOST_PAGE_QUEUE_LIMIT', 10);
 define('CRAWL_HOST_PAGE_QUEUE_SECONDS_OFFSET', 60*60*24*30*12);
 
 /*
+ * Reduce quantity of http requests for each page in queue
+ *
+ * int|false
+ *
+ */
+define('CRAWL_HOST_PAGE_SECONDS_DELAY', 1);
+
+/*
  * Re-calculate page rank on page update
  *
  * When enabled, may enlarge execution time

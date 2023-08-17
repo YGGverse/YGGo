@@ -1106,6 +1106,12 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
     // Apply changes
     $db->commit();
 
+    // Reduce quantity of http requests for each page in queue
+    if (CRAWL_HOST_PAGE_SECONDS_DELAY) {
+
+      sleep((int) CRAWL_HOST_PAGE_SECONDS_DELAY);
+    }
+
   // Process update errors
   } catch (Exception $e) {
 
