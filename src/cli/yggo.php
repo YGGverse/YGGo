@@ -16,7 +16,7 @@ if (php_sapi_name() != 'cli') {
 }
 
 // Stop CLI execution on cleaner process running
-$semaphore = sem_get(crc32('crontab.cleaner'), 1);
+$semaphore = sem_get(crc32('yggo.crontab.cleaner'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
@@ -25,7 +25,7 @@ if (false === sem_acquire($semaphore, true)) {
 }
 
 // Stop CLI execution on crawler process running
-$semaphore = sem_get(crc32('crontab.crawler'), 1);
+$semaphore = sem_get(crc32('yggo.crontab.crawler'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
@@ -34,7 +34,7 @@ if (false === sem_acquire($semaphore, true)) {
 }
 
 // Lock multi-thread execution
-$semaphore = sem_get(crc32('cli.yggo'), 1);
+$semaphore = sem_get(crc32('yggo.cli.yggo'), 1);
 
 if (false === sem_acquire($semaphore, true)) {
 
