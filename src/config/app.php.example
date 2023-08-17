@@ -194,13 +194,21 @@ define('DEFAULT_HOST_PAGES_MIME', 'text/html,application/xhtml+xml,application/j
  * Supported for text/html MIME documents only
  * Leave empty array to skip DOM elements crawling
  *
- * Provide CSS selector as key and allowed tags as value for each selector, leave null to strip all childrent tags
- * https://www.php.net/manual/en/function.strip-tags.php
+ * Settings:
+ *
+ *   strip_tags
+ *     enabled: true|false
+ *     allowed_tags: array|string|null (https://www.php.net/manual/en/function.strip-tags.php)
  *
  */
 define('DEFAULT_HOST_PAGES_DOM_SELECTORS', json_encode((object)
         [
-                'h1' => null,
+                'html' => [
+                        'strip_tags' => [
+                                'enabled'      => false,
+                                'allowed_tags' => null
+                        ]
+                ],
                 // ...
         ]
 ));
