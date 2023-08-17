@@ -1015,17 +1015,17 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
 
                     if (!isset($value->enabled)) {
 
-                      continue;
+                      continue 2;
                     }
 
                     if (false === $value->enabled) {
 
-                      continue;
+                      continue 2;
                     }
 
                     if (!isset($value->allowed_tags)) {
 
-                      continue;
+                      continue 2;
                     }
 
                     $value = strip_tags($value, $value->allowed_tags);
