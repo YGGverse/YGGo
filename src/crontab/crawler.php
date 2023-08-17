@@ -1007,28 +1007,28 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
               $value = trim($node->ownerDocument->saveHtml());
 
               // Apply selector settings
-              foreach ($settings as $key => $value) {
+              foreach ($settings as $key => $setting) {
 
                 switch ($key) {
 
                   case 'strip_tags':
 
-                    if (!isset($value->enabled)) {
+                    if (!isset($setting->enabled)) {
 
                       continue 2;
                     }
 
-                    if (false === $value->enabled) {
+                    if (false === $setting->enabled) {
 
                       continue 2;
                     }
 
-                    if (!isset($value->allowed_tags)) {
+                    if (!isset($setting->allowed_tags)) {
 
                       continue 2;
                     }
 
-                    $value = strip_tags($value, $value->allowed_tags);
+                    $value = strip_tags($value, $setting->allowed_tags);
 
                   break;
                 }
@@ -1047,8 +1047,6 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
                 $value,
                 time()
               );
-
-              $hostPageDomAddedTotal++;
             }
           }
         }
