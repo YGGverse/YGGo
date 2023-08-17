@@ -31,10 +31,6 @@ require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/yggstate.php');
-
-// @TODO deprecated, use Symfony\Component\DomCrawler\Crawler instead
-// require_once(__DIR__ . '/../library/vendor/simple_html_dom.php');
-
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Check disk quota
@@ -666,6 +662,7 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
       $metaYggoManifestURL = null;
 
       // Parse page content
+      // @TODO refactor to Symfony\Component\DomCrawler\Crawler
       $dom = new DomDocument();
 
       if ($encoding = mb_detect_encoding($content)) {
@@ -737,33 +734,6 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
                                   $metaDescription ?  Filter::pageDescription($metaDescription) : null,
                                   $metaKeywords    ?  Filter::pageKeywords($metaKeywords) : null,
                                   time());
-
-      // Collect page DOM elements data on enabled
-      /* @TODO deprecated, use Symfony\Component\DomCrawler\Crawler instead
-      if ($hostPageDomSelectors = Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', DEFAULT_HOST_PAGES_DOM_SELECTORS)) {
-
-        // Begin selectors extraction
-        $html = str_get_html($content);
-
-        foreach ((array) explode(';', $hostPageDomSelectors) as $selector) {
-
-          foreach($html->find($selector) as $element) {
-
-            if (!empty($element->innertext)) {
-
-              $db->addHostPageDom($queueHostPage->hostPageId,
-                                  time(),
-                                  $selector,
-                                  trim(Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGE_DOM_STRIP_TAGS', DEFAULT_HOST_PAGE_DOM_STRIP_TAGS) ? strip_tags( preg_replace('/[\s]+/',
-                                                                                                                                                                              ' ',
-                                                                                                                                                                              str_replace(['<br />', '<br/>', '<br>', '</'],
-                                                                                                                                                                                          [' ', ' ', ' ', ' </'],
-                                                                                                                                                                                          $element->innertext))) : $element->innertext));
-            }
-          }
-        }
-      }
-      */
 
       // Skip page links following with meta robots:nofollow attribute
       foreach (@$dom->getElementsByTagName('meta') as $meta) {
@@ -1018,6 +988,70 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
           'mime'        => null,
           'href'        => $href,
         ];
+      }
+
+      // Init DOM crawler
+      $crawler = new Symfony\Component\DomCrawler\Crawler();
+      $crawler->addHtmlContent($content);
+
+      // Process selectors configuration
+      if ($hostPageDomSelectors = Helper::getHostSettingValue($db, $memory, $queueHostPage->hostId, 'PAGES_DOM_SELECTORS', json_decode(DEFAULT_HOST_PAGES_DOM_SELECTORS))) {
+
+        foreach ($hostPageDomSelectors as $selector => $settings) {
+
+          // Extract target selector data
+          foreach ($crawler->filter($selector) as $data) {
+
+            foreach ($data->childNodes as $node) {
+
+              $value = trim($node->ownerDocument->saveHtml());
+
+              // Apply selector settings
+              foreach ($settings as $key => $value) {
+
+                switch ($key) {
+
+                  case 'strip_tags':
+
+                    if (!isset($value->enabled)) {
+
+                      continue;
+                    }
+
+                    if (false === $value->enabled) {
+
+                      continue;
+                    }
+
+                    if (!isset($value->allowed_tags)) {
+
+                      continue;
+                    }
+
+                    $value = strip_tags($value, $value->allowed_tags);
+
+                  break;
+                }
+              }
+
+              // Skip empty selector values save
+              if (empty($value)) {
+
+                continue;
+              }
+
+              // Save selector value
+              $db->addHostPageDom(
+                $queueHostPage->hostPageId,
+                $selector,
+                $value,
+                time()
+              );
+
+              $hostPageDomAddedTotal++;
+            }
+          }
+        }
       }
 
       // Process links collected
