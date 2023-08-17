@@ -251,10 +251,6 @@ _*CLI interface still under construction, use it for your own risk!_
     + [x] fs
   + [ ] reindex
   + [ ] truncate
-* [x] hostPageDom
-  + [x] generate
-  + [x] delete
-  + [x] truncate
 
 ##### Other
 
