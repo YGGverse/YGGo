@@ -16,7 +16,6 @@ https://github.com/YGGverse/YGGo/tree/main/media
 #### Online instances
 
 * [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
-* [http://94.140.114.241/yggo/](http://94.140.114.241/yggo)
 
 #### Requirements
 
@@ -291,5 +290,6 @@ Feel free to [share](https://github.com/YGGverse/YGGo/issues) your ideas and bug
 
 #### See also
 
-* [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
-* [YGGstate - Yggdrasil Network Analytics](https://github.com/YGGverse/YGGstate)
+* [YGGwave](https://github.com/YGGverse/YGGwave) ~ The Radio Catalog
+* [YGGstate](https://github.com/YGGverse/YGGstate) - Yggdrasil Network Analytics
+* [YGGtracker](https://github.com/YGGverse/YGGtracker) - BitTorrent Tracker and Catalog for Yggdrasil
