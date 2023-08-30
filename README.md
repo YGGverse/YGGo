@@ -290,6 +290,6 @@ Feel free to [share](https://github.com/YGGverse/YGGo/issues) your ideas and bug
 
 #### See also
 
-* [YGGwave](https://github.com/YGGverse/YGGwave) ~ The Radio Catalog
-* [YGGstate](https://github.com/YGGverse/YGGstate) - Yggdrasil Network Analytics
-* [YGGtracker](https://github.com/YGGverse/YGGtracker) - BitTorrent Tracker and Catalog for Yggdrasil
+* [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
+* [YGGstate - Yggdrasil Network Analytics](https://github.com/YGGverse/YGGstate)
+* [YGGtracker - BitTorrent Tracker and Catalog for Yggdrasil](https://github.com/YGGverse/YGGtracker)
