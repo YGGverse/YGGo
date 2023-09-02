@@ -1,9 +1,9 @@
 <?php
 
 require_once(__DIR__ . '/../config/app.php');
-require_once(__DIR__ . '/../library/icon.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/ftp.php');
+require_once(__DIR__ . '/../../vendor/autoload.php');
 
 $type = !empty($_GET['type']) ? $_GET['type'] : false;
 
@@ -11,33 +11,19 @@ switch ($type) {
 
   case 'identicon':
 
-    $query  = md5($_GET['query']);
+    if (!empty($_GET['query']))
+    {
+      $icon = new Jdenticon\Identicon();
 
-    $width  = isset($_GET['width']) ? (int) $_GET['width'] : 16;
-    $height = isset($_GET['height']) ? (int) $_GET['height'] : 16;
+      $icon->setValue(urldecode($_GET['query']));
+      $icon->setSize(16);
+      $icon->setStyle(
+        [
+          'backgroundColor' => 'rgba(255, 255, 255, 0)',
+        ]
+      );
 
-    $radius = isset($_GET['radius']) ? (int) $_GET['radius'] : 0;
-
-    header('Content-Type: image/webp');
-
-    if (WEBSITE_IDENTICON_IMAGE_CACHE) {
-
-      $filename = __DIR__ . '/../storage/cache/' . $query . '.webp';
-
-      if (!file_exists($filename)) {
-
-        $icon = new Icon();
-
-        file_put_contents($filename, $icon->generateImageResource($query, $width, $height, false, $radius));
-      }
-
-      echo file_get_contents($filename);
-
-    } else {
-
-      $icon = new Icon();
-
-      echo $icon->generateImageResource($query, $width, $height, false, $radius);
+      $icon->displayImage('webp');
     }
 
   break;

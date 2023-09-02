@@ -236,7 +236,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
               <?php } ?>
             <?php } ?>
             <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
-              <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($host->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+              <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode(str_replace(['[',']'], false, $host->name)) ?>" alt="identicon" width="16" height="16" class="icon" />
               <?php echo htmlentities(urldecode($host->url . $hostPage->uri)) ?>
             </a>
           </div>
@@ -284,7 +284,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                   <?php if ($host = $db->getHost($hostPage->hostId)) { ?>
                     <p>
                       <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
-                        <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($host->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+                        <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode(str_replace(['[',']'], false, $host->name)) ?>" alt="identicon" width="16" height="16" class="icon" />
                         <?php echo htmlentities(urldecode($host->url) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
                       </a>
                       |

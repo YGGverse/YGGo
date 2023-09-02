@@ -55,14 +55,6 @@ define('WEBSITE_DOMAIN', '');
  */
 define('WEBSITE_PAGINATION_SEARCH_PAGE_RESULTS_LIMIT', 100);
 
-/*
- * Save ident icons to the static webp cache (placed in storage/cache) to prevent CPU overload
- *
- * or false - to generate every time on request
- *
- */
-define('WEBSITE_IDENTICON_IMAGE_CACHE', true);
-
 // Database
 define('DB_HOST', 'localhost');
 define('DB_PORT', 3306);

@@ -6,7 +6,7 @@ require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/helper.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once(__DIR__ . '/../../vendor/autoload.php');
 
 // Connect Sphinx search server
 try {
@@ -327,7 +327,7 @@ if ($queueTotal = $memory->getByMethodCallback(
                   <?php } ?>
                 <?php } ?>
                 <a href="<?php echo urldecode($host->url . $hostPage->uri) ?>">
-                  <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode($host->name) ?>" alt="identicon" width="16" height="16" class="icon" />
+                  <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode(str_replace(['[',']'], false, $host->name)) ?>" alt="identicon" width="16" height="16" class="icon" />
                   <?php echo htmlentities(urldecode($host->url) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
                 </a>
                 |
