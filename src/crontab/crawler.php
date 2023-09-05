@@ -936,6 +936,15 @@ foreach ($db->getHostPageCrawlQueue(CRAWL_HOST_PAGE_QUEUE_LIMIT, time() - CRAWL_
           continue;
         }
 
+        // Skip links have rel=nofollow attribute
+        if ($rel = @$a->getAttribute('rel')) {
+
+          if (false !== stripos($rel, 'nofollow')) {
+
+            continue;
+          }
+        }
+
         // Get title attribute if available
         if (!$title = @$a->getAttribute('title')) {
              $title = null;
