@@ -287,6 +287,8 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
            https://github.com/YGGverse/YGGo#donate-to-contributors
       -->
       |
+      <a href="https://github.com/YGGverse/YGGo#database-snaps"><?php echo _('Database') ?></a>
+      |
       <a href="https://github.com/YGGverse/YGGo"><?php echo _('Source') ?></a>
     </footer>
   </body>
