@@ -17,6 +17,10 @@ https://github.com/YGGverse/YGGo/tree/main/media
 
 * [http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggo)
 
+#### Database snaps
+
+[17-09-2023](http://[201:23b4:991a:634d:8359:4521:5576:15b7]/yggtracker/en/torrent/15)
+
 #### Requirements
 
 ```
