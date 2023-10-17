@@ -2,8 +2,8 @@
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
 
-Written by inspiration to explore [Yggdrasil](https://github.com/yggdrasil-network) ecosystem, because of last [YaCy](https://yacy.net/) node there was discontinued.
-This engine also could be useful for crawling regular websites, small business resources, local networks.
+Written by inspiration to explore [Yggdrasil](https://github.com/yggdrasil-network) ecosystem.
+Engine could be useful for crawling regular websites, small business resources, local networks.
 
 The project goal - simple interface, clear architecture and lightweight server requirement.
 
