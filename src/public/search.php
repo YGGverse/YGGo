@@ -64,9 +64,9 @@ if (empty($q)) {
 // Define page basics
 $totalPages = $sphinx->getHostPagesTotal();
 
-$placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'),  $totalPages),
-                                            sprintf(_('Over %s pages or enter the new one...'), $totalPages),
-                                            sprintf(_('Over %s pages or enter the new one...'), $totalPages),
+$placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the new one...'),  number_format($totalPages)),
+                                            sprintf(_('Over %s pages or enter the new one...'), number_format($totalPages)),
+                                            sprintf(_('Over %s pages or enter the new one...'), number_format($totalPages)),
                                             ]);
 // Define alert message
 $alertMessages = [];
