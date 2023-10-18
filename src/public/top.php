@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../config/app.php');
 require_once(__DIR__ . '/../library/filter.php');
 require_once(__DIR__ . '/../library/mysql.php');
 require_once(__DIR__ . '/../library/sphinxql.php');
+require_once(__DIR__ . '/../../vendor/autoload.php');
 
 // Connect Sphinx search server
 try {
@@ -30,6 +31,18 @@ try {
   exit;
 }
 
+// Connect Yggverse\Cache\Memory
+try {
+
+  $memory = new Yggverse\Cache\Memory(MEMCACHED_HOST, MEMCACHED_PORT, MEMCACHED_NAMESPACE, MEMCACHED_TIMEOUT + time());
+
+} catch(Exception $e) {
+
+  var_dump($e);
+
+  exit;
+}
+
 // Define page basics
 $totalPages = $sphinx->getHostPagesTotal();
 
@@ -37,6 +50,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                                             sprintf(_('Over %s pages or enter the new one...'), number_format($totalPages)),
                                             sprintf(_('Over %s pages or enter the new one...'), number_format($totalPages)),
                                             ]);
+
 
 ?>
 
@@ -245,7 +259,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       </form>
     </header>
     <main>
-      <?php if ($topHostPages = $db->getTopHostPages()) { ?>
+      <?php if ($topHostPages = $memory->getByMethodCallback($db, 'getTopHostPages', [], time() + 86400)) { ?>
         <table>
           <tr>
             <th><?php echo _('#') ?></th>
