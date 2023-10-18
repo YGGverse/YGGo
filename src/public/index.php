@@ -256,7 +256,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       <form name="search" method="GET" action="<?php echo WEBSITE_DOMAIN; ?>/search.php">
         <h1><?php echo _('YGGo!') ?></h1>
         <input type="text" name="q" placeholder="<?php echo $placeholder ?>" value="" />
-        <button type="submit"><?php echo _('Search') ?></button>
+        <button type="submit"><?php echo _('search') ?></button>
       </form>
     </header>
     <!-- css animation : begin -->

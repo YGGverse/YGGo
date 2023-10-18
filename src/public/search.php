@@ -300,7 +300,7 @@ if ($queueTotal = $memory->getByMethodCallback(
           <input type="radio" name="t" value="<?php echo $hostPageMime->mime ?>" <?php echo ($t == $hostPageMime->mime ? 'checked="checked"' : false) ?>/> <?php echo $hostPageMime->mime ?>
         </label>
         <?php } ?>
-        <button type="submit"><?php echo _('Search'); ?></button>
+        <button type="submit"><?php echo _('search'); ?></button>
       </form>
     </header>
     <main>
