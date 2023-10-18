@@ -65,7 +65,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
 
       input {
         width: 100%;
-        margin: 16px 0;
+        margin: 8px 0;
         padding: 12px 0;
         border-radius: 32px;
         background-color: #000;
