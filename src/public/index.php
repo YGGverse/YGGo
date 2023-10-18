@@ -52,7 +52,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       h1 {
         color: #fff;
         font-weight: normal;
-        font-size: 48px;
+        font-size: 36px;
         margin: 16px 0
       }
 
@@ -66,7 +66,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       input {
         width: 100%;
         margin: 16px 0;
-        padding: 16px 0;
+        padding: 12px 0;
         border-radius: 32px;
         background-color: #000;
         color: #fff;
@@ -89,7 +89,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
 
       button {
         margin: 22px 0;
-        padding: 12px 16px;
+        padding: 10px 16px;
         border-radius: 4px;
         cursor: pointer;
         background-color: #3394fb;
