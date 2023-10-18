@@ -52,7 +52,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
       h1 {
         color: #fff;
         font-weight: normal;
-        font-size: 36px;
+        font-size: 32px;
         margin: 16px 0
       }
 
