@@ -336,9 +336,9 @@ if ($queueTotal = $memory->getByMethodCallback(
                 </a>
                 <?php if ($hostPage->httpCode != 200) { ?>
                   |
-                  <span class="text-warning">
+                  <small class="text-warning">
                     <?php echo $hostPage->httpCode ?>
-                  </span>
+                  </small>
                 <?php } ?>
                 |
                 <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
