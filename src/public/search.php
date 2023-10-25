@@ -285,6 +285,10 @@ if ($queueTotal = $memory->getByMethodCallback(
         font-size: 11px;
       }
 
+      .text-warning {
+        color: #db6161;
+      }
+
     </style>
   </head>
   <body>
@@ -330,6 +334,12 @@ if ($queueTotal = $memory->getByMethodCallback(
                   <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode(str_replace(['[',']'], false, $host->name)) ?>" alt="identicon" width="16" height="16" class="icon" />
                   <?php echo htmlentities(urldecode($host->url) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
                 </a>
+                <?php if ($hostPage->httpCode != 200) { ?>
+                  |
+                  <span class="text-warning">
+                    <?php echo $hostPage->httpCode ?>
+                  </span>
+                <?php } ?>
                 |
                 <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $result->id ?>">
                   <?php echo _('explore'); ?>

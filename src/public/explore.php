@@ -192,7 +192,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
         margin: 0 auto;
         padding: 16px 0;
         border-top: 1px #000 dashed;
-        font-size: 14px
+        font-size: 14px;
       }
 
       span {
@@ -208,6 +208,10 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
 
       p > a, p > a:visited, p > a:active {
         font-size: 11px;
+      }
+
+      .text-warning {
+        color: #db6161;
       }
 
     </style>
@@ -241,6 +245,14 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
             </a>
           </div>
           <div>
+            <p><?php echo _('HTTP') ?></p>
+            <?php if ($hostPage->httpCode == 200) { ?>
+              <p><?php echo $hostPage->httpCode ?></p>
+            <?php } else { ?>
+              <p class="text-warning">
+                <?php echo $hostPage->httpCode ?>
+              </p>
+            <?php } ?>
             <?php if (!empty($hostPage->mime)) { ?>
               <p><?php echo _('MIME') ?></p>
               <p><?php echo $hostPage->mime ?></p>
@@ -287,6 +299,12 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
                         <img src="<?php echo WEBSITE_DOMAIN; ?>/file.php?type=identicon&query=<?php echo urlencode(str_replace(['[',']'], false, $host->name)) ?>" alt="identicon" width="16" height="16" class="icon" />
                         <?php echo htmlentities(urldecode($host->url) . (mb_strlen(urldecode($hostPage->uri)) > 28 ? '...' . mb_substr(urldecode($hostPage->uri), -28) : urldecode($hostPage->uri))) ?>
                       </a>
+                      <?php if ($hostPage->httpCode != 200) { ?>
+                        |
+                        <span class="text-warning">
+                          <?php echo $hostPage->httpCode ?>
+                        </span>
+                      <?php } ?>
                       |
                       <a href="<?php echo WEBSITE_DOMAIN; ?>/explore.php?hp=<?php echo $hostPage->hostPageId ?>">
                         <?php echo _('explore'); ?>
