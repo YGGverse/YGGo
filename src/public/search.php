@@ -139,6 +139,7 @@ if ($queueTotal = $memory->getByMethodCallback(
 
       body {
         background-color: #2e3436;
+        word-break: break-word;
       }
 
       header {

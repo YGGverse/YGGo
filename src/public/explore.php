@@ -64,6 +64,7 @@ $placeholder = Filter::plural($totalPages, [sprintf(_('Over %s page or enter the
 
       body {
         background-color: #2e3436;
+        word-break: break-word;
       }
 
       header {
