@@ -282,6 +282,7 @@ See also: [SQLite tree](https://github.com/YGGverse/YGGo/tree/sqliteway)
 * Engine sources [MIT License](https://github.com/YGGverse/YGGo/blob/main/LICENSE)
 * Home page animation by [alvarotrigo](https://codepen.io/alvarotrigo/pen/GRvYNax)
 * CLI logo by [patorjk.com](https://patorjk.com/software/taag/#p=display&f=Slant&t=YGGo!)
+* Transliteration by [php-translit](https://github.com/ashtokalo/php-translit)
 * Identicons by [jdenticon](https://github.com/dmester/jdenticon-php)
 
 #### Feedback

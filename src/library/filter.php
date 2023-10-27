@@ -113,7 +113,12 @@ class Filter {
 
           if (mb_strlen($word) > 1) {
 
-            $words[] = sprintf('(%s*)', $word);
+            $words[] = sprintf('%s*', $word);
+
+            foreach (self::_generateWordForms($word) as $wordForm)
+            {
+              $words[] = sprintf('(*%s*)', $wordForm);
+            }
           }
         }
 
@@ -131,5 +136,60 @@ class Filter {
     $cases = array (2, 0, 1, 1, 1, 2);
 
     return $texts[(($number % 100) > 4 && ($number % 100) < 20) ? 2 : $cases[min($number % 10, 5)]];
+  }
+
+  // Word forms generator to improve search results
+  // e.g. transliteration rules for latin filenames
+  private static function _generateWordForms(
+    string $keyword,
+    // #13 supported locales:
+    // https://github.com/ashtokalo/php-translit
+    array  $transliteration = [
+      'be',
+      'bg',
+      'el',
+      'hy',
+      'kk',
+      'mk',
+      'ru',
+      'ka',
+      'uk'
+    ],
+    // Additional char forms
+    array $charForms =
+    [
+      'c' => 'k',
+      'k' => 'c',
+    ]
+  ): array
+  {
+    $wordForms = [];
+
+    // Apply transliteration
+    foreach ($transliteration as $locale)
+    {
+      $wordForms[] = \ashtokalo\translit\Translit::object()->convert(
+        $keyword,
+        $locale
+      );
+    }
+
+    // Apply char forms
+    foreach ($wordForms as $wordForm)
+    {
+      foreach ($charForms as $from => $to)
+      {
+        $wordForms[] = str_replace(
+          $from,
+          $to,
+          $wordForm
+        );
+      }
+    }
+
+    // Remove duplicates
+    return array_unique(
+      $wordForms
+    );
   }
 }

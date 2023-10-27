@@ -8,7 +8,8 @@
         "yggverse/cache": ">=0.3.0",
         "symfony/dom-crawler": "^6.3",
         "symfony/css-selector": "^6.3",
-        "jdenticon/jdenticon": "^1.0"
+        "jdenticon/jdenticon": "^1.0",
+        "ashtokalo/php-translit": "^0.2.0"
     },
     "license": "MIT",
     "autoload": {
