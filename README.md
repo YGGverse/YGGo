@@ -1,3 +1,5 @@
+_Project archived. Please, visit [Yo!](https://github.com/YGGverse/Yo) - the next generation of YGGo project based on Manticore search._
+
 ### YGGo! - Distributed Web Search Engine
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
@@ -296,6 +298,7 @@ Feel free to [share](https://github.com/YGGverse/YGGo/issues) your ideas and bug
 
 #### See also
 
+* [Yo! Micro Web Crawler in PHP & Manticore](https://github.com/YGGverse/Yo)
 * [YGGwave ~ The Radio Catalog](https://github.com/YGGverse/YGGwave)
 * [YGGstate - Yggdrasil Network Analytics](https://github.com/YGGverse/YGGstate)
 * [YGGtracker - BitTorrent Tracker and Catalog for Yggdrasil](https://github.com/YGGverse/YGGtracker)
